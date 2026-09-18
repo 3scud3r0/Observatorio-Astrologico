@@ -100,7 +100,7 @@ function refJD(){return localJD(q('#tt-ref-date').value,q('#tt-ref-time').value,
 function birthJD(){return localJD(q('#tt-birth-date').value,q('#tt-birth-time').value,q('#tt-birth-offset').value)}
 function fmtLon(v){const eng=E(),s=eng.signIndex(v),d=eng.signDegree(v);return eng.SIGN_NAMES[s]+' '+d.toFixed(4)+'° ('+eng.mod(v).toFixed(6)+'°)'}
 function fmtJD(jd){return E().isoFromJD(jd).replace('T',' ').slice(0,19)+' UTC'}
-function currentPoints(){return Array.isArray(window.positions)?window.positions:[]}
+function currentPoints(){try{return typeof positions!=='undefined'&&Array.isArray(positions)?positions:[]}catch{return []}}
 function inferSect(){
   try{if(window.currentHouseGeometry&&currentPoints()[0]){const h=window.currentHouseGeometry,lon=currentPoints()[0].lon;for(let i=0;i<12;i++){const a=h.cusps[i],b=h.cusps[(i+1)%12],span=E().mod(b-a),rel=E().mod(lon-a);if(rel<span)return i+1>=7?'day':'night'}}}catch{}return q('#tt-sect').value||'day'
 }
