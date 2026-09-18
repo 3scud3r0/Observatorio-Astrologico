@@ -70,6 +70,20 @@
   const isoFromJD=jd=>new Date((jd-2440587.5)*DAY).toISOString();
   const addYearsJD=(jd,years)=>jd+years*TROPICAL_YEAR;
   const ageYears=(birthJD,refJD)=>(refJD-birthJD)/TROPICAL_YEAR;
+  const dateFromJD=jd=>new Date((jd-2440587.5)*DAY);
+  const daysInMonthUTC=(year,month)=>new Date(Date.UTC(year,month+1,0)).getUTCDate();
+  function civilAnniversaryJD(birthJD,years){
+    const d=dateFromJD(birthJD),y=d.getUTCFullYear()+Number(years),m=d.getUTCMonth();
+    const day=Math.min(d.getUTCDate(),daysInMonthUTC(y,m));
+    return Date.UTC(y,m,day,d.getUTCHours(),d.getUTCMinutes(),d.getUTCSeconds(),d.getUTCMilliseconds())/DAY+2440587.5;
+  }
+  function completedCivilYears(birthJD,refJD){
+    if(refJD<birthJD) throw new Error('A referência não pode preceder o nascimento.');
+    const b=dateFromJD(birthJD),r=dateFromJD(refJD);
+    let years=r.getUTCFullYear()-b.getUTCFullYear();
+    if(refJD<civilAnniversaryJD(birthJD,years)-1e-10) years--;
+    return Math.max(0,years);
+  }
 
   function trueSolarArc(birthJD,refJD,sunLongitude){
     const age=ageYears(birthJD,refJD);
@@ -82,12 +96,22 @@
 
   function annualProfection(birthJD,refJD,startSign=0,startHouse=1){
     const age=ageYears(birthJD,refJD);
-    if(age<0) throw new Error('A referência não pode preceder o nascimento.');
-    const completed=Math.floor(age+1e-10);
+    const completed=completedCivilYears(birthJD,refJD);
     const house=((Number(startHouse)-1+completed)%12+12)%12+1;
     const sign=(Number(startSign)+completed)%12;
     return {age,completedYears:completed,house,sign,signName:SIGN_NAMES[sign],lord:SIGN_RULERS[sign],
-      startJD:addYearsJD(birthJD,completed),endJD:addYearsJD(birthJD,completed+1)};
+      startJD:civilAnniversaryJD(birthJD,completed),endJD:civilAnniversaryJD(birthJD,completed+1),
+      convention:'A profecção anual muda no aniversário civil; 29 de fevereiro é limitado ao último dia de fevereiro em anos não bissextos.'};
+  }
+  function monthlyProfection(birthJD,refJD,startSign=0,startHouse=1){
+    const annual=annualProfection(birthJD,refJD,startSign,startHouse);
+    const span=annual.endJD-annual.startJD;
+    const fraction=Math.min(.999999999,Math.max(0,(refJD-annual.startJD)/span));
+    const monthIndex=Math.min(11,Math.floor(fraction*12));
+    const sign=mod(annual.sign+monthIndex,12),house=((annual.house-1+monthIndex)%12)+1;
+    return {annual,monthIndex,house,sign,signName:SIGN_NAMES[sign],lord:SIGN_RULERS[sign],
+      startJD:annual.startJD+span*monthIndex/12,endJD:annual.startJD+span*(monthIndex+1)/12,
+      convention:'Profeção mensal por doze partes iguais do ano profectado entre aniversários.'};
   }
 
   function rotateFrom(list,item){
@@ -128,6 +152,19 @@
     const fortune=mod(asc+(day?moon-sun:sun-moon));
     const spirit=mod(asc+(day?sun-moon:moon-sun));
     return {fortune,spirit,fortuneSign:signIndex(fortune),spiritSign:signIndex(spirit)};
+  }
+  function sevenHermeticLots({asc,sun,moon,mercury,venus,mars,jupiter,saturn,sect='day'}){
+    const base=hermeticLots(asc,sun,moon,sect),day=sect!=='night',F=base.fortune,S=base.spirit;
+    const oriented=(plus,minus)=>mod(asc+(day?plus-minus:minus-plus));
+    return {
+      ...base,
+      eros:oriented(venus,S),
+      necessity:oriented(F,mercury),
+      courage:oriented(F,mars),
+      victory:oriented(jupiter,S),
+      nemesis:oriented(F,saturn),
+      convention:'Sete Lotes Herméticos na formulação planetária atribuída a Paulus Alexandrinus; os dois termos após o Ascendente são invertidos por seita.'
+    };
   }
 
   function zrDurationDays(sign,level){
@@ -193,6 +230,7 @@
     return {near:first,opposite:mod(first+180),separation:sep(a,b)};
   }
   const harmonic=(lon,n)=>mod(Number(lon)*Number(n));
+  const antiscia=lon=>({antiscion:mod(180-Number(lon)),contraAntiscion:mod(360-Number(lon))});
 
   function essentialDignity(planet,lon,sect='day'){
     const s=signIndex(lon),deg=signDegree(lon),ruler=SIGN_RULERS[s];
@@ -211,17 +249,18 @@
     return dignity;
   }
 
-  function eclipticToRA(lon,lat=0,obliquity=23.4392911){
+  function eclipticToEquatorial(lon,lat=0,obliquity=23.4392911){
     const r=Math.PI/180,L=mod(lon)*r,B=Number(lat)*r,e=Number(obliquity)*r;
-    const y=Math.sin(L)*Math.cos(e)-Math.tan(B)*Math.sin(e);
-    const x=Math.cos(L);
-    return mod(Math.atan2(y,x)/r);
+    const y=Math.sin(L)*Math.cos(e)-Math.tan(B)*Math.sin(e),x=Math.cos(L);
+    const ra=mod(Math.atan2(y,x)/r);
+    const dec=Math.asin(Math.sin(B)*Math.cos(e)+Math.cos(B)*Math.sin(e)*Math.sin(L))/r;
+    return {ra,dec};
   }
+  function eclipticToRA(lon,lat=0,obliquity=23.4392911){return eclipticToEquatorial(lon,lat,obliquity).ra}
 
   function zodiacalPrimaryDirection(promissorLon,significatorLon,{key=0.98564736,converse=false,obliquity=23.4392911}={}){
     const pRA=eclipticToRA(promissorLon,0,obliquity),sRA=eclipticToRA(significatorLon,0,obliquity);
-    let arc=converse?mod(sRA-pRA):mod(pRA-sRA);
-    if(arc>180) arc=360-arc;
+    const arc=converse?mod(sRA-pRA):mod(pRA-sRA);
     return {method:'Direção primária zodiacal em ascensão reta, latitude eclíptica zero',pRA,sRA,arc,key,years:arc/key,
       warning:'Não substitui direções mundanas por semi-arco; use esta modalidade somente quando a escola escolhida admitir direção zodiacal em AR.'};
   }
@@ -295,8 +334,8 @@
 
   return {
     DAY,TROPICAL_YEAR,SIGN_NAMES,SIGN_RULERS,ZR_YEARS,CHALDEAN,FIRDAR_DAY,FIRDAR_NIGHT,FIRDAR_YEARS,FIXED_STARS,
-    mod,sep,signed,signIndex,signDegree,jdFromDate,isoFromJD,ageYears,trueSolarArc,annualProfection,firdaria,hermeticLots,
-    zrDurationDays,zodiacalReleasing,midpoint,harmonic,essentialDignity,eclipticToRA,zodiacalPrimaryDirection,
+    mod,sep,signed,signIndex,signDegree,jdFromDate,isoFromJD,ageYears,civilAnniversaryJD,completedCivilYears,trueSolarArc,annualProfection,monthlyProfection,firdaria,hermeticLots,sevenHermeticLots,
+    zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,essentialDignity,eclipticToEquatorial,eclipticToRA,zodiacalPrimaryDirection,
     fixedStarConjunctions,findPlanetReturn,findStations,findIngresses
   };
 });
