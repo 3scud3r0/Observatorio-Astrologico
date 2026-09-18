@@ -12,6 +12,9 @@ def upgrade(text):
     needle = 'for(let j=start,count=0;j<end;j+=step,count++){'
     assert text.count(needle) == 1, 'Transit scanner changed upstream'
     text = text.replace(needle, needle + "\nif(window.atlasScanCancelled)throw new Error('Consulta cancelada; os volumes concluídos foram preservados.');")
+    latest = 'for(let j=start;j<end;j+=step,count++){const ps='
+    assert text.count(latest) == 1, 'Refined transit scanner changed upstream'
+    text = text.replace(latest, "for(let j=start;j<end;j+=step,count++){if(window.atlasScanCancelled)throw new Error('Consulta cancelada; os volumes concluídos foram preservados.');const ps=")
     return text
 
 if __name__ == '__main__':

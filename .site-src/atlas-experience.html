@@ -1,11 +1,17 @@
 <!-- Atlas experience release: navigation, accessible surfaces, saved charts, volumes and export. -->
 <style id="atlas-experience-styles">
+body.ra-workspace #oa-atlas{z-index:3!important;pointer-events:none;background:transparent!important}
+body.ra-workspace #oa-atlas .ra-land{display:none}
+body.ra-workspace #oa-atlas :is(.ra-top,.ra-rail){pointer-events:auto;background:#09182bea}
+body.ra-workspace #oa-atlas .ra-top{backdrop-filter:blur(14px)}
 body.ra-workspace>main :is(.qualityList,.reportPlace,.guideTimeline>div,.eduQuizQ,.eduSaved,.eduCaution,.eduReadingPath div,.beginnerReview,.profileClock,.pdfPromise,.beginnerChecklist span,.advancedTechResult,.swissEngineCard,.swissLocationFinder,#journalForm,.studioSummary,.atlas-surface){background:#132940!important;background-image:none!important;color:#edf3fb!important;border-color:#526b85!important}
 body.ra-workspace>main :is(span,em,code,output,legend){color:inherit}
 body.ra-workspace>main :is(.atlas-surface *){text-shadow:none!important}
 body.ra-workspace>main .atlas-surface :is(p,span,small,label,b,strong,em,li,h1,h2,h3,h4,td,th,summary,div){color:#edf3fb!important}
 body.ra-workspace :focus-visible,#atlasAccount :focus-visible{outline:3px solid #f7bd9d!important;outline-offset:3px}
 #oa-atlas .ra-wheel svg{width:100%;height:100%;max-height:290px}
+#oa-atlas .ra-wheel svg text{fill:#f1d4b8!important}
+#oa-atlas .ra-wheel svg :is(path,line,circle)[stroke]{stroke-opacity:.85;opacity:.85}
 #atlasAccount{background:#10243a;color:#edf3fb;border:1px solid #66809a;border-radius:18px;width:min(760px,calc(100vw - 24px));max-height:88vh;padding:26px;box-shadow:0 30px 100px #0009}
 #atlasAccount::backdrop{background:#030b17c9;backdrop-filter:blur(5px)}
 #atlasAccount h2{font:30px Georgia,serif;color:#f4cfb5;margin:0 0 12px}
@@ -65,8 +71,8 @@ function paint(){if(!positions?.length)return;const box=root.querySelector('.ra-
 const oldMap=makeMap;makeMap=function(){const result=oldMap.apply(this,arguments);paint();if(initialized)write(CACHE,{fields:capture(),demo});return result};
 function useFields(fields,isDemo=false){const safe=cleanFields(fields);for(const [id,value]of Object.entries(safe)){if(el(id))el(id).value=value}demo=isDemo;makeMap()}
 function initialize(){if(initialized)return;let fields=cached?.fields;if(!fields&&studio.profiles.length)fields=studio.profiles[studio.profiles.length-1].fields;if(!fields){const day=new Date(Date.UTC(1980,0,1)+Math.floor(Math.random()*14610)*86400000).toISOString().slice(0,10);fields={...capture(),nome:'Céu de exemplo',data:day,hora:'12:00',utc:'0',origem:'Exemplo fictício para explorar a interface',nlat:'',nlon:'',houseSystem:'none'};demo=true}else demo=!!cached?.demo;initialized=true;try{useFields(fields,demo)}catch(e){initialized=false;root.querySelector('.ra-caption').textContent='Não foi possível restaurar o mapa: '+e.message}}
-// Restore after the asynchronous ephemeris bootstrap, without replacing user edits.
-let attempts=0;const boot=setInterval(()=>{if(window.obsSwiss?.ready||++attempts>40){clearInterval(boot);initialize()}},250);
+// Draw immediately with the available engine; Swiss bootstrap recalculates the same fields.
+initialize();
 el('mapform')?.addEventListener('submit',()=>{demo=false},true);el('drawAdvanced')?.addEventListener('click',()=>{demo=false},true);
 el('aaNewMap').onclick=()=>{dialog.close();demo=false;document.body.classList.remove('ra-home');document.body.classList.add('ra-workspace');el('atlasBack').hidden=false;tab('dados');el('nome').focus()};
 function openSaved(item){useFields(item.fields,false);dialog.close();root.querySelector('[data-route="mapa"]').click()}
@@ -77,7 +83,7 @@ el('aaBackup').onclick=()=>download('Atlas_mapas_locais.json',JSON.stringify({ve
 
 // Public configuration contains no administrative or OAuth provider secret.
 let client=null,user=null;
-async function refreshCloud(){if(!client||!user)return;const {data,error}=await client.from('atlas_maps').select('id,profile,fields,created_at').eq('owner_id',user.id).order('created_at',{ascending:false});if(error)throw error;list(el('aaCloudList'),data,true)}
+async function refreshCloud(){if(!client||!user)return;const owner=user.id;const {data,error}=await client.from('atlas_maps').select('id,profile,fields,created_at').eq('owner_id',owner).order('created_at',{ascending:false});if(user?.id!==owner)return;if(error)throw error;list(el('aaCloudList'),data,true)}
 async function saveCloud(item){try{if(!client||!user)throw Error('Entre na sua conta primeiro.');const {error}=await client.from('atlas_maps').insert({owner_id:user.id,profile:item.profile||'Pessoal',fields:cleanFields(item.fields)});if(error)throw error;await refreshCloud();message('Mapa copiado para sua conta privada.')}catch(e){message('Não foi possível salvar na conta: '+e.message)}}
 async function sessionChanged(session){user=session?.user||null;el('aaAuth').hidden=!!user;el('aaSignout').hidden=!user;el('aaRefresh').hidden=!user;el('aaCloud').hidden=!user;el('aaCloudList').replaceChildren();renderLocal();message(user?'Conta conectada: '+user.email+'. Use “Copiar para conta” nos mapas que deseja sincronizar.':'Entre ou crie uma conta. Seus mapas locais só são enviados quando você escolhe copiá-los.');if(user)try{await refreshCloud()}catch(e){message(e.message)}}
 el('aaRefresh').onclick=()=>refreshCloud().catch(e=>message(e.message));
@@ -100,8 +106,9 @@ async function record(mode,value){const db=await dbPromise;return new Promise((r
 let job=null, busy=false;
 const plusDays=(date,n)=>new Date(Date.parse(date+'T00:00:00Z')+n*day).toISOString().slice(0,10);
 function selectOptions(){const s=$('atlasVolumeSelect');s.replaceChildren();for(let i=0;i<(job?.completed||0);i++){const opt=document.createElement('option');opt.value=String(i);const a=plusDays(job.start,i*90),b=plusDays(a,89);opt.textContent='Volume '+(i+1)+' · '+a+' a '+(b>job.end?job.end:b);s.append(opt)}controls.hidden=!job;$('atlasCancel').hidden=!busy}
-async function showVolume(index){const item=await record('get',job.id+':'+index);if(!item)throw Error('Volume não encontrado neste navegador.');guideLast=item.report;guideRender(guideLast);$('atlasVolumeSelect').value=String(index);}
+async function showVolume(index){const item=await record('get',job.id+':'+index);if(!item)throw Error('Volume não encontrado neste navegador.');guideLast=item.report;guideRender(guideLast);$('analise').prepend(controls);$('atlasVolumeSelect').value=String(index);}
 $('atlasVolumeSelect').onchange=()=>showVolume(+$('atlasVolumeSelect').value).catch(e=>tell(e.message));
+const reopen=document.createElement('button');reopen.type='button';reopen.textContent='Abrir volume selecionado';reopen.onclick=()=>showVolume(+$('atlasVolumeSelect').value).catch(e=>tell(e.message));controls.append(reopen);
 try{job=JSON.parse(localStorage.getItem('atlas-last-consultation'));if(job&&job.completed){selectOptions();$('atlasVolumeStatus').textContent=job.completed+' volume(s) disponíveis da última consulta. Selecione um volume para abrir.'}}catch{}
 $('guideForm').onsubmit=async event=>{
  event.preventDefault();if(busy)return;
@@ -117,7 +124,7 @@ $('guideForm').onsubmit=async event=>{
    $('atlasVolumeStatus').textContent='Processando volume '+(index+1)+' de '+job.total+' · '+date+' a '+last;
    const contacts=await guideScan(start,end,data.natal);
    if(window.atlasScanCancelled)throw Error('Consulta cancelada. Os volumes concluídos estão disponíveis.');
-   const report=guideBuild({...data,v,start,end},contacts);report.atlasVolume={index:index+1,total:job.total,periodStart:job.start,periodEnd:job.end};
+   const report=guideBuild({...data,v,start,end},contacts);report.method.gridHours=3;report.method.refinement='Grade de 3 horas; bordas refinadas por bissecção.';report.atlasVolume={index:index+1,total:job.total,periodStart:job.start,periodEnd:job.end};
    await record('put',{key:job.id+':'+index,report});job.completed++;
    try{localStorage.setItem('atlas-last-consultation',JSON.stringify(job))}catch{}
    selectOptions();await new Promise(r=>setTimeout(r,0));
@@ -140,21 +147,25 @@ doc.setFillColor(...ink);doc.rect(0,0,210,297,'F');doc.setTextColor(...gold);doc
 doc.setTextColor(246,231,217);doc.setFontSize(29);doc.text('Atlas de pesquisa',18,48);doc.setFontSize(16);
 let coverY=65;const coverLines=doc.splitTextToSize(subject,172);for(const line of coverLines){if(coverY>110)break;doc.text(line,18,coverY);coverY+=7}
 doc.setFontSize(9);doc.text(doc.splitTextToSize(subtitle,174),18,122);
-try{const svg=report?studioWheel(report.chartPositions,report.houseGeometry||null,null):document.getElementById('wheel').innerHTML;doc.addImage(await guidePNG(svg),'PNG',35,136,140,140)}catch{doc.setFontSize(11);doc.text('Posições disponíveis nas tabelas a seguir.',18,154)}
+try{const svg=report?studioWheel(report.chartPositions,null,null):document.getElementById('wheel').innerHTML;doc.addImage(await guidePNG(svg),'PNG',35,136,140,140)}catch{doc.setFontSize(11);doc.text('Posições disponíveis nas tabelas a seguir.',18,154)}
 let y=0;
 function page(title){doc.addPage();doc.setFillColor(...paper);doc.rect(0,0,210,297,'F');doc.setFillColor(...ink);doc.rect(0,0,210,20,'F');doc.setTextColor(246,231,217);doc.setFontSize(9);doc.text('ATLAS DE PESQUISA  /  OBSERVATÓRIO ASTROLÓGICO',16,12);doc.setTextColor(...ink);doc.setFontSize(18);const lines=doc.splitTextToSize(title,176);doc.text(lines,16,34);y=37+lines.length*7;}
 function paragraph(title,body){if(y>246)page('Continuação');doc.setFontSize(12);doc.setTextColor(...ink);for(const line of doc.splitTextToSize(title,178)){if(y>269)page('Continuação');doc.text(line,16,y);y+=6}doc.setFontSize(9);doc.setTextColor(...muted);for(const line of doc.splitTextToSize(String(body??'Não informado.'),178)){if(y>270){page('Continuação');doc.setFontSize(9);doc.setTextColor(...muted)}doc.text(line,16,y);y+=4.8}y+=7}
 function table(title,headers,rows){page(title);doc.autoTable({startY:y,head:[headers],body:rows,theme:'grid',margin:{left:16,right:16,top:28,bottom:22},styles:{font:'DejaVu',fontSize:8,cellPadding:2.5,textColor:ink,lineColor:[210,215,219],overflow:'linebreak'},headStyles:{fillColor:ink,textColor:[255,244,234],fontStyle:'normal'},alternateRowStyles:{fillColor:[242,240,235]}});y=(doc.lastAutoTable?.finalY||250)+10;}
 page(report?'Ficha da consulta':'Ficha do mapa');paragraph('Objeto',subject);paragraph('Período / instante',subtitle);
-if(report){if(report.atlasVolume)paragraph('Volume '+report.atlasVolume.index+' de '+report.atlasVolume.total,'Consulta completa: '+report.atlasVolume.periodStart+' a '+report.atlasVolume.periodEnd+'. Este documento contém o volume selecionado.');for(const [title,key]of [['Pergunta','gQuestion'],['Local','gPlace'],['Contexto','gContext'],['Critério observável','gMeasure'],['Condição mínima','gThreshold'],['Fonte de verificação','gSource'],['Referência sem astrologia','gBaseline']])paragraph(title,report.input[key]||'Não informado.');paragraph('Lacunas dos dados',(report.missing||[]).join('\n')||'Nenhuma lacuna assinalada pelo formulário.');for(const c of report.cases||[]){page(c.title);paragraph('Cenário',c.body);paragraph('O que sustentaria',c.confirm);paragraph('O que contrariaria',c.refute)}table('Todas as janelas calculadas',['Contato','Início UTC','Fim UTC','Proximidade UTC','Orbe °'],report.contacts.map(c=>[c.label,c.startUTC.slice(0,16),c.endUTC.slice(0,16),c.peakUTC.slice(0,16),c.orb.toFixed(4)]));table('Plano de verificação',['Dia','Céu','Natal','Tarefa'],report.daily.map(d=>[d.date,d.sky,d.natal,d.task]));page('Método e limites');paragraph('Método',JSON.stringify(report.method,null,2));paragraph('Limites',report.limits);paragraph('Referências',report.profile?.sources||'Consulte o Laboratório.');paragraph('Janelas','Amostras de seis horas. Contatos breves podem não ser encontrados. Limites de volumes não representam necessariamente o início ou fim de um trânsito.');
+if(report){if(report.atlasVolume)paragraph('Volume '+report.atlasVolume.index+' de '+report.atlasVolume.total,'Consulta completa: '+report.atlasVolume.periodStart+' a '+report.atlasVolume.periodEnd+'. Este documento contém o volume selecionado.');for(const [title,key]of [['Pergunta','gQuestion'],['Local','gPlace'],['Contexto','gContext'],['Critério observável','gMeasure'],['Condição mínima','gThreshold'],['Fonte de verificação','gSource'],['Referência sem astrologia','gBaseline']])paragraph(title,report.input[key]||'Não informado.');paragraph('Lacunas dos dados',(report.missing||[]).join('\n')||'Nenhuma lacuna assinalada pelo formulário.');for(const c of report.cases||[]){page(c.title);paragraph('Cenário',c.body);paragraph('O que sustentaria',c.confirm);paragraph('O que contrariaria',c.refute)}table('Todas as janelas calculadas',['Contato','Início UTC','Fim UTC','Proximidade UTC','Orbe °'],report.contacts.map(c=>[c.label,c.startUTC.slice(0,16),c.endUTC.slice(0,16),c.peakUTC.slice(0,16),c.orb.toFixed(4)]));table('Plano de verificação',['Dia','Céu','Natal','Tarefa'],report.daily.map(d=>[d.date,d.sky,d.natal,d.task]));page('Método e limites');paragraph('Método',JSON.stringify(report.method,null,2));paragraph('Limites',report.limits);paragraph('Referências',report.profile?.sources||'Consulte o Laboratório.');paragraph('Janelas','Amostras de três horas. Contatos breves podem não ser encontrados. Limites de volumes não representam necessariamente o início ou fim de um trânsito.');
 }else{for(const[id,value]of Object.entries(currentProfile()))paragraph(({nome:'Nome',tipo:'Tipo',origem:'Fonte dos dados',data:'Data',hora:'Hora',utc:'Deslocamento UTC',precision:'Precisão',nlat:'Latitude',nlon:'Longitude',houseSystem:'Sistema de casas',profileTag:'Etiqueta'})[id]||id,value||'Não informado.');}
+if(report?.interpretations?.length){page('Leituras simbólicas dos contatos');for(let i=0;i<report.interpretations.length;i++){const reading=report.interpretations[i];paragraph(report.contacts[i]?.label||'Contato '+(i+1),typeof reading==='string'?reading:Object.entries(reading).map(([key,value])=>key+': '+(typeof value==='object'?JSON.stringify(value):value)).join('\n'));}}
+if(report?.base?.positions?.length){table('Posições do mapa de referência',['Corpo','Longitude °','Velocidade °/dia'],report.base.positions.map(p=>[p.name,p.lon.toFixed(6),p.speed.toFixed(6)]));paragraph('Origem documental',report.base.origin);}
 const ps=report?.chartPositions||positions;table('Posições astronômicas',['Corpo','Longitude °','Latitude °','Velocidade °/dia'],ps.map(p=>[p.name,p.lon.toFixed(6),Number.isFinite(p.lat)?p.lat.toFixed(6):'—',p.speed.toFixed(6)]));
+if(report)paragraph('Instante do mapa da capa',report.chartUTC);
 const h=report?.houseGeometry||(!report?window.currentHouseGeometry:null);if(h){table('Casas e ângulos',['Elemento','Longitude °'],[['Ascendente',h.asc.toFixed(6)],['Meio do Céu',h.mc.toFixed(6)],...h.cusps.map((x,i)=>['Casa '+(i+1),x.toFixed(6)])]);}
 page('Sobre este Atlas');paragraph('Finalidade','Cálculos astronômicos e organização de pesquisa. Interpretações astrológicas são convenções simbólicas e não constituem previsão validada de acontecimentos.');paragraph('Data de emissão',new Date().toISOString());
 const total=doc.getNumberOfPages();for(let n=2;n<=total;n++){doc.setPage(n);doc.setFillColor(...paper);doc.rect(0,278,210,19,'F');doc.setDrawColor(...gold);doc.line(16,280,194,280);doc.setTextColor(...muted);doc.setFontSize(8);doc.text('Observatório Astrológico · Atlas de pesquisa',16,287);doc.text(n+' / '+total,194,287,{align:'right'})}
 doc.save('Atlas_'+(report?'consulta':'mapa')+(report?.atlasVolume?'_volume_'+report.atlasVolume.index:'')+'.pdf');
 }
 window.atlasExportPDF=atlasPDF;
+const labelPDFs=()=>{for(const id of ['fullpdf','gPDF','studioPDF']){const b=document.getElementById(id);if(b&&b.textContent!=='Baixar PDF Atlas completo')b.textContent='Baixar PDF Atlas completo'}};labelPDFs();new MutationObserver(labelPDFs).observe(document.getElementById('analise'),{childList:true,subtree:true});
 document.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||!['fullpdf','gPDF','studioPDF'].includes(button.id))return;event.preventDefault();event.stopImmediatePropagation();const report=button.id==='fullpdf'?null:guideLast;if(button.id!=='fullpdf'&&!report){tell('Abra uma consulta antes de exportar.');return}button.disabled=true;atlasPDF(report).catch(e=>tell('Falha ao exportar PDF: '+e.message)).finally(()=>{button.disabled=false})},true);
 })();
 </script>
