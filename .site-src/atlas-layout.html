@@ -57,6 +57,31 @@ body.ra-home>aside,body.ra-home>main,body.ra-home>#oa-pro,body.ra-home>#oa-studi
 @media(max-width:950px){#oa-atlas .ra-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto}#oa-atlas .ra-card{min-height:300px}#oa-atlas .ra-top{flex-wrap:wrap;height:auto;padding:22px 0;gap:14px}#oa-atlas .ra-search{flex-basis:100%;max-width:none}#oa-atlas .ra-techs{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){#oa-atlas .ra-rail{width:54px;padding:18px 5px}#oa-atlas .ra-rail button{width:42px}#oa-atlas .ra-rail small{display:none}#oa-atlas .ra-shell{margin-left:54px;padding:0 12px 16px}#oa-atlas .ra-grid{grid-template-columns:1fr}#oa-atlas h1{white-space:normal;font-size:25px}#oa-atlas .ra-subtitle{font-size:19px}#oa-atlas .ra-techs{grid-template-columns:repeat(4,1fr)}}
 @media(prefers-reduced-motion:reduce){#oa-atlas *{transition:none!important;scroll-behavior:auto!important}}
+
+/* Persistent Atlas shell for native application sections */
+body.ra-workspace{display:block!important;margin:0!important;padding:0!important;background:#061121!important;color:#e4e9f1!important;--surface:#12263d;--canvas:#061121;--text:#e4e9f1;--subtle:#b6c7dc;--border:#3b536f;--accent:#90bddc;--obs-ink:#e4e9f1;--obs-muted:#b6c7dc;--obs-paper:#12263d;--obs-line:#3b536f;--obs-soft:#1b344c;--obs-canvas:#061121}
+body.ra-workspace>aside{display:none!important}
+body.ra-workspace #oa-atlas{position:fixed;inset:0;min-height:100vh;z-index:1}
+body.ra-workspace #oa-atlas .ra-grid,body.ra-workspace #ra-empty{display:none!important}
+body.ra-workspace>main{display:block!important;position:relative;z-index:2;margin:112px 24px 90px 100px!important;padding:22px!important;width:calc(100% - 124px)!important;max-width:none!important;border:1px solid #3b4b60;border-radius:14px;background:linear-gradient(120deg,#1b2e45f5,#0b1b2bf5);color:#e4e9f1!important;min-height:calc(100vh - 205px)}
+body.ra-workspace>main section{background:transparent!important;color:#e4e9f1!important}
+body.ra-workspace>main :is(h1,h2,h3,h4,p,label,li,dt,dd,strong,b,summary,td,th){color:#e4e9f1!important}
+body.ra-workspace>main :is(h1,h2,h3){font-family:Georgia,serif!important;font-weight:normal}
+body.ra-workspace>main :is(.card,.stat,details,.note,.eduLesson,.glossaryItem,.ruleCard,.swissCusp,.swissAngle,.miniPanel,.heroPanel,.locationBox,.eduOutput,.eduFormula,.eduSource,.beginnerCallout,.mapCoach,.professionalBridge,.proMethodCard){background:#132940!important;border-color:#3b536f!important;color:#e4e9f1!important;box-shadow:none!important}
+body.ra-workspace>main :is(.muted,.fieldHelp,.fieldMicro,small,.eyebrow){color:#b9cee4!important}
+body.ra-workspace>main :is(input,select,textarea){background:#0a1b30!important;color:#edf3ff!important;border:1px solid #4b6687!important}
+body.ra-workspace>main :is(input,textarea)::placeholder{color:#a8bdd5!important}
+body.ra-workspace>main button{background:#1a3452!important;color:#e9eef8!important;border:1px solid #4b6687!important;border-radius:9px!important}
+body.ra-workspace>main button:hover{background:#2d496b!important}
+body.ra-workspace>main a{color:#a9d3ff!important}
+body.ra-workspace>main :is(th,table){background:#10253b!important}
+body.ra-workspace>main tr:hover td{background:#233c57!important}
+body.ra-workspace>main :is(.routeGrid button,.cityMatches button,.guideSteps span){background:#1b3652!important;color:#eef2f9!important}
+body.ra-workspace>main :is(#wheel,#guideWheel){background:#fafbf8!important;border-radius:14px}
+body.ra-workspace #oa-atlas .ra-rail .selected{background:#1a324e;border-left-color:#f5a998}
+@media(max-width:950px){body.ra-workspace>main{margin-top:165px!important}body.ra-workspace #oa-atlas .ra-top{padding-top:18px}}
+@media(max-width:600px){body.ra-workspace>main{margin:165px 12px 80px 66px!important;width:calc(100% - 78px)!important;padding:13px!important}body.ra-workspace>main .grid{grid-template-columns:1fr!important}#atlasBack{bottom:10px;right:10px}}
+
 </style>
 <section id="oa-atlas" aria-label="Atlas de pesquisa" data-release="atlas-v2">
 <svg class="ra-land" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><radialGradient id="moon"><stop stop-color="#e1e7ea"/><stop offset=".7" stop-color="#b9c5d4"/><stop offset="1" stop-color="#647a94"/></radialGradient></defs><circle cx="1360" cy="70" r="55" fill="url(#moon)" opacity=".68"/><path d="M0 640 100 530 180 595 315 430 460 610 620 530 750 615 900 420 1040 560 1160 380 1270 485 1450 260 1600 420V900H0Z" fill="#192d48"/><path d="M0 680 190 570 320 720 540 605 730 700 880 575 1040 690 1280 550 1450 655 1600 500V900H0Z" fill="#0c1e34"/><path d="M0 770 300 730 490 815 790 750 1110 810 1400 710 1600 760V900H0Z" fill="#051221"/></svg>
@@ -79,13 +104,13 @@ const root=document.getElementById('oa-atlas'),back=document.getElementById('atl
 const originals=[...document.querySelectorAll('body > main > section')];
 const special=['oa-pro','oa-studio'].map(id=>document.getElementById(id)).filter(Boolean);
 const restore=()=>{originals.forEach(el=>el.style.removeProperty('display'));special.forEach(el=>el.style.removeProperty('display'));};
-function home(){restore();document.body.classList.add('ra-home');root.hidden=false;back.hidden=true;window.scrollTo(0,0);}
+function home(){restore();document.body.classList.remove('ra-workspace');document.body.classList.add('ra-home');root.hidden=false;back.hidden=true;window.scrollTo(0,0);}
 function open(route){
 const pro=route==='stars'||route==='studio';
 const nav=document.querySelector('body > aside nav button[data-tab="'+route+'"]');
 if(!pro&&!nav)return;
-restore();document.body.classList.remove('ra-home');root.hidden=true;back.hidden=false;
-if(nav){nav.click();window.scrollTo(0,0);}
+restore();document.body.classList.remove('ra-home');document.body.classList.add('ra-workspace');root.hidden=false;back.hidden=false;root.querySelectorAll('.ra-rail button').forEach(b=>b.classList.toggle('selected',b.dataset.route===route));
+if(nav){nav.click();window.scrollTo(0,0);}else{document.querySelector('body > aside nav button[data-tab="dados"]')?.click();}
 if(pro){
 const id=route==='stars'?'oa-pro':'oa-studio',el=document.getElementById(id);
 if(el){el.style.setProperty('display','block','important');const panel=el.querySelector('[id$="-panel"]');if(panel)panel.hidden=false;if(route==='stars')el.querySelector('[data-tab="stars"]')?.click();}
@@ -94,7 +119,7 @@ if(el){el.style.setProperty('display','block','important');const panel=el.queryS
 root.querySelectorAll('[data-route]').forEach(b=>b.addEventListener('click',()=>open(b.dataset.route)));
 back.addEventListener('click',home);
 const search=document.getElementById('atlasSearch');
-search.addEventListener('input',()=>{const q=search.value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();let found=0;root.querySelectorAll('.ra-card').forEach(c=>{const match=c.dataset.keywords.normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(q);c.style.display=match?'flex':'none';if(match)found++;});document.getElementById('ra-empty').hidden=found>0;});
+search.addEventListener('input',()=>{if(document.body.classList.contains('ra-workspace'))home();const q=search.value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();let found=0;root.querySelectorAll('.ra-card').forEach(c=>{const match=c.dataset.keywords.normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(q);c.style.display=match?'flex':'none';if(match)found++;});document.getElementById('ra-empty').hidden=found>0;});
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='k'&&!root.hidden){e.preventDefault();search.focus();}});
 home();
 })();
