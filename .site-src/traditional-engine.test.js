@@ -27,18 +27,21 @@ const refAge=y=>birth+y*E.TROPICAL_YEAR;
   assert.equal(r.major.lord,'Lua'); assert.equal(r.sub.lord,'Lua');
 }
 {
-  let r=E.annualProfection(birth,refAge(0),0,1);
-  assert.equal(r.house,1);assert.equal(r.signName,'Áries');assert.equal(r.lord,'Marte');
-  r=E.annualProfection(birth,refAge(12),0,1);
-  assert.equal(r.house,1);assert.equal(r.signName,'Áries');
-  r=E.annualProfection(birth,refAge(13),0,1);
-  assert.equal(r.house,2);assert.equal(r.signName,'Touro');
+  const b=E.jdFromDate('2000-01-15');
+  let r=E.annualProfection(b,E.jdFromDate('2012-01-14'),0,1);
+  assert.equal(r.completedYears,11);assert.equal(r.house,12);assert.equal(r.signName,'Peixes');
+  r=E.annualProfection(b,E.jdFromDate('2012-01-15'),0,1);
+  assert.equal(r.completedYears,12);assert.equal(r.house,1);assert.equal(r.signName,'Áries');
+  const m=E.monthlyProfection(b,E.jdFromDate('2012-02-20'),0,1);
+  assert.ok(m.monthIndex>=1);assert.equal(m.house,m.monthIndex+1);
 }
 {
   const d=E.hermeticLots(100,120,80,'day');
   close(d.fortune,60);close(d.spirit,140);
   const n=E.hermeticLots(100,120,80,'night');
   close(n.fortune,140);close(n.spirit,60);
+  const all=E.sevenHermeticLots({asc:100,sun:120,moon:80,mercury:130,venus:150,mars:170,jupiter:190,saturn:210,sect:'day'});
+  close(all.eros,110);close(all.necessity,30);close(all.courage,350);close(all.victory,150);close(all.nemesis,310);
 }
 {
   const taurus=1;
@@ -59,12 +62,18 @@ const refAge=y=>birth+y*E.TROPICAL_YEAR;
 {
   const m=E.midpoint(350,10);close(m.near,0);close(m.opposite,180);
   close(E.harmonic(100,4),40);
+  const a=E.antiscia(10);close(a.antiscion,170);close(a.contraAntiscion,350);
+  const eq=E.eclipticToEquatorial(0,0);close(eq.ra,0,1e-9);close(eq.dec,0,1e-9);
 }
 {
   const sunLeo=E.essentialDignity('Sol',125,'day');
   assert.equal(sunLeo.domicile,true);
   const satLibra=E.essentialDignity('Saturno',195,'day');
   assert.equal(satLibra.exaltation,true);
+  const direct=E.zodiacalPrimaryDirection(300,10,{converse:false,key:1});
+  const converse=E.zodiacalPrimaryDirection(300,10,{converse:true,key:1});
+  assert.notEqual(direct.arc,converse.arc);
+  close(E.mod(direct.arc+converse.arc),0,1e-7);
 }
 {
   const calc=(jd,body)=>({lon:E.mod((jd-birth)*10),speed:10});
