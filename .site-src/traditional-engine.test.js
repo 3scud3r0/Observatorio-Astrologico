@@ -66,6 +66,10 @@ const refAge=y=>birth+y*E.TROPICAL_YEAR;
   const eq=E.eclipticToEquatorial(0,0);close(eq.ra,0,1e-9);close(eq.dec,0,1e-9);
 }
 {
+  const receptions=E.mutualReceptions([{name:'Marte',lon:40},{name:'Vênus',lon:10}]);
+  assert.ok(receptions.some(x=>x.type.includes('domicílio')));
+}
+{
   const sunLeo=E.essentialDignity('Sol',125,'day');
   assert.equal(sunLeo.domicile,true);
   const satLibra=E.essentialDignity('Saturno',195,'day');
@@ -81,6 +85,8 @@ const refAge=y=>birth+y*E.TROPICAL_YEAR;
   const calc=(jd,body)=>({lon:E.mod((jd-birth)*10),speed:10});
   const roots=E.findPlanetReturn(0,50,birth,birth+20,calc,.25);
   assert.ok(roots.some(x=>Math.abs(x-(birth+5))<1e-6));
+  const aspects=E.findAspectsToTarget(0,0,birth,birth+20,calc,[90],.25);
+  assert.ok(aspects.some(x=>Math.abs(x.jd-(birth+9))<1e-6&&x.aspect===90));
   const ing=E.findIngresses(0,birth,birth+10,calc,.25);
   assert.ok(ing.some(x=>Math.abs(x.jd-(birth+3))<1e-6&&x.boundary===30));
 }
