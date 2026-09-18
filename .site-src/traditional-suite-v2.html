@@ -1,0 +1,191 @@
+<!-- Traditional Techniques Pro Suite v2 -->
+<script src="./traditional-engine.js"></script>
+<style id="traditional-suite-v2-style">
+#oa-studio .tt-shell{display:grid;gap:14px}.tt-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 16px}.tt-tabs button{border:1px solid #477aa9;border-radius:9px;padding:8px 10px;background:#0d2847;color:#eaf7ff;cursor:pointer}.tt-tabs button.active{background:#2a678f;border-color:#9de9f7}.tt-pane{display:grid;gap:13px}.tt-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.tt-grid label{font-size:12px;color:#bfd5ea}.tt-grid input,.tt-grid select,.tt-grid textarea{display:block;width:100%;margin-top:4px;border:1px solid #52779e;border-radius:8px;padding:8px;background:#071428;color:#fff}.tt-grid textarea{min-height:88px;resize:vertical}.tt-row{display:flex;gap:8px;flex-wrap:wrap}.tt-row button{border:1px solid #5e8eba;border-radius:8px;padding:9px 11px;background:#17436e;color:#fff;cursor:pointer}.tt-out{border:1px solid #315b86;border-radius:10px;background:#061224;padding:13px;overflow:auto;white-space:normal}.tt-out table{width:100%;border-collapse:collapse}.tt-out th,.tt-out td{padding:6px 7px;border-bottom:1px solid #28415f;text-align:left;vertical-align:top}.tt-out th{color:#ffd98b}.tt-chip{display:inline-block;padding:5px 8px;margin:2px 5px 2px 0;border-radius:999px;background:#14375b;border:1px solid #3c678e}.tt-note{padding:10px 12px;border-left:3px solid #ffd166;background:#0c2038;color:#c9d9e8}.tt-bad{border-left-color:#f18f8f}.tt-good{border-left-color:#82dba9}@media(max-width:720px){.tt-grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.tt-grid{grid-template-columns:1fr}}
+</style>
+<script>
+(()=>{'use strict';
+const q=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const view=q('#oa-studio article[data-p="traditional"]'); if(!view)return;
+const nav=q('#oa-studio nav button[data-v="traditional"]'); if(nav)nav.textContent='Técnicas tradicionais Pro';
+view.innerHTML=\`
+<div class="tt-shell">
+  <div><h3>Técnicas tradicionais Pro</h3><p>Motor separado, testado e com convenções explícitas. Cálculos astronômicos reutilizam a Swiss Ephemeris do Observatório quando disponível.</p></div>
+  <div class="tt-row"><button id="tt-use-map" type="button">Usar mapa atual</button><button id="tt-run-all" type="button">Calcular resumo temporal</button></div>
+  <div class="tt-tabs">
+    <button class="active" data-tt="timing">Timing</button><button data-tt="zr">Zodiacal Releasing</button><button data-tt="dignities">Lotes & dignidades</button><button data-tt="events">Retornos/estações/ingressos</button><button data-tt="geometry">Midpoints & harmônicos</button><button data-tt="directions">Direções</button><button data-tt="stars">Estrelas</button>
+  </div>
+
+  <section class="tt-pane" data-tt-pane="timing">
+    <div class="tt-grid">
+      <label>Nascimento<input id="tt-birth-date" type="date"></label><label>Hora local<input id="tt-birth-time" type="time" step="1" value="12:00:00"></label><label>UTC offset (h)<input id="tt-birth-offset" type="number" min="-14" max="14" step="0.25" value="0"></label>
+      <label>Referência<input id="tt-ref-date" type="date"></label><label>Hora de referência UTC<input id="tt-ref-time" type="time" step="1" value="12:00:00"></label>
+      <label>Seita<select id="tt-sect"><option value="day">Diurna</option><option value="night">Noturna</option></select></label>
+      <label>Longitude natal a dirigir (°)<input id="tt-directed-lon" type="number" min="0" max="360" step="0.000001" value="0"></label>
+      <label>Signo inicial da profecção<select id="tt-prof-sign"></select></label><label>Casa inicial<input id="tt-prof-house" type="number" min="1" max="12" value="1"></label>
+    </div>
+    <div class="tt-note">True Solar Arc: o Sol é progredido continuamente por dia-por-ano tropical; a fração da idade não é descartada. Firdaria usa períodos maiores tradicionais e sete subperíodos iguais iniciando no próprio regente maior. Profeção anual avança uma casa/signo por ano completo.</div>
+    <div id="tt-timing-out" class="tt-out">Preencha os dados ou use o mapa atual.</div>
+  </section>
+
+  <section class="tt-pane" data-tt-pane="zr" hidden>
+    <div class="tt-grid">
+      <label>Soltar a partir de<select id="tt-zr-source"><option value="spirit">Lote do Espírito</option><option value="fortune">Lote da Fortuna</option><option value="manual">Longitude manual</option></select></label>
+      <label>Lote da Fortuna (°)<input id="tt-fortune" type="number" min="0" max="360" step="0.000001"></label>
+      <label>Lote do Espírito (°)<input id="tt-spirit" type="number" min="0" max="360" step="0.000001"></label>
+      <label>Longitude manual (°)<input id="tt-zr-manual" type="number" min="0" max="360" step="0.000001" value="0"></label>
+      <label>Profundidade<select id="tt-zr-level"><option value="2">L1–L2</option><option value="3">L1–L3</option><option value="4" selected>L1–L4</option></select></label>
+    </div>
+    <div class="tt-row"><button id="tt-zr-run" type="button">Calcular caminho ativo</button></div>
+    <div class="tt-note">Convenção: 360 dias por ano de liberação; L2 usa meses de 30 dias, L3 unidades de 2,5 dias e L4 unidades de 5 horas. O Loosing of the Bond é aplicado quando a sequência subordinada completaria o circuito e retornaria ao signo-pai.</div>
+    <div id="tt-zr-out" class="tt-out"></div>
+  </section>
+
+  <section class="tt-pane" data-tt-pane="dignities" hidden>
+    <div class="tt-grid"><label>Ascendente (°)<input id="tt-asc" type="number" min="0" max="360" step="0.000001"></label><label>Sol (°)<input id="tt-sun" type="number" min="0" max="360" step="0.000001"></label><label>Lua (°)<input id="tt-moon" type="number" min="0" max="360" step="0.000001"></label></div>
+    <div class="tt-row"><button id="tt-lots-run" type="button">Calcular lotes e dignidades</button></div>
+    <div class="tt-note">Dignidades essenciais: domicílio, exaltação, triplicidade por seita, termos ptolemaicos e faces; pontuação tradicional 5/4/3/2/1, com detrimento −5 e queda −4. Escolas com tabelas diferentes podem produzir resultados distintos.</div>
+    <div id="tt-dignity-out" class="tt-out"></div>
+  </section>
+
+  <section class="tt-pane" data-tt-pane="events" hidden>
+    <div class="tt-grid">
+      <label>Corpo<select id="tt-body"></select></label><label>Início<input id="tt-event-start" type="date"></label><label>Fim<input id="tt-event-end" type="date"></label>
+      <label>Longitude de retorno (°; vazio = natal atual)<input id="tt-return-target" type="number" min="0" max="360" step="0.000001"></label>
+    </div>
+    <div class="tt-row"><button id="tt-return" type="button">Buscar retornos</button><button id="tt-stations" type="button">Buscar estações</button><button id="tt-ingresses" type="button">Buscar ingressos</button></div>
+    <div id="tt-event-out" class="tt-out"></div>
+  </section>
+
+  <section class="tt-pane" data-tt-pane="geometry" hidden>
+    <div class="tt-grid"><label>Longitudes (Nome=grau)<textarea id="tt-points"></textarea></label><label>Harmônico<input id="tt-harmonic" type="number" min="1" max="360" value="4"></label></div>
+    <div class="tt-row"><button id="tt-geometry-run" type="button">Calcular midpoints e harmônico</button></div>
+    <div id="tt-geometry-out" class="tt-out"></div>
+  </section>
+
+  <section class="tt-pane" data-tt-pane="directions" hidden>
+    <div class="tt-grid"><label>Promissor (longitude °)<input id="tt-prom" type="number" min="0" max="360" step="0.000001"></label><label>Significador (longitude °)<input id="tt-sig" type="number" min="0" max="360" step="0.000001"></label><label>Chave (°/ano)<input id="tt-key" type="number" min="0.1" max="2" step="0.000001" value="0.98564736"></label><label>Sentido<select id="tt-converse"><option value="false">Direto</option><option value="true">Conversa</option></select></label></div>
+    <div class="tt-row"><button id="tt-directions-run" type="button">Calcular direção zodiacal em AR</button></div>
+    <div class="tt-note tt-bad">Esta modalidade é explicitamente <b>zodiacal em ascensão reta com latitude eclíptica zero</b>. Ela não é rotulada como direção mundana por semi-arco e não substitui variantes Placidianas/Ptolemaicas que exigem coordenadas celestes completas.</div>
+    <div id="tt-directions-out" class="tt-out"></div>
+  </section>
+
+  <section class="tt-pane" data-tt-pane="stars" hidden>
+    <div class="tt-grid"><label>Longitude do ponto (°)<input id="tt-star-lon" type="number" min="0" max="360" step="0.000001"></label><label>Ano<input id="tt-star-year" type="number" min="1800" max="2100"></label><label>Orbe (°)<input id="tt-star-orb" type="number" min="0.1" max="5" step="0.1" value="1"></label></div>
+    <div class="tt-row"><button id="tt-stars-run" type="button">Localizar conjunções</button></div>
+    <div class="tt-note">Catálogo de referência J2000 com precessão linear de 50,29″/ano. Serve para triagem de conjunções; para astrometria estelar de alta precisão, confirme por catálogo astronômico/efeméride específica.</div>
+    <div id="tt-stars-out" class="tt-out"></div>
+  </section>
+</div>\`;
+
+const E=()=>window.OATraditionalEngine;
+function populate(){
+  const eng=E(); if(!eng)return;
+  const sign=q('#tt-prof-sign'); sign.innerHTML=eng.SIGN_NAMES.map((x,i)=>'<option value="'+i+'">'+x+'</option>').join('');
+  const bodies=['Sol','Lua','Mercúrio','Vênus','Marte','Júpiter','Saturno','Urano','Netuno','Plutão'];
+  q('#tt-body').innerHTML=bodies.map((x,i)=>'<option value="'+i+'">'+x+'</option>').join('');
+  const today=new Date().toISOString().slice(0,10);
+  q('#tt-ref-date').value=today;q('#tt-event-start').value=today;q('#tt-star-year').value=new Date().getUTCFullYear();
+  const end=new Date(Date.now()+365*86400000).toISOString().slice(0,10);q('#tt-event-end').value=end;
+}
+populate(); if(!E())setTimeout(populate,0);
+
+q('.tt-tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-tt]');if(!b)return;q('.tt-tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));view.querySelectorAll('[data-tt-pane]').forEach(x=>x.hidden=x.dataset.ttPane!==b.dataset.tt)});
+
+function localJD(date,time,offset){
+  const ms=Date.parse(date+'T'+(time||'12:00:00')+'Z')-(Number(offset)||0)*3600000;
+  if(!Number.isFinite(ms))throw Error('Data/hora inválida.');return ms/86400000+2440587.5;
+}
+function refJD(){return localJD(q('#tt-ref-date').value,q('#tt-ref-time').value,0)}
+function birthJD(){return localJD(q('#tt-birth-date').value,q('#tt-birth-time').value,q('#tt-birth-offset').value)}
+function fmtLon(v){const eng=E(),s=eng.signIndex(v),d=eng.signDegree(v);return eng.SIGN_NAMES[s]+' '+d.toFixed(4)+'° ('+eng.mod(v).toFixed(6)+'°)'}
+function fmtJD(jd){return E().isoFromJD(jd).replace('T',' ').slice(0,19)+' UTC'}
+function currentPoints(){return Array.isArray(window.positions)?window.positions:[]}
+function inferSect(){
+  try{if(window.currentHouseGeometry&&currentPoints()[0]){const h=window.currentHouseGeometry,lon=currentPoints()[0].lon;for(let i=0;i<12;i++){const a=h.cusps[i],b=h.cusps[(i+1)%12],span=E().mod(b-a),rel=E().mod(lon-a);if(rel<span)return i+1>=7?'day':'night'}}}catch{}return q('#tt-sect').value||'day'
+}
+async function ensureCalc(){
+  for(let i=0;i<80;i++){if(typeof window.calc==='function'&&window.obsSwiss?.ready)return;await new Promise(r=>setTimeout(r,100))}
+  if(typeof window.calc!=='function')throw Error('Motor astronômico não disponível.');
+}
+function pointsText(){
+  return currentPoints().slice(0,10).map(p=>p.name+'='+Number(p.lon).toFixed(8)).join('\n')
+}
+q('#tt-use-map').onclick=()=>{
+  const f=id=>document.getElementById(id);
+  if(f('data')?.value)q('#tt-birth-date').value=f('data').value;
+  if(f('hora')?.value)q('#tt-birth-time').value=f('hora').value.length===5?f('hora').value+':00':f('hora').value;
+  if(f('utc')?.value!=='')q('#tt-birth-offset').value=f('utc').value;
+  const ps=currentPoints(); if(ps.length){q('#tt-sun').value=ps[0].lon;q('#tt-moon').value=ps[1].lon;q('#tt-directed-lon').value=ps[0].lon;q('#tt-star-lon').value=ps[0].lon;q('#tt-points').value=pointsText();q('#tt-prom').value=ps[6]?.lon??ps[0].lon;q('#tt-sig').value=ps[0].lon}
+  if(window.currentHouseGeometry){q('#tt-asc').value=window.currentHouseGeometry.asc;q('#tt-prof-sign').value=E().signIndex(window.currentHouseGeometry.asc)}
+  q('#tt-sect').value=inferSect();
+  if(ps.length&&window.currentHouseGeometry){const lots=E().hermeticLots(window.currentHouseGeometry.asc,ps[0].lon,ps[1].lon,q('#tt-sect').value);q('#tt-fortune').value=lots.fortune;q('#tt-spirit').value=lots.spirit}
+};
+
+async function timing(){
+  await ensureCalc();const eng=E(),b=birthJD(),r=refJD(),sect=q('#tt-sect').value;
+  const arc=eng.trueSolarArc(b,r,jd=>window.calc(jd,0).lon);
+  const directed=eng.mod(Number(q('#tt-directed-lon').value)+arc.arc);
+  const prof=eng.annualProfection(b,r,Number(q('#tt-prof-sign').value),Number(q('#tt-prof-house').value));
+  const fir=eng.firdaria(b,r,sect);
+  q('#tt-timing-out').innerHTML=
+    '<span class="tt-chip"><b>Idade:</b> '+arc.age.toFixed(6)+' anos tropicais</span>'+
+    '<span class="tt-chip"><b>True Solar Arc:</b> '+arc.arc.toFixed(6)+'°</span>'+
+    '<p><b>Sol natal:</b> '+fmtLon(arc.natalSun)+'<br><b>Sol secundariamente progredido:</b> '+fmtLon(arc.progressedSun)+' · '+fmtJD(arc.progressedJD)+'<br><b>Longitude dirigida:</b> '+fmtLon(directed)+'</p>'+
+    '<p><b>Profeção anual:</b> casa '+prof.house+' · '+prof.signName+' · Senhor do Ano: '+prof.lord+'<br>'+fmtJD(prof.startJD)+' → '+fmtJD(prof.endJD)+'</p>'+
+    '<p><b>Firdaria:</b> '+fir.major.lord+(fir.sub?' / '+fir.sub.lord:'')+'<br>Maior: '+fmtJD(fir.major.startJD)+' → '+fmtJD(fir.major.endJD)+(fir.sub?'<br>Subperíodo: '+fmtJD(fir.sub.startJD)+' → '+fmtJD(fir.sub.endJD):'<br>Período nodal sem subdivisão planetária nesta convenção.')+'</p>';
+}
+q('#tt-run-all').onclick=()=>timing().catch(e=>q('#tt-timing-out').textContent=e.message);
+
+q('#tt-zr-run').onclick=()=>{
+  try{const eng=E(),b=birthJD(),r=refJD(),source=q('#tt-zr-source').value;
+    const fortune=Number(q('#tt-fortune').value),spirit=Number(q('#tt-spirit').value),manual=Number(q('#tt-zr-manual').value);
+    const lon=source==='fortune'?fortune:source==='spirit'?spirit:manual;if(!Number.isFinite(lon))throw Error('Informe o lote/longitude inicial.');
+    const fortuneSign=Number.isFinite(fortune)?eng.signIndex(fortune):eng.signIndex(lon);
+    const zr=eng.zodiacalReleasing(eng.signIndex(lon),b,r,{fortuneSign,maxLevel:Number(q('#tt-zr-level').value)});
+    q('#tt-zr-out').innerHTML='<table><thead><tr><th>Nível</th><th>Signo</th><th>Início</th><th>Fim</th><th>Marcadores</th></tr></thead><tbody>'+
+      zr.path.map(p=>'<tr><td>L'+p.level+'</td><td>'+eng.SIGN_NAMES[p.sign]+'</td><td>'+fmtJD(p.startJD)+'</td><td>'+fmtJD(p.endJD)+'</td><td>'+(p.isLoosing?'Loosing of the Bond · ':'')+(p.peak?'angular à Fortuna':'')+'</td></tr>').join('')+
+      '</tbody></table><p><small>'+esc(zr.convention)+'</small></p>';
+  }catch(e){q('#tt-zr-out').textContent=e.message}
+};
+
+q('#tt-lots-run').onclick=()=>{
+  try{const eng=E(),sect=q('#tt-sect').value,asc=Number(q('#tt-asc').value),sun=Number(q('#tt-sun').value),moon=Number(q('#tt-moon').value);if(![asc,sun,moon].every(Number.isFinite))throw Error('Informe Ascendente, Sol e Lua.');
+  const lots=eng.hermeticLots(asc,sun,moon,sect);q('#tt-fortune').value=lots.fortune;q('#tt-spirit').value=lots.spirit;
+  const classic=currentPoints().slice(0,7),rows=classic.map(p=>{const d=eng.essentialDignity(p.name,p.lon,sect);const labels=[d.domicile&&'domicílio',d.exaltation&&'exaltação',d.triplicity&&'triplicidade',d.term&&'termo',d.face&&'face',d.detriment&&'detrimento',d.fall&&'queda'].filter(Boolean).join(', ')||'peregrino pelos critérios avaliados';return '<tr><td>'+esc(p.name)+'</td><td>'+fmtLon(p.lon)+'</td><td>'+labels+'</td><td>'+d.score+'</td><td>'+d.triplicityLord+' / '+d.termLord+' / '+d.faceLord+'</td></tr>'}).join('');
+  q('#tt-dignity-out').innerHTML='<p><b>Fortuna:</b> '+fmtLon(lots.fortune)+'<br><b>Espírito:</b> '+fmtLon(lots.spirit)+'</p>'+(rows?'<table><thead><tr><th>Planeta</th><th>Posição</th><th>Condição</th><th>Score</th><th>Trip./Termo/Face</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p>Calcule um mapa para preencher a tabela planetária.</p>');
+  }catch(e){q('#tt-dignity-out').textContent=e.message}
+};
+
+async function eventSearch(kind){
+  const out=q('#tt-event-out');try{await ensureCalc();const eng=E(),body=Number(q('#tt-body').value),start=eng.jdFromDate(q('#tt-event-start').value),end=eng.jdFromDate(q('#tt-event-end').value);if(end<=start)throw Error('Intervalo inválido.');if(end-start>3660)throw Error('Limite desta busca interativa: 10 anos por execução.');
+  let rows=[];
+  if(kind==='return'){let target=Number(q('#tt-return-target').value);if(!Number.isFinite(target)||q('#tt-return-target').value===''){target=currentPoints()[body]?.lon;if(!Number.isFinite(target))throw Error('Informe a longitude de retorno ou use um mapa atual.')}rows=eng.findPlanetReturn(body,target,start,end,window.calc,.25).map(j=>[fmtJD(j),fmtLon(window.calc(j,body).lon),'Retorno'])}
+  if(kind==='station')rows=eng.findStations(body,start,end,window.calc,.25).map(x=>[fmtJD(x.jd),fmtLon(x.longitude),x.type]);
+  if(kind==='ingress')rows=eng.findIngresses(body,start,end,window.calc,.25).map(x=>[fmtJD(x.jd),eng.SIGN_NAMES[x.from]+' → '+eng.SIGN_NAMES[x.to],x.direction]);
+  out.innerHTML=rows.length?'<table><thead><tr><th>Instante</th><th>Posição/transição</th><th>Tipo</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r.map((x,i)=>i?'</td><td>'+esc(x):esc(x)).join('')+'</td></tr>').join('')+'</tbody></table>':'Nenhum evento encontrado no intervalo.';
+  }catch(e){out.textContent=e.message}
+}
+q('#tt-return').onclick=()=>eventSearch('return');q('#tt-stations').onclick=()=>eventSearch('station');q('#tt-ingresses').onclick=()=>eventSearch('ingress');
+
+function parseLines(v){const out=[];for(const line of String(v).split(/\n|,/)){const p=line.split('=');if(p.length===2&&p[0].trim()&&Number.isFinite(Number(p[1])))out.push([p[0].trim(),Number(p[1])])}return out}
+q('#tt-geometry-run').onclick=()=>{
+  try{const eng=E(),pts=parseLines(q('#tt-points').value),h=Number(q('#tt-harmonic').value);if(pts.length<2)throw Error('Informe ao menos dois pontos.');
+  let mids='';for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const m=eng.midpoint(pts[i][1],pts[j][1]);mids+='<tr><td>'+esc(pts[i][0])+' / '+esc(pts[j][0])+'</td><td>'+fmtLon(m.near)+'</td><td>'+fmtLon(m.opposite)+'</td></tr>'}
+  const harmonics=pts.map(p=>'<tr><td>'+esc(p[0])+'</td><td>'+fmtLon(p[1])+'</td><td>'+fmtLon(eng.harmonic(p[1],h))+'</td></tr>').join('');
+  q('#tt-geometry-out').innerHTML='<h4>Midpoints</h4><table><thead><tr><th>Par</th><th>Midpoint próximo</th><th>Oposto</th></tr></thead><tbody>'+mids+'</tbody></table><h4>Harmônico '+h+'</h4><table><thead><tr><th>Ponto</th><th>Natal</th><th>Harmônico</th></tr></thead><tbody>'+harmonics+'</tbody></table>';
+  }catch(e){q('#tt-geometry-out').textContent=e.message}
+};
+
+q('#tt-directions-run').onclick=()=>{
+  try{const r=E().zodiacalPrimaryDirection(Number(q('#tt-prom').value),Number(q('#tt-sig').value),{key:Number(q('#tt-key').value),converse:q('#tt-converse').value==='true'});
+  q('#tt-directions-out').innerHTML='<p><b>AR promissor:</b> '+r.pRA.toFixed(6)+'°<br><b>AR significador:</b> '+r.sRA.toFixed(6)+'°<br><b>Arco:</b> '+r.arc.toFixed(6)+'°<br><b>Tempo pela chave:</b> '+r.years.toFixed(6)+' anos</p><p><small>'+esc(r.warning)+'</small></p>';
+  }catch(e){q('#tt-directions-out').textContent=e.message}
+};
+q('#tt-stars-run').onclick=()=>{
+  try{const hits=E().fixedStarConjunctions(Number(q('#tt-star-lon').value),Number(q('#tt-star-year').value),Number(q('#tt-star-orb').value));
+  q('#tt-stars-out').innerHTML=hits.length?'<table><thead><tr><th>Estrela</th><th>Longitude</th><th>Distância</th><th>Mag.</th></tr></thead><tbody>'+hits.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+fmtLon(x.longitude)+'</td><td>'+x.distance.toFixed(4)+'°</td><td>'+x.magnitude+'</td></tr>').join('')+'</tbody></table>':'Nenhuma conjunção no orbe escolhido.';
+  }catch(e){q('#tt-stars-out').textContent=e.message}
+};
+})();
+</script>
