@@ -79,7 +79,8 @@ const refAge=y=>birth+y*E.TROPICAL_YEAR;
   assert.notEqual(direct.arc,converse.arc);
   close(E.mod(direct.arc+converse.arc),0,1e-7);
   const semi=E.placidianSemiArcDirection({lon:100,lat:0},{lon:90,lat:0},{mcRA:0,geoLat:0,key:1,zodiacal:true});
-  close(semi.arc,10,1e-7,'semi-arc equatorial regression');
+  const expectedArc=E.mod(E.eclipticToRA(100)-E.eclipticToRA(90));
+  close(semi.arc,expectedArc,1e-7,'semi-arc equatorial regression');
 }
 {
   const calc=(jd,body)=>({lon:E.mod((jd-birth)*10),speed:10});
