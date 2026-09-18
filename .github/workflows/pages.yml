@@ -33,7 +33,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           page = Path('_site/index.html')
-          enhancement = Path('.site-src/pro-tools.html').read_text('utf-8')
+          enhancement = Path('.site-src/pro-tools.html').read_text('utf-8') + Path('.site-src/pro-upgrade.html').read_text('utf-8')
           text = page.read_text('utf-8')
           marker = '</body>'
           if marker not in text:
