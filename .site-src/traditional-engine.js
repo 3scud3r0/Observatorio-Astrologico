@@ -262,7 +262,48 @@
     const pRA=eclipticToRA(promissorLon,0,obliquity),sRA=eclipticToRA(significatorLon,0,obliquity);
     const arc=converse?mod(sRA-pRA):mod(pRA-sRA);
     return {method:'Direção primária zodiacal em ascensão reta, latitude eclíptica zero',pRA,sRA,arc,key,years:arc/key,
-      warning:'Não substitui direções mundanas por semi-arco; use esta modalidade somente quando a escola escolhida admitir direção zodiacal em AR.'};
+      warning:'Modalidade zodiacal simples em AR; para o método proporcional clássico use placidianSemiArcDirection.'};
+  }
+
+  function semiArcs(declination,geoLat){
+    const r=Math.PI/180,v=Math.tan(Number(declination)*r)*Math.tan(Number(geoLat)*r);
+    if(Math.abs(v)>1) throw new Error('Corpo circumpolar para esta latitude; semi-arco real não definido pela fórmula simples.');
+    const ad=Math.asin(v)/r;
+    return {ascensionalDifference:ad,diurnal:90+ad,nocturnal:90-ad};
+  }
+  function isAboveHorizonRA(ra,declination,mcRA,geoLat){
+    const r=Math.PI/180,H=signed(mcRA,ra)*r,phi=Number(geoLat)*r,dec=Number(declination)*r;
+    const sinAlt=Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.cos(H);
+    return sinAlt>=0;
+  }
+  function placidianSemiArcDirection(promissor,significator,{mcRA,geoLat,key=0.98564736,zodiacal=false,obliquity=23.4392911}={}){
+    if(!Number.isFinite(Number(mcRA))||!Number.isFinite(Number(geoLat))) throw new Error('ARMC e latitude geográfica são obrigatórios.');
+    const p=eclipticToEquatorial(promissor.lon,zodiacal?0:(promissor.lat||0),obliquity);
+    const s=eclipticToEquatorial(significator.lon,zodiacal?0:(significator.lat||0),obliquity);
+    const pa=semiArcs(p.dec,geoLat),sa=semiArcs(s.dec,geoLat),above=isAboveHorizonRA(s.ra,s.dec,mcRA,geoLat);
+    const meridian=mod(Number(mcRA)+(above?0:180));
+    const pArc=above?pa.diurnal:pa.nocturnal,sArc=above?sa.diurnal:sa.nocturnal;
+    let pDist=signed(p.ra,meridian),sDist=signed(s.ra,meridian);
+    if(pDist<sDist)pDist+=360;
+    const sProp=sDist/(sArc/2),pProp=pDist/(pArc/2);
+    const arc=(pProp-sProp)*(pArc/2);
+    return {method:'Placidus semi-arco proporcional direto',zodiacal,arc,pRA:p.ra,pDecl:p.dec,sRA:s.ra,sDecl:s.dec,
+      promissorSemiArc:pArc,significatorSemiArc:sArc,meridianRA:meridian,significatorAboveHorizon:above,key,years:arc/key,
+      warning:zodiacal?'Direção zodiacal: latitudes eclípticas zeradas.':'Direção in-mundo: latitudes eclípticas informadas são preservadas.'};
+  }
+
+  function prenatalSyzygy(birthJD,calcBody){
+    let jd=Number(birthJD);
+    const phase=mod(calcBody(jd,1).lon-calcBody(jd,0).lon),target=phase<180?0:180;
+    for(let i=0;i<18;i++){
+      const sun=calcBody(jd,0),moon=calcBody(jd,1),error=signed(moon.lon-sun.lon,target);
+      if(Math.abs(error)<1e-9)break;
+      const rel=(Number(moon.speed)-Number(sun.speed))||12.19075;
+      jd-=error/rel;
+    }
+    if(jd>birthJD+1e-7)jd-=29.530588/2;
+    const sun=calcBody(jd,0),moon=calcBody(jd,1);
+    return {jd,type:target===0?'Lua Nova':'Lua Cheia',target,phaseError:Math.abs(signed(moon.lon-sun.lon,target)),sunLon:mod(sun.lon),moonLon:mod(moon.lon)};
   }
 
   function fixedStarConjunctions(lon,year,orb=1){
@@ -335,7 +376,7 @@
   return {
     DAY,TROPICAL_YEAR,SIGN_NAMES,SIGN_RULERS,ZR_YEARS,CHALDEAN,FIRDAR_DAY,FIRDAR_NIGHT,FIRDAR_YEARS,FIXED_STARS,
     mod,sep,signed,signIndex,signDegree,jdFromDate,isoFromJD,ageYears,civilAnniversaryJD,completedCivilYears,trueSolarArc,annualProfection,monthlyProfection,firdaria,hermeticLots,sevenHermeticLots,
-    zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,essentialDignity,eclipticToEquatorial,eclipticToRA,zodiacalPrimaryDirection,
+    zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,essentialDignity,eclipticToEquatorial,eclipticToRA,zodiacalPrimaryDirection,semiArcs,isAboveHorizonRA,placidianSemiArcDirection,prenatalSyzygy,
     fixedStarConjunctions,findPlanetReturn,findStations,findIngresses
   };
 });
