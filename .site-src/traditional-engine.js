@@ -306,6 +306,18 @@
     return {jd,type:target===0?'Lua Nova':'Lua Cheia',target,phaseError:Math.abs(signed(moon.lon-sun.lon,target)),sunLon:mod(sun.lon),moonLon:mod(moon.lon)};
   }
 
+  function mutualReceptions(positions){
+    const list=positions.filter(x=>x&&SIGN_RULERS.includes(x.name));
+    const out=[];
+    for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){
+      const a=list[i],b=list[j],aSign=signIndex(a.lon),bSign=signIndex(b.lon);
+      const domicile=SIGN_RULERS[aSign]===b.name&&SIGN_RULERS[bSign]===a.name;
+      const exaltation=EXALTATIONS[b.name]===aSign&&EXALTATIONS[a.name]===bSign;
+      if(domicile||exaltation)out.push({first:a.name,second:b.name,type:domicile&&exaltation?'domicílio e exaltação':domicile?'domicílio':'exaltação'});
+    }
+    return out;
+  }
+
   function fixedStarConjunctions(lon,year,orb=1){
     const shift=(Number(year)-2000)*50.29/3600;
     return FIXED_STARS.map(([name,j2000,mag])=>({name,magnitude:mag,longitude:mod(j2000+shift),distance:sep(lon,j2000+shift)}))
@@ -335,6 +347,26 @@
       a=b;fa=fb;
     }
     return roots;
+  }
+
+  function findAspectsToTarget(body,target,startJD,endJD,calcBody,aspectList=[0,60,90,120,180],step=.25){
+    const out=[];
+    for(const aspect of aspectList){
+      const branches=aspect===0||aspect===180?[aspect]:[aspect,-aspect];
+      for(const branch of branches){
+        let a=startJD,fa=signed(calcBody(a,body).lon,target+branch);
+        for(let b=a+step;b<=endJD+1e-9;b+=step){
+          const fb=signed(calcBody(b,body).lon,target+branch);
+          if((fa===0||fb===0||fa*fb<0)&&Math.abs(fb-fa)<180){
+            const root=bisectRoot(b-step,b,j=>signed(calcBody(j,body).lon,target+branch));
+            const lon=mod(calcBody(root,body).lon),duplicate=out.some(x=>Math.abs(x.jd-root)<.01&&x.aspect===Math.abs(aspect));
+            if(!duplicate)out.push({jd:root,aspect:Math.abs(aspect),branch:branch<0?'dexter':'sinister',longitude:lon,target:mod(target)});
+          }
+          a=b;fa=fb;
+        }
+      }
+    }
+    return out.sort((a,b)=>a.jd-b.jd);
   }
 
   function findStations(body,startJD,endJD,calcBody,step=.25){
@@ -377,6 +409,6 @@
     DAY,TROPICAL_YEAR,SIGN_NAMES,SIGN_RULERS,ZR_YEARS,CHALDEAN,FIRDAR_DAY,FIRDAR_NIGHT,FIRDAR_YEARS,FIXED_STARS,
     mod,sep,signed,signIndex,signDegree,jdFromDate,isoFromJD,ageYears,civilAnniversaryJD,completedCivilYears,trueSolarArc,annualProfection,monthlyProfection,firdaria,hermeticLots,sevenHermeticLots,
     zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,essentialDignity,eclipticToEquatorial,eclipticToRA,zodiacalPrimaryDirection,semiArcs,isAboveHorizonRA,placidianSemiArcDirection,prenatalSyzygy,
-    fixedStarConjunctions,findPlanetReturn,findStations,findIngresses
+    mutualReceptions,fixedStarConjunctions,findPlanetReturn,findAspectsToTarget,findStations,findIngresses
   };
 });
