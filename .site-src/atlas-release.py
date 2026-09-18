@@ -15,6 +15,12 @@ def upgrade(text):
     latest = 'for(let j=start;j<end;j+=step,count++){const ps='
     assert text.count(latest) == 1, 'Refined transit scanner changed upstream'
     text = text.replace(latest, "for(let j=start;j<end;j+=step,count++){if(window.atlasScanCancelled)throw new Error('Consulta cancelada; os volumes concluídos foram preservados.');const ps=")
+    default_houses = "const hs=document.getElementById('houseSystem');if(hs&&hs.value==='none'&&document.getElementById('precision')?.value!=='desconhecida')hs.value='P';"
+    assert text.count(default_houses) == 1, 'Swiss bootstrap changed upstream'
+    text = text.replace(default_houses, '// Preserve the selected house system, including explicit no-houses charts.')
+    auto_recalc = "if(Number.isFinite(lat)&&Number.isFinite(lon)&&typeof window.makeMap==='function')try{window.makeMap()}catch(_){ }"
+    assert text.count(auto_recalc) == 1
+    text = text.replace(auto_recalc, "if(typeof window.makeMap==='function')try{window.makeMap()}catch(_){ }")
     return text
 
 if __name__ == '__main__':
