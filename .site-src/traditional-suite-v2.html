@@ -51,9 +51,10 @@ view.innerHTML=\`
   <section class="tt-pane" data-tt-pane="events" hidden>
     <div class="tt-grid">
       <label>Corpo<select id="tt-body"></select></label><label>Início<input id="tt-event-start" type="date"></label><label>Fim<input id="tt-event-end" type="date"></label>
-      <label>Longitude de retorno (°; vazio = natal atual)<input id="tt-return-target" type="number" min="0" max="360" step="0.000001"></label>
+      <label>Longitude-alvo (°; vazio = natal atual)<input id="tt-return-target" type="number" min="0" max="360" step="0.000001"></label>
+      <label>Aspectos<select id="tt-event-aspects"><option value="0,60,90,120,180">Maiores</option><option value="0,30,45,60,90,120,135,150,180">Maiores + menores</option></select></label>
     </div>
-    <div class="tt-row"><button id="tt-return" type="button">Buscar retornos</button><button id="tt-stations" type="button">Buscar estações</button><button id="tt-ingresses" type="button">Buscar ingressos</button></div>
+    <div class="tt-row"><button id="tt-return" type="button">Buscar retornos</button><button id="tt-aspects" type="button">Buscar aspectos exatos</button><button id="tt-stations" type="button">Buscar estações</button><button id="tt-ingresses" type="button">Buscar ingressos</button><button id="tt-eclipses" type="button">Buscar eclipses</button></div>
     <div id="tt-event-out" class="tt-out"></div>
   </section>
 
@@ -166,20 +167,29 @@ q('#tt-lots-run').onclick=()=>{
   q('#tt-fortune').value=lots.fortune;q('#tt-spirit').value=lots.spirit;
   const rows=classic.map(p=>{const d=eng.essentialDignity(p.name,p.lon,sect);const labels=[d.domicile&&'domicílio',d.exaltation&&'exaltação',d.triplicity&&'triplicidade',d.term&&'termo',d.face&&'face',d.detriment&&'detrimento',d.fall&&'queda'].filter(Boolean).join(', ')||'peregrino pelos critérios avaliados';return '<tr><td>'+esc(p.name)+'</td><td>'+fmtLon(p.lon)+'</td><td>'+labels+'</td><td>'+d.score+'</td><td>'+d.triplicityLord+' / '+d.termLord+' / '+d.faceLord+'</td></tr>'}).join('');
   const lotLines=[['Fortuna',lots.fortune],['Espírito',lots.spirit],['Eros',lots.eros],['Necessidade',lots.necessity],['Coragem',lots.courage],['Vitória',lots.victory],['Nêmesis',lots.nemesis]].filter(x=>Number.isFinite(x[1])).map(x=>'<b>'+x[0]+':</b> '+fmtLon(x[1])).join('<br>');
-  q('#tt-dignity-out').innerHTML='<p>'+lotLines+'</p>'+(rows?'<table><thead><tr><th>Planeta</th><th>Posição</th><th>Condição</th><th>Score</th><th>Trip./Termo/Face</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p>Calcule um mapa para preencher a tabela planetária.</p>');
+  const rec=eng.mutualReceptions(classic),recText=rec.length?'<p><b>Recepções mútuas:</b> '+rec.map(x=>esc(x.first)+' ↔ '+esc(x.second)+' ('+esc(x.type)+')').join(' · ')+'</p>':'<p><b>Recepções mútuas:</b> nenhuma por domicílio/exaltação entre os sete planetas.</p>';
+  q('#tt-dignity-out').innerHTML='<p>'+lotLines+'</p>'+recText+(rows?'<table><thead><tr><th>Planeta</th><th>Posição</th><th>Condição</th><th>Score</th><th>Trip./Termo/Face</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p>Calcule um mapa para preencher a tabela planetária.</p>');
   }catch(e){q('#tt-dignity-out').textContent=e.message}
 };
 
 async function eventSearch(kind){
   const out=q('#tt-event-out');try{await ensureCalc();const eng=E(),body=Number(q('#tt-body').value),start=eng.jdFromDate(q('#tt-event-start').value),end=eng.jdFromDate(q('#tt-event-end').value);if(end<=start)throw Error('Intervalo inválido.');if(end-start>3660)throw Error('Limite desta busca interativa: 10 anos por execução.');
   let rows=[];
-  if(kind==='return'){let target=Number(q('#tt-return-target').value);if(!Number.isFinite(target)||q('#tt-return-target').value===''){target=currentPoints()[body]?.lon;if(!Number.isFinite(target))throw Error('Informe a longitude de retorno ou use um mapa atual.')}rows=eng.findPlanetReturn(body,target,start,end,window.calc,.25).map(j=>[fmtJD(j),fmtLon(window.calc(j,body).lon),'Retorno'])}
+  let target=Number(q('#tt-return-target').value);if((kind==='return'||kind==='aspect')&&(!Number.isFinite(target)||q('#tt-return-target').value==='')){target=currentPoints()[body]?.lon;if(!Number.isFinite(target))throw Error('Informe a longitude-alvo ou use um mapa atual.')}
+  if(kind==='return')rows=eng.findPlanetReturn(body,target,start,end,window.calc,.25).map(j=>[fmtJD(j),fmtLon(window.calc(j,body).lon),'Retorno']);
+  if(kind==='aspect'){const aa=q('#tt-event-aspects').value.split(',').map(Number);rows=eng.findAspectsToTarget(body,target,start,end,window.calc,aa,.25).map(x=>[fmtJD(x.jd),fmtLon(x.longitude),x.aspect+'° '+x.branch])}
   if(kind==='station')rows=eng.findStations(body,start,end,window.calc,.25).map(x=>[fmtJD(x.jd),fmtLon(x.longitude),x.type]);
   if(kind==='ingress')rows=eng.findIngresses(body,start,end,window.calc,.25).map(x=>[fmtJD(x.jd),eng.SIGN_NAMES[x.from]+' → '+eng.SIGN_NAMES[x.to],x.direction]);
   out.innerHTML=rows.length?'<table><thead><tr><th>Instante</th><th>Posição/transição</th><th>Tipo</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r.map((x,i)=>i?'</td><td>'+esc(x):esc(x)).join('')+'</td></tr>').join('')+'</tbody></table>':'Nenhum evento encontrado no intervalo.';
   }catch(e){out.textContent=e.message}
 }
-q('#tt-return').onclick=()=>eventSearch('return');q('#tt-stations').onclick=()=>eventSearch('station');q('#tt-ingresses').onclick=()=>eventSearch('ingress');
+q('#tt-return').onclick=()=>eventSearch('return');q('#tt-aspects').onclick=()=>eventSearch('aspect');q('#tt-stations').onclick=()=>eventSearch('station');q('#tt-ingresses').onclick=()=>eventSearch('ingress');
+q('#tt-eclipses').onclick=async()=>{
+  const out=q('#tt-event-out');try{await ensureCalc();const eng=E(),start=eng.jdFromDate(q('#tt-event-start').value),end=eng.jdFromDate(q('#tt-event-end').value),swe=window.obsSwiss?.swe;if(!swe||typeof swe.findNextSolarEclipse!=='function'||typeof swe.findNextLunarEclipse!=='function')throw Error('Busca de eclipses não exposta pelo motor Swiss carregado.');
+  const events=[];for(const [kind,fn] of [['Solar','findNextSolarEclipse'],['Lunar','findNextLunarEclipse']]){let cursor=start-1e-6,guard=0;while(cursor<=end&&guard++<40){const e=swe[fn](cursor);if(!e||!Number.isFinite(e.maximum)||e.maximum>end)break;let type='';if(typeof e.isTotal==='function'&&e.isTotal())type='total';else if(typeof e.isAnnular==='function'&&e.isAnnular())type='anular';else if(typeof e.isHybrid==='function'&&e.isHybrid())type='híbrido';else if(typeof e.isPartial==='function'&&e.isPartial())type='parcial';else if(typeof e.isPenumbralOnly==='function'&&e.isPenumbralOnly())type='penumbral';events.push([e.maximum,kind,type||'eclipse']);cursor=e.maximum+1}}
+  events.sort((a,b)=>a[0]-b[0]);out.innerHTML=events.length?'<table><thead><tr><th>Máximo</th><th>Classe</th><th>Tipo</th></tr></thead><tbody>'+events.map(x=>'<tr><td>'+fmtJD(x[0])+'</td><td>'+x[1]+'</td><td>'+x[2]+'</td></tr>').join('')+'</tbody></table>':'Nenhum eclipse no intervalo.';
+  }catch(e){out.textContent=e.message}
+};
 
 function parseLines(v){const out=[];for(const line of String(v).split(/\n|,/)){const p=line.split('=');if(p.length===2&&p[0].trim()&&Number.isFinite(Number(p[1])))out.push([p[0].trim(),Number(p[1])])}return out}
 q('#tt-geometry-run').onclick=()=>{
