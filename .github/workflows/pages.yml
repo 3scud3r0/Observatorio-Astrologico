@@ -43,6 +43,9 @@ jobs:
           print(f'Assembled {page.stat().st_size} bytes including professional tools.')
           PY
 
+          python .site-src/atlas-release.py
+          cp .site-src/atlas-auth.json _site/atlas-auth.json
+
           cp .nojekyll _site/.nojekyll
           cp LICENSE _site/LICENSE.txt
           cp THIRD_PARTY_NOTICES.md _site/THIRD_PARTY_NOTICES.md
