@@ -21,6 +21,25 @@ def upgrade(text):
     auto_recalc = "if(Number.isFinite(lat)&&Number.isFinite(lon)&&typeof window.makeMap==='function')try{window.makeMap()}catch(_){ }"
     assert text.count(auto_recalc) == 1
     text = text.replace(auto_recalc, "if(typeof window.makeMap==='function')try{window.makeMap()}catch(_){ }")
+
+    sys_names = "const sysNames={P:'Placidus',K:'Koch',E:'Casas iguais',W:'Signos inteiros',O:'Porfírio',R:'Regiomontanus',C:'Campanus'};"
+    expanded_names = "const sysNames={P:'Placidus',K:'Koch',E:'Casas iguais',W:'Signos inteiros',O:'Porfírio',R:'Regiomontanus',C:'Campanus',B:'Alcabitius',M:'Morinus',X:'Meridian',T:'Topocêntrico (Polich/Page)',V:'Vehlow igual',H:'Horizontal/Azimutal'};"
+    assert text.count(sys_names) == 1, 'Swiss house system names changed upstream'
+    text = text.replace(sys_names, expanded_names)
+
+    house_map = "const houseMap={P:HouseSystem.Placidus,K:HouseSystem.Koch,E:HouseSystem.Equal,W:HouseSystem.WholeSign,O:HouseSystem.Porphyrius,R:HouseSystem.Regiomontanus,C:HouseSystem.Campanus};"
+    expanded_map = "const houseMap={P:HouseSystem.Placidus,K:HouseSystem.Koch,E:HouseSystem.Equal,W:HouseSystem.WholeSign,O:HouseSystem.Porphyrius,R:HouseSystem.Regiomontanus,C:HouseSystem.Campanus,B:HouseSystem.Alcabitus,M:HouseSystem.Morinus,X:HouseSystem.Meridian,T:HouseSystem.PolichPage,V:HouseSystem.VehlowEqual,H:HouseSystem.Azimuthal};"
+    assert text.count(house_map) == 1, 'Swiss house map changed upstream'
+    text = text.replace(house_map, expanded_map)
+
+    wanted = "const hs=E('houseSystem'),wanted=[['P','Placidus'],['K','Koch'],['E','Casas iguais'],['W','Signos inteiros'],['O','Porfírio'],['R','Regiomontanus'],['C','Campanus']];"
+    expanded_wanted = "const hs=E('houseSystem'),wanted=[['P','Placidus'],['K','Koch'],['B','Alcabitius'],['R','Regiomontanus'],['C','Campanus'],['T','Topocêntrico (Polich/Page)'],['O','Porfírio'],['M','Morinus'],['X','Meridian'],['E','Casas iguais'],['V','Vehlow igual'],['W','Signos inteiros'],['H','Horizontal/Azimutal']];"
+    assert text.count(wanted) == 1, 'House selector list changed upstream'
+    text = text.replace(wanted, expanded_wanted)
+    order = "const order=['none','P','K','E','W','O','R','C'];"
+    expanded_order = "const order=['none','P','K','B','R','C','T','O','M','X','E','V','W','H'];"
+    assert text.count(order) == 1, 'House selector order changed upstream'
+    text = text.replace(order, expanded_order)
     return text
 
 if __name__ == '__main__':
