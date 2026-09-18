@@ -22,6 +22,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Test traditional calculation engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check .site-src/traditional-engine.js
+          node .site-src/traditional-engine.test.js
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html=Path('.site-src/traditional-suite-v2.html').read_text('utf-8')
+          scripts=[x for x in re.findall(r'<script(?:\\s[^>]*)?>([\\s\\S]*?)</script>',html,re.I) if x.strip()]
+          Path('/tmp/traditional-suite-inline.js').write_text('\\n'.join(scripts),'utf-8')
+          PY
+          node --check /tmp/traditional-suite-inline.js
+
       - name: Assemble and validate static site
         shell: bash
         run: |
@@ -33,7 +48,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           page = Path('_site/index.html')
-          enhancement = Path('.site-src/pro-tools.html').read_text('utf-8') + Path('.site-src/pro-upgrade.html').read_text('utf-8') + Path('.site-src/atlas-layout.html').read_text('utf-8')
+          enhancement = Path('.site-src/pro-tools.html').read_text('utf-8') + Path('.site-src/pro-upgrade.html').read_text('utf-8') + Path('.site-src/traditional-suite-v2.html').read_text('utf-8') + Path('.site-src/atlas-layout.html').read_text('utf-8')
           text = page.read_text('utf-8')
           marker = '</body>'
           if marker not in text:
@@ -45,6 +60,7 @@ jobs:
 
           python .site-src/atlas-release.py
           cp .site-src/atlas-auth.json _site/atlas-auth.json
+          cp .site-src/traditional-engine.js _site/traditional-engine.js
 
           cp .nojekyll _site/.nojekyll
           cp LICENSE _site/LICENSE.txt
@@ -79,11 +95,14 @@ jobs:
               './swiss/ephe/sepl_18.se1',
               './swiss/ephe/semo_18.se1',
               './swiss/ephe/seas_18.se1',
+              './traditional-engine.js',
           ]
           missing = [x for x in required if x not in html]
           if missing:
-              raise SystemExit(f'Missing local Swiss references in index.html: {missing}')
-          print('Static site and Swiss Ephemeris assets validated.')
+              raise SystemExit(f'Missing local runtime references in index.html: {missing}')
+          if 'Técnicas tradicionais Pro' not in html:
+              raise SystemExit('Traditional Pro suite was not assembled')
+          print('Static site, Swiss Ephemeris assets and Traditional Pro suite validated.')
           PY
 
       - name: Upload Pages artifact
