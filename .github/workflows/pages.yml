@@ -1,0 +1,84 @@
+name: Deploy Observatorio to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Assemble static site
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site/swiss/ephe
+
+          cat .site-src/index/part-*.html > _site/index.html
+          ACTUAL_BYTES="$(wc -c < _site/index.html | tr -d ' ')"
+          test "$ACTUAL_BYTES" = "15779043" || {
+            echo "index.html size mismatch: $ACTUAL_BYTES" >&2
+            exit 1
+          }
+
+          cp .nojekyll _site/.nojekyll
+          cp LICENSE _site/LICENSE.txt
+          cp THIRD_PARTY_NOTICES.md _site/THIRD_PARTY_NOTICES.md
+
+          curl --fail --location --retry 4             'https://cdn.jsdelivr.net/npm/@swisseph/browser@1.3.1/dist/swisseph-browser.js'             -o _site/swiss/swisseph-browser.js
+          curl --fail --location --retry 4             'https://cdn.jsdelivr.net/npm/@swisseph/browser@1.3.1/dist/swisseph.js'             -o _site/swiss/swisseph.js
+          curl --fail --location --retry 4             'https://cdn.jsdelivr.net/npm/@swisseph/browser@1.3.1/dist/swisseph.wasm'             -o _site/swiss/swisseph.wasm
+
+          SWISS_COMMIT='9083a12d59e98034fb2337061481ac8800c16e64'
+          for f in sepl_18.se1 semo_18.se1 seas_18.se1; do
+            curl --fail --location --retry 4               "https://raw.githubusercontent.com/aloistr/swisseph/${SWISS_COMMIT}/ephe/${f}"               -o "_site/swiss/ephe/${f}"
+          done
+
+          test "$(stat -c%s _site/swiss/swisseph.wasm)" -gt 100000
+          test "$(stat -c%s _site/swiss/ephe/sepl_18.se1)" -gt 100000
+          test "$(stat -c%s _site/swiss/ephe/semo_18.se1)" -gt 500000
+          test "$(stat -c%s _site/swiss/ephe/seas_18.se1)" -gt 100000
+          python - <<'PY'
+          from pathlib import Path
+          magic = Path('_site/swiss/swisseph.wasm').read_bytes()[:4]
+          if magic != b'\\x00asm':
+              raise SystemExit(f'Invalid WASM magic: {magic!r}')
+          print('Swiss/WASM static assets validated.')
+          PY
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      actions: read
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
