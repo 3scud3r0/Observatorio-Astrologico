@@ -38,7 +38,8 @@ jobs:
           marker = '</body>'
           if marker not in text:
               raise SystemExit('Expected </body> marker was not found')
-          page.write_text(text.replace(marker, enhancement + '\\n' + marker, 1), 'utf-8')
+          head, tail = text.rsplit(marker, 1)
+          page.write_text(head + enhancement + '\\n' + marker + tail, 'utf-8')
           print(f'Assembled {page.stat().st_size} bytes including professional tools.')
           PY
 
