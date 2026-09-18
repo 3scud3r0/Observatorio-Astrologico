@@ -64,9 +64,16 @@ view.innerHTML=\`
   </section>
 
   <section class="tt-pane" data-tt-pane="directions" hidden>
-    <div class="tt-grid"><label>Promissor (longitude °)<input id="tt-prom" type="number" min="0" max="360" step="0.000001"></label><label>Significador (longitude °)<input id="tt-sig" type="number" min="0" max="360" step="0.000001"></label><label>Chave (°/ano)<input id="tt-key" type="number" min="0.1" max="2" step="0.000001" value="0.98564736"></label><label>Sentido<select id="tt-converse"><option value="false">Direto</option><option value="true">Conversa</option></select></label></div>
-    <div class="tt-row"><button id="tt-directions-run" type="button">Calcular direção zodiacal em AR</button></div>
-    <div class="tt-note tt-bad">Esta modalidade é explicitamente <b>zodiacal em ascensão reta com latitude eclíptica zero</b>. Ela não é rotulada como direção mundana por semi-arco e não substitui variantes Placidianas/Ptolemaicas que exigem coordenadas celestes completas.</div>
+    <div class="tt-grid">
+      <label>Método<select id="tt-pd-method"><option value="placidian">Placidus semi-arco proporcional</option><option value="ra">Zodiacal simples em AR</option></select></label>
+      <label>Promissor longitude (°)<input id="tt-prom" type="number" min="0" max="360" step="0.000001"></label><label>Promissor latitude eclíptica (°)<input id="tt-prom-lat" type="number" min="-90" max="90" step="0.000001" value="0"></label>
+      <label>Significador longitude (°)<input id="tt-sig" type="number" min="0" max="360" step="0.000001"></label><label>Significador latitude eclíptica (°)<input id="tt-sig-lat" type="number" min="-90" max="90" step="0.000001" value="0"></label>
+      <label>Latitude geográfica (°)<input id="tt-geo-lat" type="number" min="-89.9" max="89.9" step="0.000001"></label><label>ARMC (°)<input id="tt-armc" type="number" min="0" max="360" step="0.000001"></label>
+      <label>Latitude no método<select id="tt-pd-zodiacal"><option value="false">In-mundo (preservar latitudes)</option><option value="true">Zodiacal (zerar latitudes)</option></select></label>
+      <label>Chave (°/ano)<input id="tt-key" type="number" min="0.1" max="2" step="0.000001" value="0.98564736"></label><label>Sentido no método simples<select id="tt-converse"><option value="false">Direto</option><option value="true">Conversa</option></select></label>
+    </div>
+    <div class="tt-row"><button id="tt-directions-run" type="button">Calcular direção primária</button></div>
+    <div class="tt-note">O modo Placidus usa coordenadas equatoriais, diferença ascensional, semi-arcos diurno/noturno e distância proporcional ao meridiano. O modo AR simples permanece separado para escolas que usam essa modalidade.</div>
     <div id="tt-directions-out" class="tt-out"></div>
   </section>
 
@@ -129,12 +136,14 @@ async function timing(){
   const prof=eng.annualProfection(b,r,Number(q('#tt-prof-sign').value),Number(q('#tt-prof-house').value));
   const monthly=eng.monthlyProfection(b,r,Number(q('#tt-prof-sign').value),Number(q('#tt-prof-house').value));
   const fir=eng.firdaria(b,r,sect);
+  const syz=eng.prenatalSyzygy(b,window.calc);
   q('#tt-timing-out').innerHTML=
     '<span class="tt-chip"><b>Idade:</b> '+arc.age.toFixed(6)+' anos tropicais</span>'+
     '<span class="tt-chip"><b>True Solar Arc:</b> '+arc.arc.toFixed(6)+'°</span>'+
     '<p><b>Sol natal:</b> '+fmtLon(arc.natalSun)+'<br><b>Sol secundariamente progredido:</b> '+fmtLon(arc.progressedSun)+' · '+fmtJD(arc.progressedJD)+'<br><b>Longitude dirigida:</b> '+fmtLon(directed)+'</p>'+
     '<p><b>Profeção anual:</b> casa '+prof.house+' · '+prof.signName+' · Senhor do Ano: '+prof.lord+'<br>'+fmtJD(prof.startJD)+' → '+fmtJD(prof.endJD)+'<br><b>Profeção mensal:</b> casa '+monthly.house+' · '+monthly.signName+' · Senhor: '+monthly.lord+'<br>'+fmtJD(monthly.startJD)+' → '+fmtJD(monthly.endJD)+'</p>'+
-    '<p><b>Firdaria:</b> '+fir.major.lord+(fir.sub?' / '+fir.sub.lord:'')+'<br>Maior: '+fmtJD(fir.major.startJD)+' → '+fmtJD(fir.major.endJD)+(fir.sub?'<br>Subperíodo: '+fmtJD(fir.sub.startJD)+' → '+fmtJD(fir.sub.endJD):'<br>Período nodal sem subdivisão planetária nesta convenção.')+'</p>';
+    '<p><b>Firdaria:</b> '+fir.major.lord+(fir.sub?' / '+fir.sub.lord:'')+'<br>Maior: '+fmtJD(fir.major.startJD)+' → '+fmtJD(fir.major.endJD)+(fir.sub?'<br>Subperíodo: '+fmtJD(fir.sub.startJD)+' → '+fmtJD(fir.sub.endJD):'<br>Período nodal sem subdivisão planetária nesta convenção.')+'</p>'+
+    '<p><b>Sizígia pré-natal:</b> '+syz.type+' · '+fmtJD(syz.jd)+'<br>Sol '+fmtLon(syz.sunLon)+' · Lua '+fmtLon(syz.moonLon)+' · erro de fase '+syz.phaseError.toExponential(2)+'°</p>';
 }
 q('#tt-run-all').onclick=()=>timing().catch(e=>q('#tt-timing-out').textContent=e.message);
 
@@ -183,8 +192,10 @@ q('#tt-geometry-run').onclick=()=>{
 };
 
 q('#tt-directions-run').onclick=()=>{
-  try{const r=E().zodiacalPrimaryDirection(Number(q('#tt-prom').value),Number(q('#tt-sig').value),{key:Number(q('#tt-key').value),converse:q('#tt-converse').value==='true'});
-  q('#tt-directions-out').innerHTML='<p><b>AR promissor:</b> '+r.pRA.toFixed(6)+'°<br><b>AR significador:</b> '+r.sRA.toFixed(6)+'°<br><b>Arco:</b> '+r.arc.toFixed(6)+'°<br><b>Tempo pela chave:</b> '+r.years.toFixed(6)+' anos</p><p><small>'+esc(r.warning)+'</small></p>';
+  try{const eng=E(),method=q('#tt-pd-method').value,key=Number(q('#tt-key').value);let r;
+  if(method==='placidian')r=eng.placidianSemiArcDirection({lon:Number(q('#tt-prom').value),lat:Number(q('#tt-prom-lat').value)},{lon:Number(q('#tt-sig').value),lat:Number(q('#tt-sig-lat').value)},{mcRA:Number(q('#tt-armc').value),geoLat:Number(q('#tt-geo-lat').value),key,zodiacal:q('#tt-pd-zodiacal').value==='true'});
+  else r=eng.zodiacalPrimaryDirection(Number(q('#tt-prom').value),Number(q('#tt-sig').value),{key,converse:q('#tt-converse').value==='true'});
+  q('#tt-directions-out').innerHTML='<p><b>Método:</b> '+esc(r.method)+'<br><b>AR promissor:</b> '+r.pRA.toFixed(6)+'°<br><b>AR significador:</b> '+r.sRA.toFixed(6)+'°'+(Number.isFinite(r.pDecl)?'<br><b>Declinação promissor:</b> '+r.pDecl.toFixed(6)+'° · <b>significador:</b> '+r.sDecl.toFixed(6)+'°':'')+'<br><b>Arco:</b> '+r.arc.toFixed(6)+'°<br><b>Tempo pela chave:</b> '+r.years.toFixed(6)+' anos</p><p><small>'+esc(r.warning)+'</small></p>';
   }catch(e){q('#tt-directions-out').textContent=e.message}
 };
 q('#tt-stars-run').onclick=()=>{
