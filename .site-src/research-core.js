@@ -89,6 +89,15 @@
       throw Error('Registre e sele a hipótese antes de avaliar.');
     if(observed!==true&&observed!==false&&observed!==null)
       throw Error('Resultado: sim, não ou inconclusivo.');
+    const when=Date.parse(now);
+    if(typeof now!=='string'||!Number.isFinite(when))
+      throw Error('Data da avaliação inválida.');
+    const start=Date.parse(date(record.protocol?.windowStart,'Início')+'T00:00:00.000Z');
+    const end=Date.parse(date(record.protocol?.windowEnd,'Fim')+'T00:00:00.000Z')+86400000;
+    if(observed!==null&&when<start)
+      throw Error('Avaliação de ocorrência anterior ao início da janela.');
+    if(observed===false&&when<end)
+      throw Error('Ausência de ocorrência só pode ser avaliada após o encerramento da janela UTC.');
     return {
       hash:record.hash,
       observed,
