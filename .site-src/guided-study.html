@@ -1,0 +1,36 @@
+<!-- Guided reading: explanatory layer only; never replaces Swiss calculations. -->
+<style>
+#oa-guide{position:fixed;right:14px;top:14px;z-index:2147483643;font:14px/1.5 system-ui;color:#eaf8ff}
+#oa-guide *{box-sizing:border-box}
+#oa-g-toggle,#oa-g-panel button{border:1px solid #82cde8;background:#17416d;color:#fff;border-radius:9px;padding:8px 12px;cursor:pointer}
+#oa-g-panel{width:min(460px,calc(100vw - 28px));max-height:calc(100vh - 84px);overflow:auto;padding:17px;background:#092038;color:#eff9ff;border:1px solid #82cde8;border-radius:14px;box-shadow:0 24px 70px #000b}
+#oa-g-panel h2,#oa-g-panel h3{color:#ffde8b;margin:4px 0}
+#oa-g-panel .oa-g-actions{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+#oa-g-panel output{display:block;white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;border-radius:9px;background:#07182d}
+#oa-g-panel button:focus-visible{outline:3px solid #ffde8b}
+#oa-g-panel [aria-pressed=true]{background:#236d7f}
+@media(max-width:650px){#oa-guide{top:auto;bottom:126px;right:14px}}
+</style>
+<section id="oa-guide" aria-label="Estudo guiado de astrologia">
+  <button id="oa-g-toggle" type="button" aria-expanded="false" aria-controls="oa-g-panel">Começar / Aprender</button>
+  <div id="oa-g-panel" hidden>
+    <div class="oa-g-actions"><h2>Estudo guiado</h2><button id="oa-g-close" type="button">Fechar</button></div>
+    <p>Os cálculos descrevem posições astronômicas. Interpretações astrológicas são convenções de estudo, não diagnósticos nem previsões empiricamente demonstradas.</p>
+    <h3>Qual é seu objetivo?</h3>
+    <div class="oa-g-actions">
+      <button data-oa-go="begin" type="button">Começar</button>
+      <button data-oa-go="investigate" type="button">Investigar</button>
+      <button data-oa-go="learn" type="button">Aprender</button>
+      <button data-oa-go="expert" type="button">Especialista</button>
+    </div>
+    <h3>Seu mapa em três etapas</h3>
+    <div class="oa-g-actions">
+      <button data-oa-step="0" type="button">1 · Sol</button>
+      <button data-oa-step="1" type="button">2 · Lua</button>
+      <button data-oa-step="2" type="button">3 · Ascendente</button>
+    </div>
+    <div class="oa-g-actions"><button id="oa-g-simple" type="button">Linguagem simples</button><button id="oa-g-technical" type="button">Observatório técnico</button></div>
+    <output id="oa-g-output" aria-live="polite">Calcule seu mapa na página principal para iniciar.</output>
+  </div>
+</section>
+<script src="./guided-study.js"></script>
