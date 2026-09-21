@@ -17,7 +17,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | AR07 | Retirar substituições literais frágeis do atlas-release.py | N |
 | AR08 | Separar banco de textos e componentes em arquivos modulares | N |
 | AR09 | Code-splitting/lazy loading e meta de <500 KB iniciais (sem efemérides) | N; meta não medida |
-| AR10 | Isolar Swiss e varreduras pesadas em Web Worker e protocolo RPC cancelável | N |
+| AR10 | Isolar Swiss e varreduras pesadas em Web Worker e protocolo RPC cancelável | A/P; scanner independente em Worker com Swiss/WASM e cancelamento; motor principal continua na thread da UI |
 | AR11 | Limitar memória e preservar responsividade durante consultas longas | P |
 | AR12 | Cache local controlado de efemérides em IndexedDB/CacheStorage | P; CacheStorage opt-in com pacote explicitamente preparado |
 | AR13 | PWA e modo offline real após o primeiro download completo | P; manifest, Service Worker e preparação explícita; teste offline interativo/terceiros remotos pendentes |
@@ -68,7 +68,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 |---|---|---|
 | PR01 | Linha do tempo interativa ±minuto/hora/dia/mês/ano, roda atualizável | A/P; relógio Swiss e roda SVG, sem bi-wheel |
 | PR02 | Scanner anual de trânsito com motor suíço, não Sol médio | A |
-| PR03 | Trânsitos exatos, orbe de entrada/saída, aspectos e agenda | E/P |
+| PR03 | Trânsitos exatos, orbe de entrada/saída, aspectos e agenda | A/P; scanner Swiss em Worker calcula janelas refinadas por bisseção quando detectadas; agenda e garantia de eventos subamostrados pendentes |
 | PR04 | Progressões secundárias com idade fracionária | E/A |
 | PR05 | Ascendente e MC progredidos: opção arco solar/AR, convenção descrita | N |
 | PR06 | Direções por arco solar médio e verdadeiro + comparação | P |
