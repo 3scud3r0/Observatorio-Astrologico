@@ -28,6 +28,9 @@ jobs:
           set -euo pipefail
           node --check .site-src/traditional-engine.js
           node .site-src/traditional-engine.test.js
+          node --check .site-src/research-core.js
+          node --check .site-src/research-lab.js
+          node .site-src/research-core.test.js
           python - <<'PY'
           import re
           from pathlib import Path
@@ -76,6 +79,10 @@ jobs:
           PY
 
           python .site-src/atlas-release.py
+          # Append the opt-in laboratory without changing the legacy application.
+          cat .site-src/research-lab.html >> _site/index.html
+          cp .site-src/research-core.js _site/research-core.js
+          cp .site-src/research-lab.js _site/research-lab.js
           cp .site-src/atlas-auth.json _site/atlas-auth.json
           cp .site-src/traditional-engine.js _site/traditional-engine.js
 
@@ -113,6 +120,8 @@ jobs:
               './swiss/ephe/semo_18.se1',
               './swiss/ephe/seas_18.se1',
               './traditional-engine.js',
+              './research-core.js',
+              './research-lab.js',
           ]
           missing = [x for x in required if x not in html]
           if missing:
