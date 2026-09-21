@@ -60,13 +60,32 @@ self.addEventListener('message',event=>{
   event.waitUntil((async()=>{
     let count=0,errors=[];
     const cache=await caches.open(CACHE);
+    const provenancePath=new URL('./ephemeris-provenance.json',self.registration.scope).pathname;
+    // Reload the manifest before considering a previously cached astronomical file valid.
+    const manifestResponse=await fetch(new URL(provenancePath,self.location.origin),{cache:'reload'});
+    if(!manifestResponse.ok)throw Error('Não foi possível validar as efemérides sem o manifesto.');
+    const manifest=await manifestResponse.clone().json();
+    if(manifest.schema!=='oa-asset-provenance/v1'||!manifest.assets)
+      throw Error('Manifesto de efemérides inválido.');
+    await cache.put(provenancePath,manifestResponse);
+    const checksum=async response=>{
+      const sum=await crypto.subtle.digest('SHA-256',await response.arrayBuffer());
+      return [...new Uint8Array(sum)].map(v=>v.toString(16).padStart(2,'0')).join('');
+    };
     for(const path of allowed){
       try{
-        const existing=await cache.match(path);
+        const asset=manifest.assets[path.slice(rootPath.length)];
+        let existing=await cache.match(path);
+        if(asset&&existing&&(await checksum(existing.clone()))!==asset.sha256){
+          await cache.delete(path);
+          existing=null;
+        }
         if(!existing){
           const response=await fetch(new URL(path,self.registration.scope),{cache:'reload'});
           if(!response.ok||response.type!=='basic')
             throw Error('HTTP '+response.status);
+          if(asset&&(await checksum(response.clone()))!==asset.sha256)
+            throw Error('SHA-256 divergiu do manifesto de origem; arquivo recusado.');
           await cache.put(path,response);
         }
         count++;
