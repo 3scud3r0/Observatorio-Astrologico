@@ -44,7 +44,7 @@ assert.deepEqual(groups.map(x=>x.name),['Profecção','Trânsito']);
 assert.equal(groups[0].comparisons,2);
 assert.equal(groups[0].familywiseAlphaReference,0.025);
 assert.equal(groups[0].opportunities,3);
-assert.equal(groups[1].opportunities,4);
+assert.equal(groups[1].opportunities,5);
 assert.equal(A.summarize([mk(true,true,'2026-08-02',['Trânsito'])],now).baselineComparable,false);
 assert.throws(()=>A.summarize([mk(true,'yes')],now),/Resultado/);
 assert.throws(()=>A.summarize([{record:{protocol:{predicted:true}},assessments:[]}],now),/Janela/);
