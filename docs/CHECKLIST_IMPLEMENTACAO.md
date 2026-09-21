@@ -3,7 +3,7 @@
 Estado auditado no repositório em 21-09-2026. Derivado do [inventário integral](INVENTARIO_TRES_CONVERSAS.md), que é a fonte de descrição dos requisitos. **[x]** significa recurso identificado como existente/implementado, não certificação independente; **[ ] parcial** significa código ou infraestrutura ainda insuficiente; **[ ] pendente** significa requisito ainda não entregue. Não afirmar “terminei” enquanto houver caixas abertas.
 
 Atualizações desta execução: scanner Swiss em Worker com cancelamento; PWA opt-in/CacheStorage; manifesto SHA-256 dos seis ativos Swiss; código de cofre cifrado AES-GCM com RLS preparado (sem projeto Supabase conectado); validação de hora natal/coordenadas; testes adicionais de CI.
-**Contagem:** 92 requisitos; 26 marcados existentes/implementados; 48 parciais; 18 pendentes. Para cumprir o pedido integral, todas as 66 caixas abertas precisam ser encerradas e verificadas.
+**Contagem:** 92 requisitos; 26 marcados existentes/implementados; 51 parciais; 15 pendentes. Para cumprir o pedido integral, todas as 66 caixas abertas precisam ser encerradas e verificadas.
 
 
 ## Arquitetura, desempenho e segurança
@@ -68,14 +68,14 @@ Atualizações desta execução: scanner Swiss em Worker com cancelamento; PWA o
 - [x] existente/implementado — **PR04** Progressões secundárias com idade fracionária — E/A.
 - [ ] pendente — **PR05** Ascendente e MC progredidos: opção arco solar/AR, convenção descrita — N.
 - [ ] parcial — **PR06** Direções por arco solar médio e verdadeiro + comparação — P.
-- [ ] pendente — **PR07** Roda dupla natal x trânsito/progressão/direção — N/P.
-- [ ] pendente — **PR08** Revoluções solar e lunar; correção de precessão opcional — N/P.
+- [ ] parcial — **PR07** Roda dupla natal x trânsito/progressão/direção — N/P.
+- [ ] parcial — **PR08** Revoluções solar e lunar; correção de precessão opcional — N/P.
 - [ ] parcial — **PR09** Firdaria e profecções em linha da vida e senhor do ano — P.
 - [ ] parcial — **PR10** Zodiacal Releasing Fortuna/Espírito como cronologia visual — P.
 - [ ] pendente — **PR11** Retificação por lista biográfica com função objetivo e incerteza — N.
 - [ ] parcial — **PR12** Retornos, estações, ingressos, eclipses, retrogradação — E/P.
 - [ ] parcial — **PR13** Volumes de até 90 dias, cancelamento, persistência/retomada — E/P.
-- [ ] pendente — **PR14** Retomar sem recalcular volumes concluídos e evitar limites artificiais de janelas — N/P.
+- [ ] parcial — **PR14** Retomar sem recalcular volumes concluídos e evitar limites artificiais de janelas — N/P.
 - [ ] parcial — **PR15** Comparar técnicas com critérios separados sem aumentar artificialmente “acertos” — A/P.
 - [ ] parcial — **PR16** Definir casas/orbes/escolas e origem de cada evento para reprodução — P.
 
