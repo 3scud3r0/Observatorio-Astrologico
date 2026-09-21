@@ -190,5 +190,28 @@
       byId('provenance-output').textContent='Identidade técnica exportada. A versão do motor e a fonte dos dados constam no arquivo.';
     }catch(error){byId('provenance-output').textContent=error.message}
   };
+  // Narrow, integrity-checked bridge for optional end-to-end encrypted backups.
+  // Never exposes local data without a direct user click in the vault panel.
+  window.OAResearchLocal={
+    getSelected:async()=>{
+      const item=selected();
+      if(!await E.verify(item.record))throw Error('Selo local divergente.');
+      return JSON.parse(JSON.stringify(item));
+    },
+    importSnapshot:async item=>{
+      if(!item||!await E.verify(item.record)||!Array.isArray(item.assessments))
+        throw Error('Snapshot não possui protocolo íntegro.');
+      if(item.assessments.length>10000)throw Error('Avaliações excedem o limite.');
+      for(const a of item.assessments){
+        if(a.hash!==item.record.hash||![true,false,null].includes(a.observed)||
+           typeof a.evidence!=='string'||typeof a.evaluatedAt!=='string')
+          throw Error('Avaliação cifrada malformada.');
+      }
+      if(items.some(old=>old.record.hash===item.record.hash))
+        return false;
+      items.push(JSON.parse(JSON.stringify(item)));
+      save();refresh();return true;
+    }
+  };
   refresh();
 })();
