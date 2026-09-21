@@ -1,0 +1,38 @@
+<!-- Optional encrypted cloud vault. Disabled until owner configures a Supabase project. -->
+<style>
+#oa-vault{position:fixed;right:14px;top:125px;z-index:2147483641;font:14px/1.45 system-ui;color:#f1f8ff}
+#oa-vault *{box-sizing:border-box}
+#oa-v-toggle,#oa-v-panel button{background:#17416d;color:#fff;border:1px solid #82cde8;border-radius:8px;padding:8px 12px;cursor:pointer}
+#oa-v-panel{width:min(485px,calc(100vw - 28px));max-height:72vh;overflow:auto;border:1px solid #82cde8;background:#092038;padding:16px;border-radius:14px;box-shadow:0 24px 70px #000b}
+#oa-v-panel h2{margin:3px 0;color:#ffde8b}
+#oa-v-panel label{display:block;margin:10px 0}
+#oa-v-panel input,#oa-v-panel select{width:100%;display:block;background:#102c4b;color:#fff;border:1px solid #6a93b9;border-radius:6px;padding:8px}
+#oa-v-panel .oa-v-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#oa-v-status{display:block;white-space:pre-wrap;overflow-wrap:anywhere;padding:10px;background:#061528;border-radius:9px}
+@media(max-width:650px){#oa-vault{top:auto;bottom:240px}}
+</style>
+<section id="oa-vault" aria-label="Cofre cifrado opcional">
+  <button id="oa-v-toggle" type="button" aria-expanded="false" aria-controls="oa-v-panel">Cofre cifrado</button>
+  <div id="oa-v-panel" hidden>
+    <div class="oa-v-actions"><h2>Backup cifrado opcional</h2><button id="oa-v-close" type="button">Fechar</button></div>
+    <p><strong>Local por padrão.</strong> Apenas ao selecionar “Enviar” um snapshot é cifrado neste dispositivo e enviado à sua conta privada Supabase. A frase-senha não é salva; sem ela, não é possível recuperar o backup. A conta só funciona após configurar <code>atlas-auth.json</code> e executar <code>supabase/research-vault.sql</code>.</p>
+    <p>O servidor recebe o hash da hipótese, o horário de upload e o texto cifrado, mas não a hipótese em claro. Upload não comprova o horário em que a hipótese foi formulada.</p>
+    <label>Frase-senha (mínimo 12 caracteres)
+      <input id="oa-v-password" type="password" minlength="12" maxlength="256" autocomplete="off">
+    </label>
+    <div class="oa-v-actions">
+      <button id="oa-v-upload" type="button">Enviar protocolo selecionado</button>
+      <button id="oa-v-list" type="button">Listar backups da conta</button>
+    </div>
+    <label>Snapshot cifrado da conta
+      <select id="oa-v-snapshots"></select>
+    </label>
+    <div class="oa-v-actions">
+      <button id="oa-v-restore" type="button">Decifrar e restaurar no navegador</button>
+      <button id="oa-v-delete" type="button">Excluir snapshot da conta</button>
+    </div>
+    <output id="oa-v-status" aria-live="polite">Conecte-se à sua conta pelo Atlas para usar o cofre.</output>
+  </div>
+</section>
+<script src="./research-vault.js"></script>
+<script src="./research-vault-ui.js"></script>
