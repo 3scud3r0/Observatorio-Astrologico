@@ -28,6 +28,8 @@ jobs:
           set -euo pipefail
           node --check .site-src/traditional-engine.js
           node .site-src/traditional-engine.test.js
+          node --check .site-src/atlas-resume.js
+          node .site-src/atlas-resume.test.js
           node --check .site-src/research-core.js
           node --check .site-src/research-lab.js
           node --check .site-src/research-vault.js
@@ -58,6 +60,16 @@ jobs:
           Path('/tmp/traditional-suite-inline.js').write_text('\n'.join(scripts),'utf-8')
           PY
           node --check /tmp/traditional-suite-inline.js
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html=Path('.site-src/atlas-experience.html').read_text('utf-8')
+          scripts=[x for x in re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',html,re.I) if x.strip()]
+          if not scripts:
+              raise SystemExit('Atlas inline JavaScript was not extracted')
+          Path('/tmp/atlas-experience-inline.js').write_text('\n'.join(scripts),'utf-8')
+          PY
+          node --check /tmp/atlas-experience-inline.js
 
       - name: Validate Pro Studio inline JavaScript
         shell: bash
@@ -96,6 +108,7 @@ jobs:
           PY
 
           python .site-src/atlas-release.py
+          cp .site-src/atlas-resume.js _site/atlas-resume.js
           # Append the opt-in laboratory without changing the legacy application.
           cat .site-src/research-lab.html >> _site/index.html
           cat .site-src/research-vault-ui.html >> _site/index.html
@@ -156,6 +169,7 @@ jobs:
               './swiss/ephe/semo_18.se1',
               './swiss/ephe/seas_18.se1',
               './traditional-engine.js',
+              './atlas-resume.js',
               './research-core.js',
               './research-lab.js',
               './research-analysis.js',
