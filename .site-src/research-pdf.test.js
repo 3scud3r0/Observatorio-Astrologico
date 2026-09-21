@@ -26,7 +26,7 @@ const written=[],saved=[],doc={
 };
 assert.equal(P.render(item,{doc}),doc);
 assert.ok(written.includes('PAGE_BREAK'),'long reports must paginate');
-assert.ok(written.join(' ').includes(record.hash));
+assert.ok(written.join('').includes(record.hash),'wrapped PDF text retains the entire SHA-256');
 assert.deepEqual(saved,['observatorio-auditoria-aaaaaaaaaaaa.pdf']);
 assert.throws(()=>P.lines({record,assessments:null}),/íntegro/);
 console.log('Research PDF tests: OK (full protocol, outcome history, pagination and export)');
