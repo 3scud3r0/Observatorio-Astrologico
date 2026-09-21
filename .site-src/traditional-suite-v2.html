@@ -8,7 +8,7 @@
 const q=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const view=q('#oa-studio article[data-p="traditional"]'); if(!view)return;
 const nav=q('#oa-studio nav button[data-v="traditional"]'); if(nav)nav.textContent='Técnicas tradicionais Pro';
-view.innerHTML=\`
+view.innerHTML=`
 <div class="tt-shell">
   <div><h3>Técnicas tradicionais Pro</h3><p>Motor separado, testado e com convenções explícitas. Cálculos astronômicos reutilizam a Swiss Ephemeris do Observatório quando disponível.</p></div>
   <div class="tt-row"><button id="tt-use-map" type="button">Usar mapa atual</button><button id="tt-run-all" type="button">Calcular resumo temporal</button></div>
@@ -84,7 +84,7 @@ view.innerHTML=\`
     <div class="tt-note">Catálogo de referência J2000 com precessão linear de 50,29″/ano. Serve para triagem de conjunções; para astrometria estelar de alta precisão, confirme por catálogo astronômico/efeméride específica.</div>
     <div id="tt-stars-out" class="tt-out"></div>
   </section>
-</div>\`;
+</div>`;
 
 const E=()=>window.OATraditionalEngine;
 function populate(){
