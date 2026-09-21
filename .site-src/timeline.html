@@ -1,0 +1,42 @@
+<!-- Swiss-backed one-instant clock, loaded only on user interaction. -->
+<style>
+#oa-clock{position:fixed;left:14px;bottom:68px;z-index:2147483644;color:#eff9ff;font:14px/1.4 system-ui}
+#oa-clock *{box-sizing:border-box}
+#oa-t-toggle,#oa-t-panel button{background:#17416d;color:#fff;border:1px solid #82cde8;border-radius:9px;padding:8px 12px;cursor:pointer}
+#oa-t-panel{width:min(630px,calc(100vw - 28px));max-height:calc(100vh - 125px);overflow:auto;border:1px solid #82cde8;background:#092038;padding:16px;border-radius:15px;box-shadow:0 24px 70px #000b}
+#oa-t-panel h2{margin:3px 0;color:#ffde8b}
+#oa-t-panel label{display:block;margin:10px 0}
+#oa-t-panel input,#oa-t-panel select{display:block;width:100%;padding:8px;background:#102c4b;border:1px solid #6a93b9;color:white;border-radius:7px}
+#oa-t-panel .oa-t-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#oa-t-panel .oa-t-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+#oa-t-out{display:block;white-space:pre-wrap;padding:10px;border-radius:9px;background:#061528;overflow-wrap:anywhere}
+#oa-t-wheel{display:block;max-width:360px;width:100%;margin:auto;color:#d7efff}
+#oa-t-panel button:focus-visible{outline:3px solid #ffde8b}
+@media(max-width:500px){#oa-t-panel .oa-t-grid{grid-template-columns:1fr}}
+</style>
+<section id="oa-clock" aria-label="Relógio temporal astronômico">
+  <button id="oa-t-toggle" type="button" aria-expanded="false" aria-controls="oa-t-panel">Relógio de trânsitos</button>
+  <div id="oa-t-panel" hidden>
+    <div class="oa-t-actions"><h2>Relógio de trânsitos</h2><button id="oa-t-close" type="button">Fechar</button></div>
+    <p>Posições da Swiss Ephemeris no instante escolhido (UTC). Técnicas simbólicas não constituem previsões empiricamente validadas.</p>
+    <div class="oa-t-grid">
+      <label>Data UTC<input id="oa-t-date" type="date"></label>
+      <label>Hora UTC<input id="oa-t-time" type="time" step="60" value="12:00"></label>
+      <label>Corpo<select id="oa-t-body"><option value="0">Sol</option><option value="1">Lua</option><option value="2">Mercúrio</option><option value="3">Vênus</option><option value="4">Marte</option><option value="5">Júpiter</option><option value="6">Saturno</option><option value="7">Urano</option><option value="8">Netuno</option><option value="9">Plutão</option></select></label>
+      <label>Unidade<select id="oa-t-unit"><option value="minute">Minuto</option><option value="hour">Hora</option><option value="day" selected>Dia</option><option value="month">Mês</option><option value="year">Ano</option></select></label>
+      <label>Longitude-alvo natal (°)<input id="oa-t-target" type="number" min="0" max="360" step=".000001" placeholder="Informe a posição natal"></label>
+      <label>Orbe (°)<input id="oa-t-orb" type="number" min="0" max="15" step=".1" value="1"></label>
+      <label>Aspecto<select id="oa-t-aspect"><option value="0">Conjunção 0°</option><option value="30">Semissextil 30°</option><option value="45">Semiquadratura 45°</option><option value="60">Sextil 60°</option><option value="90">Quadratura 90°</option><option value="120">Trígono 120°</option><option value="135">Sesquiquadratura 135°</option><option value="150">Quincúncio 150°</option><option value="180">Oposição 180°</option></select></label>
+    </div>
+    <div class="oa-t-actions">
+      <button id="oa-t-back" type="button">−1 unidade</button><button id="oa-t-forward" type="button">+1 unidade</button><button id="oa-t-now" type="button">Agora (UTC)</button><button id="oa-t-natal" type="button">Usar alvo do mapa atual</button>
+    </div>
+    <label>Deslocamento em dias a partir da data selecionada
+      <input id="oa-t-slider" type="range" min="-365" max="365" step="1" value="0">
+    </label>
+    <svg id="oa-t-wheel" viewBox="-115 -115 230 230" role="img" aria-label="Roda do zodíaco: posição do corpo calculado e longitude-alvo"></svg>
+    <output id="oa-t-out" aria-live="polite">Informe um instante para calcular.</output>
+  </div>
+</section>
+<script src="./timeline-core.js"></script>
+<script src="./timeline-ui.js"></script>
