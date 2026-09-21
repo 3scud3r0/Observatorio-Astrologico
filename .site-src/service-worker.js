@@ -26,6 +26,9 @@ self.addEventListener('fetch',event=>{
   const request=event.request,url=new URL(request.url);
   if(request.method!=='GET'||url.origin!==self.location.origin)return;
   if(/\batlas-auth\.json$/.test(url.pathname))return;
+  // Navigation fallback only covers the actual application root, not arbitrary URLs.
+  const indexPath=new URL('./index.html',self.registration.scope).pathname;
+  if(request.mode==='navigate'&&url.pathname!==rootPath&&url.pathname!==indexPath)return;
   const path=request.mode==='navigate'?rootPath:url.pathname;
   if(!allowed.has(path))return;
   event.respondWith((async()=>{
