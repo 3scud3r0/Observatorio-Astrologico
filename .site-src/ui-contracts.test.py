@@ -40,11 +40,14 @@ def verify(html_name, js_name, prefix, extract):
 verify("research-lab.html", "research-lab.js", "oa-r-", r"byId\('([^']+)'\)")
 verify("timeline.html", "timeline-ui.js", "oa-t-", r"\$\('([^']+)'\)")
 verify("guided-study.html", "guided-study.js", "oa-g-", r"\$\('([^']+)'\)")
+verify("research-vault-ui.html", "research-vault-ui.js", "oa-v-", r"\$\('([^']+)'\)")
+verify("offline.html", "offline-client.js", "oa-o-", r"\$\('([^']+)'\)")
 
 for html_name, core in [
     ("research-lab.html", "research-core.js"),
     ("timeline.html", "timeline-core.js"),
     ("guided-study.html", "guided-study.js"),
+    ("research-vault-ui.html", "research-vault.js"),
 ]:
     html = (ROOT / html_name).read_text("utf-8")
     if f'src="./{core}"' not in html:
