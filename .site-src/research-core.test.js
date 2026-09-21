@@ -23,11 +23,19 @@ const base={
     E.seal({...base,windowStart:'2026-09-20',windowEnd:'2026-09-25'},opts),
     /retrospectiva/
   );
+  assert.equal(E.protocol({...base,baselineRate:0}).baselineRate,0);
+  assert.equal(E.protocol({...base,baselineRate:1}).baselineRate,1);
+  assert.equal(Object.hasOwn(E.protocol(base),'baselineRate'),false,'legacy v1 hash layout unchanged');
+  assert.throws(()=>E.protocol({...base,baselineRate:-0.01}),/Taxa-base/);
+  assert.throws(()=>E.protocol({...base,baselineRate:1.01}),/Taxa-base/);
   const locked=await E.seal(base,opts);
   const again=await E.seal(base,opts);
   assert.equal(locked.hash,again.hash,'canonical hash must be deterministic');
   assert.equal(locked.hash.length,64);
   assert.equal(await E.verify(locked,webcrypto.subtle),true);
+  const baselineLocked=await E.seal({...base,baselineRate:0.25},opts);
+  assert.equal(await E.verify(baselineLocked,webcrypto.subtle),true);
+  assert.notEqual(baselineLocked.hash,locked.hash);
   assert.equal(await E.verify({...locked,protocol:{...locked.protocol,criterion:'retrospective edit'}},webcrypto.subtle),false);
   const outcome=E.assessment(locked,true,'Documento datado', '2027-03-01T00:00:00.000Z');
   assert.equal(outcome.hash,locked.hash);
