@@ -57,6 +57,13 @@
   ];
 
   const mod=(n,m=360)=>((Number(n)%m)+m)%m;
+  // Empty, missing and invalid inputs are distinct from the legitimate longitude 0°.
+  function parseLongitude(value,label='Longitude'){
+    if(value===null||value===undefined||String(value).trim()==='')throw new Error(label+': informe uma longitude.');
+    const n=Number(value);
+    if(!Number.isFinite(n)||n<0||n>360)throw new Error(label+': use um número entre 0° e 360°.');
+    return n;
+  }
   const sep=(a,b)=>{let d=Math.abs(mod(a)-mod(b));return d>180?360-d:d};
   const signed=(a,b)=>{let d=mod(a-b);return d>180?d-360:d};
   const signIndex=lon=>Math.floor(mod(lon)/30);
@@ -370,13 +377,19 @@
   }
 
   function findStations(body,startJD,endJD,calcBody,step=.25){
+    if(!Number.isFinite(startJD)||!Number.isFinite(endJD)||endJD<startJD||!Number.isFinite(step)||step<=0)
+      throw new Error('Intervalo ou passo inválido para busca de estações.');
     const out=[];let a=startJD,fa=calcBody(a,body).speed;
-    for(let b=a+step;b<=endJD+1e-9;b+=step){
+    for(let b=Math.min(a+step,endJD);b>a;b=Math.min(a+step,endJD)){
       const fb=calcBody(b,body).speed;
       if(Number.isFinite(fa)&&Number.isFinite(fb)&&(fa===0||fb===0||fa*fb<0)){
-        const root=bisectRoot(b-step,b,j=>calcBody(j,body).speed);
+        const root=bisectRoot(a,b,j=>calcBody(j,body).speed);
         const before=calcBody(root-.02,body).speed,after=calcBody(root+.02,body).speed;
-        out.push({jd:root,type:before<0&&after>0?'Direto':'Retrógrado',longitude:mod(calcBody(root,body).lon)});
+        const type=before<0&&after>0?'Direto':before>0&&after<0?'Retrógrado':null;
+        // A zero exactly on two adjacent sample windows represents one station.
+        // A tangency without reversal is not a direct/retrograde station.
+        if(type&&!out.some(x=>x.type===type&&Math.abs(x.jd-root)<1e-5))
+          out.push({jd:root,type,longitude:mod(calcBody(root,body).lon)});
       }
       a=b;fa=fb;
     }
@@ -407,7 +420,7 @@
 
   return {
     DAY,TROPICAL_YEAR,SIGN_NAMES,SIGN_RULERS,ZR_YEARS,CHALDEAN,FIRDAR_DAY,FIRDAR_NIGHT,FIRDAR_YEARS,FIXED_STARS,
-    mod,sep,signed,signIndex,signDegree,jdFromDate,isoFromJD,ageYears,civilAnniversaryJD,completedCivilYears,trueSolarArc,annualProfection,monthlyProfection,firdaria,hermeticLots,sevenHermeticLots,
+    mod,parseLongitude,sep,signed,signIndex,signDegree,jdFromDate,isoFromJD,ageYears,civilAnniversaryJD,completedCivilYears,trueSolarArc,annualProfection,monthlyProfection,firdaria,hermeticLots,sevenHermeticLots,
     zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,essentialDignity,eclipticToEquatorial,eclipticToRA,zodiacalPrimaryDirection,semiArcs,isAboveHorizonRA,placidianSemiArcDirection,prenatalSyzygy,
     mutualReceptions,fixedStarConjunctions,findPlanetReturn,findAspectsToTarget,findStations,findIngresses
   };

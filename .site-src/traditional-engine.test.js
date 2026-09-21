@@ -96,4 +96,25 @@ const refAge=y=>birth+y*E.TROPICAL_YEAR;
   const stations=E.findStations(0,birth,birth+4,calc,.25);
   assert.ok(stations.some(x=>Math.abs(x.jd-(birth+2))<1e-7));
 }
+{
+  assert.throws(()=>E.parseLongitude(''),/informe uma longitude/);
+  assert.throws(()=>E.parseLongitude('  '),/informe uma longitude/);
+  assert.throws(()=>E.parseLongitude('foo'),/entre 0° e 360°/);
+  assert.throws(()=>E.parseLongitude('361'),/entre 0° e 360°/);
+  assert.equal(E.parseLongitude('0'),0);
+  assert.equal(E.parseLongitude('360'),360);
+}
+{
+  const calc=jd=>({lon:E.mod(jd-birth),speed:jd-(birth+2)});
+  const stations=E.findStations(0,birth,birth+4,calc,.25);
+  assert.equal(stations.length,1,'a sampled zero is one station');
+  assert.equal(stations[0].type,'Direto');
+  close(stations[0].jd,birth+2,1e-7);
+  const reverse=jd=>({lon:0,speed:birth+2-jd});
+  const retro=E.findStations(0,birth,birth+4,reverse,.25);
+  assert.equal(retro.length,1);assert.equal(retro[0].type,'Retrógrado');
+  const tangent=jd=>({lon:0,speed:Math.pow(jd-(birth+2),2)});
+  assert.equal(E.findStations(0,birth,birth+4,tangent,.25).length,0);
+  assert.throws(()=>E.findStations(0,birth,birth+4,calc,0),/passo inválido/);
+}
 console.log('Traditional engine tests: OK');
