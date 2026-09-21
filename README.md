@@ -26,6 +26,7 @@ O [inventário das três conversas](docs/INVENTARIO_TRES_CONVERSAS.md) identific
 - `.site-src/research-core.js` — protocolo prospectivo canônico, selo SHA-256, verificação do conteúdo, critérios prévios, matriz TP/FP/FN/TN e identidade técnica do mapa.
 - `.site-src/research-lab.html` e `.site-src/research-lab.js` — formulário de investigação, avaliações append-only, exportação/importação JSON, exclusão local e laudo de proveniência. **Nenhum dado é enviado automaticamente à nuvem.**
 - `.site-src/timeline-core.js`, `.site-src/timeline.html`, `.site-src/timeline-ui.js` — relógio UTC com saltos de minuto/hora/dia/mês/ano, consulta pontual da Swiss Ephemeris, roda SVG e aspectos/orbes configuráveis. É um cálculo instantâneo; **a Swiss ainda não foi transferida para um Web Worker**.
+- `.site-src/guided-study.html` e `.site-src/guided-study.js` — entrada complementar por objetivos, estudo de Sol/Lua/Ascendente e escolha entre linguagem simples e coordenadas técnicas; hora natal desconhecida bloqueia um Ascendente supostamente exato.
 
 O selo protege o conteúdo, mas **não comprova sozinho a data de criação**; para protocolo verificável por terceiros, publique o hash em um registro externo com data independente. O laboratório exige que o registro seja selado antes do início da janela em UTC. Os resultados estatísticos só têm significado com denominadores, população e taxa-base definidos antecipadamente; coincidências não demonstram causalidade.
 
