@@ -110,11 +110,11 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 
 | ID | Requisito | Estado |
 |---|---|---|
-| UX01 | Entrada por objetivo: começar, investigar, aprender e especialista | N/P |
-| UX02 | Alternador leigo/observatório profissional | N |
-| UX03 | Big 3 em linguagem direta, contexto sobre graus e signos | P |
+| UX01 | Entrada por objetivo: começar, investigar, aprender e especialista | A/P; painel complementar, não entrada principal |
+| UX02 | Alternador leigo/observatório profissional | A/P; explicação simples/técnica no estudo guiado |
+| UX03 | Big 3 em linguagem direta, contexto sobre graus e signos | A/P; painel natal de três etapas |
 | UX04 | Missões de estudo que iluminam casas/planetas | N |
-| UX05 | Ajuda contextual “explique de forma simples” sem mudar fórmulas | N |
+| UX05 | Ajuda contextual “explique de forma simples” sem mudar fórmulas | A/P; painel básico/técnico sem IA |
 | UX06 | Mostrar horas documentadas/aproximadas/desconhecidas, fuso incerto e geolocalização | A/P |
 | UX07 | Impedir resultados dependentes da hora sem horário confiável | A/P |
 | UX08 | Explicitar local vs conta vs arquivo exportado | A/P |
