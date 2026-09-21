@@ -79,7 +79,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | PR11 | Retificação por lista biográfica com função objetivo e incerteza | N |
 | PR12 | Retornos, estações, ingressos, eclipses, retrogradação | E/P |
 | PR13 | Volumes de até 90 dias, cancelamento, persistência/retomada | E/P |
-| PR14 | Retomar sem recalcular volumes concluídos e evitar limites artificiais de janelas | N/P |
+| PR14 | Retomar sem recalcular volumes concluídos e evitar limites artificiais de janelas | A/P; retomada por fingerprint SHA-256 e verificação dos volumes no IndexedDB; janelas nas fronteiras ainda não são unificadas |
 | PR15 | Comparar técnicas com critérios separados sem aumentar artificialmente “acertos” | A/P |
 | PR16 | Definir casas/orbes/escolas e origem de cada evento para reprodução | P |
 
@@ -102,7 +102,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | PE13 | Exportação/restauração integrais e exclusão explícita | A/P; importação e snapshots com selo, gravação atômica e bloqueio de sobrescrita de dados ilegíveis; restauração integral de todos os tipos de dados não comprovada |
 | PE14 | Sincronização opcional Supabase privada sob RLS e teste com duas contas | P; cofre cifrado e SQL RLS implementados; nenhum projeto Supabase conectado, migração e teste com contas reais pendentes |
 | PE15 | Cifrar/sincronizar dados pessoais mediante consentimento, jamais torná-los públicos por padrão | A/P; WebCrypto AES-256-GCM, PBKDF2 e upload explícito de snapshots; integração real pendente |
-| PE16 | Relatórios PDF de auditoria e identidade técnica | P |
+| PE16 | Relatórios PDF de auditoria e identidade técnica | A/P; PDF de protocolo selado e avaliações com paginação; PDF específico da identidade técnica e validação visual em navegador pendentes |
 | PE17 | Importação opcional de mapas de referência com qualidade do horário/Rodden Rating | N |
 | PE18 | Registro observacional com janela encerrada por evento, não por volume computacional | N |
 
