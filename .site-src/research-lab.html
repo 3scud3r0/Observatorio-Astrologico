@@ -31,6 +31,9 @@
       <label>Critério explícito de confirmação<textarea id="oa-r-criterion"></textarea></label>
       <label>Critério explícito de não confirmação<textarea id="oa-r-nonconfirmation"></textarea></label>
       <label>Referencial sem astrologia<textarea id="oa-r-baseline" placeholder="Frequência natural do evento em população comparável"></textarea></label>
+      <label>Taxa-base numérica pré-registrada (opcional, 0–100%; não inferida automaticamente)
+        <input id="oa-r-baseline-rate" type="number" min="0" max="100" step="any" placeholder="Ex.: 20 para 20%">
+      </label>
       <label>Previsão registrada<select id="oa-r-predicted"><option value="yes">Ocorrerá na janela</option><option value="no">Não ocorrerá na janela</option></select></label>
       <div class="oa-r-actions"><button id="oa-r-seal" type="button">Selar hipótese em SHA-256</button></div>
       <output id="oa-r-seal-output" aria-live="polite"></output>
@@ -43,7 +46,8 @@
       <output id="oa-r-history" aria-live="polite">Nenhum registro selecionado.</output>
     </fieldset>
     <fieldset><legend>3 · Estatística e preservação</legend>
-      <div class="oa-r-actions"><button id="oa-r-summary" type="button">Matriz TP/FP/FN/TN</button><button id="oa-r-backup" type="button">Exportar backup JSON</button><button id="oa-r-delete" type="button">Excluir registros deste navegador</button></div>
+      <div class="oa-r-actions"><button id="oa-r-summary" type="button">Auditar oportunidades e técnicas</button><button id="oa-r-backup" type="button">Exportar backup JSON</button><button id="oa-r-delete" type="button">Excluir registros deste navegador</button></div>
+      <p>Indicadores são descritivos; a análise só classifica janelas totalmente encerradas (UTC). Protocolos sem avaliação e inconclusivos continuam no denominador de oportunidades. Grupos de técnicas podem compartilhar os mesmos casos e não são amostras independentes.</p>
       <label>Restaurar um backup JSON local<input id="oa-r-import" type="file" accept=".json,application/json"></label>
       <output id="oa-r-matrix" aria-live="polite"></output>
     </fieldset>
@@ -64,4 +68,5 @@
   </div>
 </section>
 <script src="./research-core.js"></script>
+<script src="./research-analysis.js"></script>
 <script src="./research-lab.js"></script>
