@@ -47,10 +47,10 @@ jobs:
           import re
           from pathlib import Path
           source=Path('.site-src/pro-upgrade.html').read_text('utf-8')
-          scripts=[x for x in re.findall(r'<script(?:\\s[^>]*)?>([\\s\\S]*?)</script>',source,re.I) if x.strip()]
+          scripts=[x for x in re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',source,re.I) if x.strip()]
           if not scripts:
               raise SystemExit('Pro Studio inline JavaScript was not extracted')
-          Path('/tmp/pro-studio-inline.js').write_text('\\n'.join(scripts),'utf-8')
+          Path('/tmp/pro-studio-inline.js').write_text('\n'.join(scripts),'utf-8')
           PY
           node --check /tmp/pro-studio-inline.js
 
