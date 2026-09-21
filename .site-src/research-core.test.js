@@ -19,6 +19,10 @@ const base={
   assert.throws(()=>E.protocol({...base,techniques:[]}),/técnica/);
   assert.throws(()=>E.protocol({...base,criterion:''}),/obrigatório/);
   const opts={now:()=> '2026-09-21T12:00:00.000Z',subtle:webcrypto.subtle};
+  await assert.rejects(
+    E.seal({...base,windowStart:'2026-09-20',windowEnd:'2026-09-25'},opts),
+    /retrospectiva/
+  );
   const locked=await E.seal(base,opts);
   const again=await E.seal(base,opts);
   assert.equal(locked.hash,again.hash,'canonical hash must be deterministic');
