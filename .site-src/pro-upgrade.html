@@ -17,7 +17,20 @@ main{max-width:1480px!important;margin-inline:auto!important;padding:clamp(18px,
   const result=window.calc(x.getTime()/86400000+2440587.5,0);
   if(!result||!Number.isFinite(result.lon))throw Error('Longitude solar indisponível no motor Swiss.');
   return M(result.lon)
-};const parsed=id=>Object.fromEntries($(id).value.split(/\n|,/).map(s=>s.split('=').map(x=>x.trim())).filter(x=>x.length===2&&x[0]&&x[1]!==''&&Number.isFinite(Number(x[1]))&&Number(x[1])>=0&&Number(x[1])<=360));const aspects=[0,30,45,60,90,120,135,150,180];let now=new Date();$('#ps-start').value=now.toISOString().slice(0,10);$('#ps-ref').value=$('#ps-start').value;$('#oa-studio-launch').onclick=()=>{$('#oa-studio-panel').hidden=false};$('#oa-studio-close').onclick=()=>{$('#oa-studio-panel').hidden=true};$$('#oa-studio nav button').forEach(b=>b.onclick=()=>{$$('#oa-studio nav button').forEach(x=>x.classList.toggle('active',x===b));$$('.oa-view').forEach(x=>x.hidden=x.dataset.p!==b.dataset.v)});$('#ps-scan').onclick=async()=>{
+};const parsed=id=>{
+  const items={};
+  for(const line of $(id).value.split(/\n|,/)){
+    if(!line.trim())continue;
+    const entry=line.split('=');
+    if(entry.length!==2||!entry[0].trim()||!entry[1].trim()||
+       !Number.isFinite(Number(entry[1]))||Number(entry[1])<0||Number(entry[1])>360)
+      throw Error('Ponto inválido: use Nome=grau com longitude entre 0° e 360°.');
+    const name=entry[0].trim();
+    if(Object.prototype.hasOwnProperty.call(items,name))throw Error('Ponto repetido: '+name);
+    Object.defineProperty(items,name,{value:Number(entry[1]),enumerable:true,configurable:true});
+  }
+  return items
+};const aspects=[0,30,45,60,90,120,135,150,180];let now=new Date();$('#ps-start').value=now.toISOString().slice(0,10);$('#ps-ref').value=$('#ps-start').value;$('#oa-studio-launch').onclick=()=>{$('#oa-studio-panel').hidden=false};$('#oa-studio-close').onclick=()=>{$('#oa-studio-panel').hidden=true};$$('#oa-studio nav button').forEach(b=>b.onclick=()=>{$$('#oa-studio nav button').forEach(x=>x.classList.toggle('active',x===b));$$('.oa-view').forEach(x=>x.hidden=x.dataset.p!==b.dataset.v)});$('#ps-scan').onclick=async()=>{
   const output=$('#ps-annual'),button=$('#ps-scan');
   if(button.disabled)return;
   button.disabled=true;
@@ -62,7 +75,28 @@ main{max-width:1480px!important;margin-inline:auto!important;padding:clamp(18px,
       ' · L2: '+engine.SIGN_NAMES[zr.path[1].sign]+
       '\nIdade fracionária: '+arc.age.toFixed(6)+' anos tropicais.';
   }catch(error){out.textContent=error.message}
-};$('#ps-protect').onclick=()=>{let p=parsed('#ps-points'),t=parsed('#ps-transits'),o=+$('#ps-prot-orb').value,out=[];for(let [tn,tl] of Object.entries(t))for(let [a,al] of Object.entries(p))for(let [b,bl] of Object.entries(p))if(a!==b&&Math.abs(sep(al,bl)-30)<=o){let hard=aspects.some(x=>[90,180].includes(x)&&Math.abs(sep(tl,al)-x)<=o),good=aspects.some(x=>[60,120,30].includes(x)&&Math.abs(sep(tl,bl)-x)<=o);if(hard&&good)out.push(`${tn}: tensão em ${a} e aspecto de suporte em ${b} (par natal ${sep(al,bl).toFixed(2)}°).`)}$('#ps-protect-result').textContent=out.length?out.join('\n'):'Nenhuma configuração simultânea encontrada no orbe.'};$('#ps-seal').onclick=async()=>{
+};$('#ps-protect').onclick=()=>{
+  const result=$('#ps-protect-result');
+  try{
+    const natal=parsed('#ps-points'),transits=parsed('#ps-transits'),
+      orb=Number($('#ps-prot-orb').value),out=[];
+    if(!Object.keys(natal).length||!Object.keys(transits).length)
+      throw Error('Informe pontos natais e trânsitos.');
+    if(!Number.isFinite(orb)||orb<.1||orb>10)
+      throw Error('Informe um orbe válido de 0,1° a 10°.');
+    for(const [transit,transitLon] of Object.entries(transits))
+      for(const [first,firstLon] of Object.entries(natal))
+        for(const [second,secondLon] of Object.entries(natal)){
+          if(first===second||Math.abs(sep(firstLon,secondLon)-30)>orb)continue;
+          const hard=[90,180].some(a=>Math.abs(sep(transitLon,firstLon)-a)<=orb),
+            support=[30,60,120].some(a=>Math.abs(sep(transitLon,secondLon)-a)<=orb);
+          if(hard&&support)
+            out.push(transit+': tensão em '+first+' e contato de suporte em '+second+
+              ' (par natal '+sep(firstLon,secondLon).toFixed(2)+'°).');
+        }
+    result.textContent=out.length?out.join('\n'):'Nenhuma configuração simultânea encontrada no orbe.';
+  }catch(error){result.textContent=error.message}
+};$('#ps-seal').onclick=async()=>{
   const out=$('#ps-audit-result');
   try{
     const prediction=$('#ps-pred').value.trim(),criterion=$('#ps-criterion').value.trim(),
