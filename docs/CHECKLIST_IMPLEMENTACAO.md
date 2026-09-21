@@ -2,8 +2,8 @@
 
 Estado auditado no repositório em 21-09-2026. Derivado do [inventário integral](INVENTARIO_TRES_CONVERSAS.md), que é a fonte de descrição dos requisitos. **[x]** significa recurso identificado como existente/implementado, não certificação independente; **[ ] parcial** significa código ou infraestrutura ainda insuficiente; **[ ] pendente** significa requisito ainda não entregue. Não afirmar “terminei” enquanto houver caixas abertas.
 
-Atualizações desta execução: retomada validada de volumes Atlas e PDF da auditoria; pesquisa por técnica, oportunidades e taxa-base registrada; scanner Swiss em Worker com cancelamento; PWA opt-in/CacheStorage; manifesto SHA-256 dos seis ativos Swiss; código de cofre cifrado AES-GCM com RLS preparado (sem projeto Supabase conectado); validação de hora natal/coordenadas; testes adicionais de CI.
-**Contagem:** 92 requisitos; 26 marcados existentes/implementados; 52 parciais; 14 pendentes. Para cumprir o pedido integral, todas as 66 caixas abertas precisam ser encerradas e verificadas.
+Atualizações desta execução: métricas do HTML e gzip; retomada validada de volumes Atlas e PDF da auditoria; pesquisa por técnica, oportunidades e taxa-base registrada; scanner Swiss em Worker com cancelamento; PWA opt-in/CacheStorage; manifesto SHA-256 dos seis ativos Swiss; código de cofre cifrado AES-GCM com RLS preparado (sem projeto Supabase conectado); validação de hora natal/coordenadas; testes adicionais de CI.
+**Contagem:** 92 requisitos; 26 marcados existentes/implementados; 53 parciais; 13 pendentes. Para cumprir o pedido integral, todas as 66 caixas abertas precisam ser encerradas e verificadas.
 
 
 ## Arquitetura, desempenho e segurança
@@ -16,12 +16,12 @@ Atualizações desta execução: retomada validada de volumes Atlas e PDF da aud
 - [ ] pendente — **AR06** Migrar progressivamente a Vite + TypeScript e componentes React/Svelte ou equivalentes — N.
 - [ ] pendente — **AR07** Retirar substituições literais frágeis do atlas-release.py — N.
 - [ ] pendente — **AR08** Separar banco de textos e componentes em arquivos modulares — N.
-- [ ] pendente — **AR09** Code-splitting/lazy loading e meta de <500 KB iniciais (sem efemérides) — N; meta não medida.
+- [ ] parcial — **AR09** Code-splitting/lazy loading e meta de <500 KB iniciais (sem efemérides) — N; HTML inicial medido: 15.920.534 bytes (gzip 6.123.632); meta não atingida e code-splitting pendente.
 - [ ] parcial — **AR10** Isolar Swiss e varreduras pesadas em Web Worker e protocolo RPC cancelável — A/P; scanner independente em Worker com Swiss/WASM e cancelamento; motor principal continua na thread da UI.
 - [ ] parcial — **AR11** Limitar memória e preservar responsividade durante consultas longas — P.
 - [ ] parcial — **AR12** Cache local controlado de efemérides em IndexedDB/CacheStorage — P; CacheStorage opt-in com pacote explicitamente preparado.
 - [ ] parcial — **AR13** PWA e modo offline real após o primeiro download completo — P; manifest, Service Worker e preparação explícita; teste offline interativo/terceiros remotos pendentes.
-- [ ] pendente — **AR14** Benchmark FCP, parse, memória, tempo até primeiro mapa e celulares médios — N.
+- [ ] parcial — **AR14** Benchmark FCP, parse, memória, tempo até primeiro mapa e celulares médios — A/P; tamanhos efetivos do build e gzip publicados em build-metrics.json; FCP, parse, RAM, TTI e celulares sem benchmark.
 - [x] existente/implementado — **AR15** Melhorar CI para extrair scripts HTML, falhar se nenhum e verificar sintaxe — A.
 - [x] existente/implementado — **AR16** Testar motor, empacotamento, WASM, presença/assinatura/tamanho das efemérides — E/A.
 - [x] existente/implementado — **AR17** Unificar fonte de progressões/arco solar e firdaria no Pro Studio — A.
