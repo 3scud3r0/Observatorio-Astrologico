@@ -16,12 +16,12 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | AR06 | Migrar progressivamente a Vite + TypeScript e componentes React/Svelte ou equivalentes | N |
 | AR07 | Retirar substituições literais frágeis do atlas-release.py | N |
 | AR08 | Separar banco de textos e componentes em arquivos modulares | N |
-| AR09 | Code-splitting/lazy loading e meta de <500 KB iniciais (sem efemérides) | N; meta não medida |
+| AR09 | Code-splitting/lazy loading e meta de <500 KB iniciais (sem efemérides) | N; HTML inicial medido: 15.920.534 bytes (gzip 6.123.632); meta não atingida e code-splitting pendente |
 | AR10 | Isolar Swiss e varreduras pesadas em Web Worker e protocolo RPC cancelável | A/P; scanner independente em Worker com Swiss/WASM e cancelamento; motor principal continua na thread da UI |
 | AR11 | Limitar memória e preservar responsividade durante consultas longas | P |
 | AR12 | Cache local controlado de efemérides em IndexedDB/CacheStorage | P; CacheStorage opt-in com pacote explicitamente preparado |
 | AR13 | PWA e modo offline real após o primeiro download completo | P; manifest, Service Worker e preparação explícita; teste offline interativo/terceiros remotos pendentes |
-| AR14 | Benchmark FCP, parse, memória, tempo até primeiro mapa e celulares médios | N |
+| AR14 | Benchmark FCP, parse, memória, tempo até primeiro mapa e celulares médios | A/P; tamanhos efetivos do build e gzip publicados em build-metrics.json; FCP, parse, RAM, TTI e celulares sem benchmark |
 | AR15 | Melhorar CI para extrair scripts HTML, falhar se nenhum e verificar sintaxe | A |
 | AR16 | Testar motor, empacotamento, WASM, presença/assinatura/tamanho das efemérides | E/A |
 | AR17 | Unificar fonte de progressões/arco solar e firdaria no Pro Studio | A |
