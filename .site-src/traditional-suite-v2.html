@@ -105,7 +105,17 @@ function localJD(date,time,offset){
   if(!Number.isFinite(ms))throw Error('Data/hora inválida.');return ms/86400000+2440587.5;
 }
 function refJD(){return localJD(q('#tt-ref-date').value,q('#tt-ref-time').value,0)}
-function birthJD(){return localJD(q('#tt-birth-date').value,q('#tt-birth-time').value,q('#tt-birth-offset').value)}
+function birthJD(){const offset=q('#tt-birth-offset').value.trim();if(!offset||!Number.isFinite(Number(offset))||Math.abs(Number(offset))>14)throw Error('Informe um deslocamento UTC válido (−14 a +14 h).');return localJD(q('#tt-birth-date').value,q('#tt-birth-time').value,offset)}
+function readLongitude(id,label,optional=false){
+  const raw=q(id).value.trim();
+  if(optional&&!raw)return null;
+  return E().parseLongitude(raw,label);
+}
+function readNumber(id,label,min,max){
+  const raw=q(id).value.trim(),n=Number(raw);
+  if(!raw||!Number.isFinite(n)||n<min||n>max)throw Error(label+': valor obrigatório entre '+min+' e '+max+'.');
+  return n;
+}
 function fmtLon(v){const eng=E(),s=eng.signIndex(v),d=eng.signDegree(v);return eng.SIGN_NAMES[s]+' '+d.toFixed(4)+'° ('+eng.mod(v).toFixed(6)+'°)'}
 function fmtJD(jd){return E().isoFromJD(jd).replace('T',' ').slice(0,19)+' UTC'}
 function currentPoints(){try{return typeof positions!=='undefined'&&Array.isArray(positions)?positions:[]}catch{return []}}
@@ -133,7 +143,7 @@ q('#tt-use-map').onclick=()=>{
 async function timing(){
   await ensureCalc();const eng=E(),b=birthJD(),r=refJD(),sect=q('#tt-sect').value;
   const arc=eng.trueSolarArc(b,r,jd=>window.calc(jd,0).lon);
-  const directed=eng.mod(Number(q('#tt-directed-lon').value)+arc.arc);
+  const directed=eng.mod(readLongitude('#tt-directed-lon','Longitude dirigida')+arc.arc);
   const prof=eng.annualProfection(b,r,Number(q('#tt-prof-sign').value),Number(q('#tt-prof-house').value));
   const monthly=eng.monthlyProfection(b,r,Number(q('#tt-prof-sign').value),Number(q('#tt-prof-house').value));
   const fir=eng.firdaria(b,r,sect);
@@ -150,7 +160,9 @@ q('#tt-run-all').onclick=()=>timing().catch(e=>q('#tt-timing-out').textContent=e
 
 q('#tt-zr-run').onclick=()=>{
   try{const eng=E(),b=birthJD(),r=refJD(),source=q('#tt-zr-source').value;
-    const fortune=Number(q('#tt-fortune').value),spirit=Number(q('#tt-spirit').value),manual=Number(q('#tt-zr-manual').value);
+    const fortune=readLongitude('#tt-fortune','Lote da Fortuna');
+    const spirit=source==='spirit'?readLongitude('#tt-spirit','Lote do Espírito'):null;
+    const manual=source==='manual'?readLongitude('#tt-zr-manual','Longitude manual'):null;
     const lon=source==='fortune'?fortune:source==='spirit'?spirit:manual;if(!Number.isFinite(lon))throw Error('Informe o lote/longitude inicial.');
     const fortuneSign=Number.isFinite(fortune)?eng.signIndex(fortune):eng.signIndex(lon);
     const zr=eng.zodiacalReleasing(eng.signIndex(lon),b,r,{fortuneSign,maxLevel:Number(q('#tt-zr-level').value)});
@@ -161,7 +173,7 @@ q('#tt-zr-run').onclick=()=>{
 };
 
 q('#tt-lots-run').onclick=()=>{
-  try{const eng=E(),sect=q('#tt-sect').value,asc=Number(q('#tt-asc').value),sun=Number(q('#tt-sun').value),moon=Number(q('#tt-moon').value);if(![asc,sun,moon].every(Number.isFinite))throw Error('Informe Ascendente, Sol e Lua.');
+  try{const eng=E(),sect=q('#tt-sect').value,asc=readLongitude('#tt-asc','Ascendente'),sun=readLongitude('#tt-sun','Sol'),moon=readLongitude('#tt-moon','Lua');
   const classic=currentPoints().slice(0,7);
   const lots=classic.length>=7?eng.sevenHermeticLots({asc,sun,moon,mercury:classic[2].lon,venus:classic[3].lon,mars:classic[4].lon,jupiter:classic[5].lon,saturn:classic[6].lon,sect}):eng.hermeticLots(asc,sun,moon,sect);
   q('#tt-fortune').value=lots.fortune;q('#tt-spirit').value=lots.spirit;
@@ -175,7 +187,7 @@ q('#tt-lots-run').onclick=()=>{
 async function eventSearch(kind){
   const out=q('#tt-event-out');try{await ensureCalc();const eng=E(),body=Number(q('#tt-body').value),start=eng.jdFromDate(q('#tt-event-start').value),end=eng.jdFromDate(q('#tt-event-end').value);if(end<=start)throw Error('Intervalo inválido.');if(end-start>3660)throw Error('Limite desta busca interativa: 10 anos por execução.');
   let rows=[];
-  let target=Number(q('#tt-return-target').value);if((kind==='return'||kind==='aspect')&&(!Number.isFinite(target)||q('#tt-return-target').value==='')){target=currentPoints()[body]?.lon;if(!Number.isFinite(target))throw Error('Informe a longitude-alvo ou use um mapa atual.')}
+  let target=null;if(kind==='return'||kind==='aspect'){target=readLongitude('#tt-return-target','Longitude-alvo',true);if(target===null){target=currentPoints()[body]?.lon;if(!Number.isFinite(target))throw Error('Informe a longitude-alvo ou use um mapa atual.')}}
   if(kind==='return')rows=eng.findPlanetReturn(body,target,start,end,window.calc,.25).map(j=>[fmtJD(j),fmtLon(window.calc(j,body).lon),'Retorno']);
   if(kind==='aspect'){const aa=q('#tt-event-aspects').value.split(',').map(Number);rows=eng.findAspectsToTarget(body,target,start,end,window.calc,aa,.25).map(x=>[fmtJD(x.jd),fmtLon(x.longitude),x.aspect+'° '+x.branch])}
   if(kind==='station')rows=eng.findStations(body,start,end,window.calc,.25).map(x=>[fmtJD(x.jd),fmtLon(x.longitude),x.type]);
@@ -191,7 +203,7 @@ q('#tt-eclipses').onclick=async()=>{
   }catch(e){out.textContent=e.message}
 };
 
-function parseLines(v){const out=[];for(const line of String(v).split(/\n|,/)){const p=line.split('=');if(p.length===2&&p[0].trim()&&Number.isFinite(Number(p[1])))out.push([p[0].trim(),Number(p[1])])}return out}
+function parseLines(v){const out=[];for(const line of String(v).split(/\n|,/)){const p=line.split('=');if(p.length===2&&p[0].trim()&&p[1].trim()!==''&&Number.isFinite(Number(p[1])))out.push([p[0].trim(),Number(p[1])])}return out}
 q('#tt-geometry-run').onclick=()=>{
   try{const eng=E(),pts=parseLines(q('#tt-points').value),h=Number(q('#tt-harmonic').value);if(pts.length<2)throw Error('Informe ao menos dois pontos.');
   let mids='';for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const m=eng.midpoint(pts[i][1],pts[j][1]);mids+='<tr><td>'+esc(pts[i][0])+' / '+esc(pts[j][0])+'</td><td>'+fmtLon(m.near)+'</td><td>'+fmtLon(m.opposite)+'</td></tr>'}
@@ -203,13 +215,13 @@ q('#tt-geometry-run').onclick=()=>{
 
 q('#tt-directions-run').onclick=()=>{
   try{const eng=E(),method=q('#tt-pd-method').value,key=Number(q('#tt-key').value);let r;
-  if(method==='placidian')r=eng.placidianSemiArcDirection({lon:Number(q('#tt-prom').value),lat:Number(q('#tt-prom-lat').value)},{lon:Number(q('#tt-sig').value),lat:Number(q('#tt-sig-lat').value)},{mcRA:Number(q('#tt-armc').value),geoLat:Number(q('#tt-geo-lat').value),key,zodiacal:q('#tt-pd-zodiacal').value==='true'});
-  else r=eng.zodiacalPrimaryDirection(Number(q('#tt-prom').value),Number(q('#tt-sig').value),{key,converse:q('#tt-converse').value==='true'});
+  if(method==='placidian')r=eng.placidianSemiArcDirection({lon:readLongitude('#tt-prom','Longitude do promissor'),lat:Number(q('#tt-prom-lat').value)},{lon:readLongitude('#tt-sig','Longitude do significador'),lat:Number(q('#tt-sig-lat').value)},{mcRA:readLongitude('#tt-armc','ARMC'),geoLat:readNumber('#tt-geo-lat','Latitude geográfica',-89.9,89.9),key,zodiacal:q('#tt-pd-zodiacal').value==='true'});
+  else r=eng.zodiacalPrimaryDirection(readLongitude('#tt-prom','Longitude do promissor'),readLongitude('#tt-sig','Longitude do significador'),{key,converse:q('#tt-converse').value==='true'});
   q('#tt-directions-out').innerHTML='<p><b>Método:</b> '+esc(r.method)+'<br><b>AR promissor:</b> '+r.pRA.toFixed(6)+'°<br><b>AR significador:</b> '+r.sRA.toFixed(6)+'°'+(Number.isFinite(r.pDecl)?'<br><b>Declinação promissor:</b> '+r.pDecl.toFixed(6)+'° · <b>significador:</b> '+r.sDecl.toFixed(6)+'°':'')+'<br><b>Arco:</b> '+r.arc.toFixed(6)+'°<br><b>Tempo pela chave:</b> '+r.years.toFixed(6)+' anos</p><p><small>'+esc(r.warning)+'</small></p>';
   }catch(e){q('#tt-directions-out').textContent=e.message}
 };
 q('#tt-stars-run').onclick=()=>{
-  try{const hits=E().fixedStarConjunctions(Number(q('#tt-star-lon').value),Number(q('#tt-star-year').value),Number(q('#tt-star-orb').value));
+  try{const hits=E().fixedStarConjunctions(readLongitude('#tt-star-lon','Longitude do ponto'),Number(q('#tt-star-year').value),Number(q('#tt-star-orb').value));
   q('#tt-stars-out').innerHTML=hits.length?'<table><thead><tr><th>Estrela</th><th>Longitude</th><th>Distância</th><th>Mag.</th></tr></thead><tbody>'+hits.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+fmtLon(x.longitude)+'</td><td>'+x.distance.toFixed(4)+'°</td><td>'+x.magnitude+'</td></tr>').join('')+'</tbody></table>':'Nenhuma conjunção no orbe escolhido.';
   }catch(e){q('#tt-stars-out').textContent=e.message}
 };
