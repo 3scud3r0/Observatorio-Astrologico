@@ -11,4 +11,69 @@ main{max-width:1480px!important;margin-inline:auto!important;padding:clamp(18px,
 <article class="oa-view" data-p="traditional" hidden><h3>True Solar Arc, Firdaria e Zodiacal Releasing</h3><p>Cálculos datados e rastreáveis. O arco usa a longitude solar progredida (um dia após o nascimento para cada ano de vida), não uma constante média.</p><div class="oa-grid"><label>Nascimento<input id="ps-birth" type="date"></label><label>Referência<input id="ps-ref" type="date"></label><label>Longitude natal dirigida (°)<input id="ps-lon" type="number" value="0" min="0" max="360" step="0.0001"></label><label>Mapa<select id="ps-sect"><option value="day">Diurno</option><option value="night">Noturno</option></select></label><label>Parte da Fortuna (°)<input id="ps-fortune" type="number" value="0" min="0" max="360" step="0.0001"></label></div><div class="oa-actions"><button class="oa-btn" id="ps-trad">Calcular período ativo</button></div><div id="ps-trad-result" class="oa-result"></div></article>
 <article class="oa-view" data-p="detector" hidden><h3>Detector automático de “astro protetor”</h3><p>Procura pares natais próximos de 30° e verifica se um trânsito ativa simultaneamente um aspecto difícil e um favorável.</p><div class="oa-grid"><label>Pontos natais (Nome=grau)<textarea id="ps-points" placeholder="Sol=15&#10;Marte=45&#10;Lua=200"></textarea></label><label>Trânsito (Nome=grau)<textarea id="ps-transits" placeholder="Saturno=105&#10;Júpiter=255"></textarea></label><label>Orbe (°)<input id="ps-prot-orb" type="number" value="3" min="0.1" max="10" step="0.1"></label></div><div class="oa-actions"><button class="oa-btn" id="ps-protect">Detectar configurações</button></div><div id="ps-protect-result" class="oa-result"></div></article>
 <article class="oa-view" data-p="audit" hidden><h3>Registro prospectivo com selo SHA-256</h3><p>O hash permite provar que um texto idêntico já existia. Publique o selo em um commit, issue ou outro registro externo para obter comprovação independente de data.</p><div class="oa-grid"><label>Previsão<textarea id="ps-pred" placeholder="Escreva a previsão antes do evento."></textarea></label><label>Critério mensurável<textarea id="ps-criterion" placeholder="Descreva o que conta como acerto."></textarea></label><label>Janela de avaliação<input id="ps-deadline" type="date"></label></div><div class="oa-actions"><button class="oa-btn" id="ps-seal">Gerar selo verificável</button></div><div id="ps-audit-result" class="oa-result"></div></article></main></div></section>
-<script>(()=>{const $=x=>document.querySelector(x),$$=x=>[...document.querySelectorAll(x)],M=(x,m=360)=>((+x%m)+m)%m,sep=(a,b)=>{let x=Math.abs(M(a)-M(b));return x>180?360-x:x},fmt=x=>M(x).toFixed(2)+'°';const d=id=>{let x=$(id).value;return x?new Date(x+'T12:00:00Z'):null};const lonSun=x=>{let jd=x/86400000+2440587.5,n=jd-2451545,L=M(280.460+.9856474*n),g=M(357.528+.9856003*n)*Math.PI/180;return M(L+1.915*Math.sin(g)+.02*Math.sin(2*g))};const parsed=id=>Object.fromEntries($(id).value.split(/\n|,/).map(s=>s.split('=').map(x=>x.trim())).filter(x=>x.length===2&&x[0]&&!isNaN(x[1])));const aspects=[0,30,45,60,90,120,135,150,180];let now=new Date();$('#ps-start').value=now.toISOString().slice(0,10);$('#ps-ref').value=$('#ps-start').value;$('#oa-studio-launch').onclick=()=>{$('#oa-studio-panel').hidden=false};$('#oa-studio-close').onclick=()=>{$('#oa-studio-panel').hidden=true};$$('#oa-studio nav button').forEach(b=>b.onclick=()=>{$$('#oa-studio nav button').forEach(x=>x.classList.toggle('active',x===b));$$('.oa-view').forEach(x=>x.hidden=x.dataset.p!==b.dataset.v)});$('#ps-scan').onclick=()=>{let start=d('#ps-start'),points=parsed('#ps-natal'),orb=+$('#ps-orb').value,aa=$('#ps-aspect').value.split(',').map(Number),hits=[];if(!Object.keys(points).length)return $('#ps-annual').textContent='Inclua pelo menos um ponto natal.';for(let i=0;i<365;i++){let day=new Date(+start+i*86400000),sl=lonSun(day);for(let [name,p] of Object.entries(points))for(let a of aa)if(Math.abs(sep(sl,p)-a)<=orb)hits.push([day.toLocaleDateString('pt-BR'),name,a,Math.abs(sep(sl,p)-a)]);}$('#ps-annual').innerHTML=hits.length?hits.slice(0,180).map(x=>`<div><strong>${x[0]}</strong> · Sol ${x[2]}° ${x[1]} · orbe ${x[3].toFixed(2)}°</div>`).join(''):`Nenhum contato solar no orbe escolhido.`};$('#ps-trad').onclick=()=>{let b=d('#ps-birth'),r=d('#ps-ref');if(!b||!r||r<b)return $('#ps-trad-result').textContent='Informe datas válidas.';let age=(r-b)/31556952000,prog=new Date(+b+Math.floor(age)*86400000),arc=M(lonSun(prog)-lonSun(b)),lon=M(+$('#ps-lon').value+arc),day=$('#ps-sect').value==='day',seq=day?[['Sol',10],['Vênus',8],['Mercúrio',13],['Lua',9],['Saturno',11],['Júpiter',12],['Marte',7],['Nodo Norte',3],['Nodo Sul',2]]:[['Lua',9],['Saturno',11],['Júpiter',12],['Marte',7],['Sol',10],['Vênus',8],['Mercúrio',13],['Nodo Norte',3],['Nodo Sul',2]],idx=0,rem=age;while(rem>=seq[idx][1]){rem-=seq[idx][1];idx=(idx+1)%seq.length}let major=seq[idx],sub=seq[Math.floor(rem/major[1]*7)%7][0],z=[15,8,20,25,19,20,8,15,12,27,30,12],sign=Math.floor(M(+$('#ps-fortune').value)/30),zr=z[sign],cursor=0,spent=age;while(spent>=z[cursor]){spent-=z[cursor];cursor=(cursor+1)%12}$('#ps-trad-result').innerHTML=`<span class="oa-metric">True Solar Arc: ${arc.toFixed(3)}°</span><span class="oa-metric">Longitude dirigida: ${fmt(lon)}</span><br><strong>Firdaria atual:</strong> ${major[0]} (subperíodo ${sub}); ${rem.toFixed(2)} anos transcorridos no período maior.<br><strong>Zodiacal Releasing da Fortuna:</strong> signo inicial ${sign+1}, período L1 de ${zr} anos; período L1 atual começa no signo ${cursor+1}, com ${spent.toFixed(2)} anos transcorridos. Sequência zodiacal e durações tradicionais aplicada.`};$('#ps-protect').onclick=()=>{let p=parsed('#ps-points'),t=parsed('#ps-transits'),o=+$('#ps-prot-orb').value,out=[];for(let [tn,tl] of Object.entries(t))for(let [a,al] of Object.entries(p))for(let [b,bl] of Object.entries(p))if(a!==b&&Math.abs(sep(al,bl)-30)<=o){let hard=aspects.some(x=>[90,180].includes(x)&&Math.abs(sep(tl,al)-x)<=o),good=aspects.some(x=>[60,120,30].includes(x)&&Math.abs(sep(tl,bl)-x)<=o);if(hard&&good)out.push(`${tn}: tensão em ${a} e aspecto de suporte em ${b} (par natal ${sep(al,bl).toFixed(2)}°).`)}$('#ps-protect-result').textContent=out.length?out.join('\n'):'Nenhuma configuração simultânea encontrada no orbe.'};$('#ps-seal').onclick=async()=>{let payload=JSON.stringify({prediction:$('#ps-pred').value,criterion:$('#ps-criterion').value,deadline:$('#ps-deadline').value,createdAt:new Date().toISOString()});if(!$('#ps-pred').value||!$('#ps-criterion').value)return $('#ps-audit-result').textContent='Preencha previsão e critério.';let h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(payload));let hex=[...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('');$('#ps-audit-result').innerHTML=`<strong>Selo SHA-256</strong><br>${hex}<br><br>Registro canônico: ${payload.replace(/</g,'&lt;')}`};})();</script>
+<script>(()=>{const $=x=>document.querySelector(x),$$=x=>[...document.querySelectorAll(x)],M=(x,m=360)=>((+x%m)+m)%m,sep=(a,b)=>{let x=Math.abs(M(a)-M(b));return x>180?360-x:x},fmt=x=>M(x).toFixed(2)+'°';const d=id=>{let x=$(id).value;return x?new Date(x+'T12:00:00Z'):null};const lonSun=x=>{
+  if(typeof window.calc!=='function'||!window.obsSwiss?.ready)
+    throw Error('Swiss Ephemeris indisponível. Aguarde a inicialização do mapa e tente novamente.');
+  const result=window.calc(x.getTime()/86400000+2440587.5,0);
+  if(!result||!Number.isFinite(result.lon))throw Error('Longitude solar indisponível no motor Swiss.');
+  return M(result.lon)
+};const parsed=id=>Object.fromEntries($(id).value.split(/\n|,/).map(s=>s.split('=').map(x=>x.trim())).filter(x=>x.length===2&&x[0]&&x[1]!==''&&Number.isFinite(Number(x[1]))&&Number(x[1])>=0&&Number(x[1])<=360));const aspects=[0,30,45,60,90,120,135,150,180];let now=new Date();$('#ps-start').value=now.toISOString().slice(0,10);$('#ps-ref').value=$('#ps-start').value;$('#oa-studio-launch').onclick=()=>{$('#oa-studio-panel').hidden=false};$('#oa-studio-close').onclick=()=>{$('#oa-studio-panel').hidden=true};$$('#oa-studio nav button').forEach(b=>b.onclick=()=>{$$('#oa-studio nav button').forEach(x=>x.classList.toggle('active',x===b));$$('.oa-view').forEach(x=>x.hidden=x.dataset.p!==b.dataset.v)});$('#ps-scan').onclick=async()=>{
+  const output=$('#ps-annual'),button=$('#ps-scan');
+  if(button.disabled)return;
+  button.disabled=true;
+  try{
+    const start=d('#ps-start'),points=parsed('#ps-natal'),
+      orb=Number($('#ps-orb').value),aa=$('#ps-aspect').value.split(',').map(Number),hits=[];
+    if(!start)throw Error('Informe a data inicial.');
+    if(!Object.keys(points).length)throw Error('Informe pelo menos um ponto natal válido, no formato Nome=grau.');
+    if(!Number.isFinite(orb)||orb<.1||orb>10)throw Error('Orbe inválido: informe 0,1 a 10 graus.');
+    for(let i=0;i<365;i++){
+      const day=new Date(+start+i*86400000),solar=lonSun(day);
+      for(const [name,p] of Object.entries(points))for(const aspect of aa){
+        const delta=Math.abs(sep(solar,Number(p))-aspect);
+        if(delta<=orb)hits.push([day.toLocaleDateString('pt-BR',{timeZone:'UTC'}),name,aspect,delta]);
+      }
+      if(i%12===11)await new Promise(resolve=>setTimeout(resolve,0));
+    }
+    output.textContent=hits.length?hits.slice(0,180).map(x=>x[0]+' · Sol '+x[2]+'° '+x[1]+' · orbe '+x[3].toFixed(2)+'°').join('\n')+
+      (hits.length>180?'\nExibidos 180 de '+hits.length+' contatos. Refine o orbe para limitar a agenda.':''):
+      'Nenhum contato solar no orbe escolhido.';
+  }catch(error){output.textContent=error.message}
+  finally{button.disabled=false}
+};$('#ps-trad').onclick=()=>{
+  const out=$('#ps-trad-result');
+  try{
+    const engine=window.OATraditionalEngine,b=d('#ps-birth'),r=d('#ps-ref');
+    if(!engine||typeof window.calc!=='function'||!window.obsSwiss?.ready)
+      throw Error('Motor tradicional ou Swiss Ephemeris indisponível.');
+    if(!b||!r||r<b)throw Error('Informe datas válidas e referência posterior ao nascimento.');
+    const birthJD=b.getTime()/86400000+2440587.5,refJD=r.getTime()/86400000+2440587.5;
+    const arc=engine.trueSolarArc(birthJD,refJD,jd=>window.calc(jd,0).lon);
+    const longitude=engine.parseLongitude($('#ps-lon').value,'Longitude natal dirigida');
+    const fortune=engine.parseLongitude($('#ps-fortune').value,'Fortuna');
+    const sect=$('#ps-sect').value;
+    const firdar=engine.firdaria(birthJD,refJD,sect);
+    const zr=engine.zodiacalReleasing(engine.signIndex(fortune),birthJD,refJD,
+      {fortuneSign:engine.signIndex(fortune),maxLevel:2});
+    const major=firdar.major.lord,sub=firdar.sub?.lord||'período nodal';
+    out.textContent='Arco solar verdadeiro: '+arc.arc.toFixed(6)+'°\nLongitude dirigida: '+
+      engine.mod(longitude+arc.arc).toFixed(6)+'°\nFirdaria: '+major+' / '+sub+
+      '\nZodiacal Releasing L1: '+engine.SIGN_NAMES[zr.path[0].sign]+
+      ' · L2: '+engine.SIGN_NAMES[zr.path[1].sign]+
+      '\nIdade fracionária: '+arc.age.toFixed(6)+' anos tropicais.';
+  }catch(error){out.textContent=error.message}
+};$('#ps-protect').onclick=()=>{let p=parsed('#ps-points'),t=parsed('#ps-transits'),o=+$('#ps-prot-orb').value,out=[];for(let [tn,tl] of Object.entries(t))for(let [a,al] of Object.entries(p))for(let [b,bl] of Object.entries(p))if(a!==b&&Math.abs(sep(al,bl)-30)<=o){let hard=aspects.some(x=>[90,180].includes(x)&&Math.abs(sep(tl,al)-x)<=o),good=aspects.some(x=>[60,120,30].includes(x)&&Math.abs(sep(tl,bl)-x)<=o);if(hard&&good)out.push(`${tn}: tensão em ${a} e aspecto de suporte em ${b} (par natal ${sep(al,bl).toFixed(2)}°).`)}$('#ps-protect-result').textContent=out.length?out.join('\n'):'Nenhuma configuração simultânea encontrada no orbe.'};$('#ps-seal').onclick=async()=>{
+  const out=$('#ps-audit-result');
+  try{
+    const prediction=$('#ps-pred').value.trim(),criterion=$('#ps-criterion').value.trim(),
+      deadline=$('#ps-deadline').value;
+    if(!prediction||!criterion||!deadline)throw Error('Preencha hipótese, critério e data.');
+    if(!crypto?.subtle)throw Error('SHA-256 requer HTTPS ou contexto seguro.');
+    const payload=JSON.stringify({schema:'oa-hypothesis/v1',prediction,criterion,
+      deadline,createdAt:new Date().toISOString()});
+    const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(payload));
+    const hex=[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join('');
+    out.textContent='SHA-256: '+hex+'\nRegistro canônico: '+payload+
+      '\nO hash não comprova a data sozinho: publique-o em um registro externo verificável.';
+  }catch(error){out.textContent=error.message}
+};})();</script>
