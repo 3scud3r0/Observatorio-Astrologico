@@ -100,10 +100,10 @@
   };
   $('natal').onclick=()=>{
     try{
-      const positions=(typeof window.positions!=='undefined'&&Array.isArray(window.positions))?
-        window.positions:(typeof globalThis.positions!=='undefined'&&Array.isArray(globalThis.positions)?
-          globalThis.positions:[]);
-      const lon=positions[Number($('body').value)]?.lon;
+      // A legacy chart may expose a global lexical "positions" rather than window.positions.
+      const natalPoints=(typeof positions!=='undefined'&&Array.isArray(positions))?
+        positions:(Array.isArray(window.positions)?window.positions:[]);
+      const lon=natalPoints[Number($('body').value)]?.lon;
       if(!Number.isFinite(lon))
         throw Error('O mapa atual não disponibilizou esse corpo; informe a longitude natal manualmente.');
       $('target').value=String(lon);render();
