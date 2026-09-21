@@ -19,8 +19,8 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | AR09 | Code-splitting/lazy loading e meta de <500 KB iniciais (sem efemérides) | N; meta não medida |
 | AR10 | Isolar Swiss e varreduras pesadas em Web Worker e protocolo RPC cancelável | N |
 | AR11 | Limitar memória e preservar responsividade durante consultas longas | P |
-| AR12 | Cache local controlado de efemérides em IndexedDB/CacheStorage | N |
-| AR13 | PWA e modo offline real após o primeiro download completo | N |
+| AR12 | Cache local controlado de efemérides em IndexedDB/CacheStorage | P; CacheStorage opt-in com pacote explicitamente preparado |
+| AR13 | PWA e modo offline real após o primeiro download completo | P; manifest, Service Worker e preparação explícita; teste offline interativo/terceiros remotos pendentes |
 | AR14 | Benchmark FCP, parse, memória, tempo até primeiro mapa e celulares médios | N |
 | AR15 | Melhorar CI para extrair scripts HTML, falhar se nenhum e verificar sintaxe | A |
 | AR16 | Testar motor, empacotamento, WASM, presença/assinatura/tamanho das efemérides | E/A |
