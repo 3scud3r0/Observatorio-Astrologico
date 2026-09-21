@@ -35,6 +35,8 @@ jobs:
           node --check .site-src/timeline-ui.js
           node .site-src/timeline-core.test.js
           node --check .site-src/guided-study.js
+          node --check .site-src/offline-client.js
+          node --check .site-src/service-worker.js
           python .site-src/ui-contracts.test.py
           python - <<'PY'
           import re
@@ -88,6 +90,11 @@ jobs:
           cat .site-src/research-lab.html >> _site/index.html
           cat .site-src/timeline.html >> _site/index.html
           cat .site-src/guided-study.html >> _site/index.html
+          cat .site-src/offline.html >> _site/index.html
+          cp .site-src/offline-client.js _site/offline-client.js
+          cp .site-src/service-worker.js _site/service-worker.js
+          cp .site-src/manifest.webmanifest _site/manifest.webmanifest
+          cp .site-src/app-icon.svg _site/app-icon.svg
           cp .site-src/guided-study.js _site/guided-study.js
           cp .site-src/timeline-core.js _site/timeline-core.js
           cp .site-src/timeline-ui.js _site/timeline-ui.js
@@ -135,6 +142,9 @@ jobs:
               './timeline-core.js',
               './timeline-ui.js',
               './guided-study.js',
+              './offline-client.js',
+              './manifest.webmanifest',
+              './service-worker.js',
           ]
           missing = [x for x in required if x not in html]
           if missing:
