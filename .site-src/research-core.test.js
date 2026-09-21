@@ -40,6 +40,18 @@ const base={
   const outcome=E.assessment(locked,true,'Documento datado', '2027-03-01T00:00:00.000Z');
   assert.equal(outcome.hash,locked.hash);
   assert.throws(()=>E.assessment(locked,'yes','prova'),/Resultado/);
+  assert.throws(
+    ()=>E.assessment(locked,true,'Antes da janela','2027-01-31T23:59:59.000Z'),
+    /anterior ao início/
+  );
+  assert.throws(
+    ()=>E.assessment(locked,false,'Ausência ainda não observável','2027-02-27T12:00:00.000Z'),
+    /encerramento da janela/
+  );
+  assert.equal(
+    E.assessment(locked,false,'Ausência após fechamento','2027-03-01T00:00:00.000Z').observed,
+    false
+  );
   const mk=(predicted,observed)=>({
     record:{protocol:{predicted}},
     assessment:{observed}
