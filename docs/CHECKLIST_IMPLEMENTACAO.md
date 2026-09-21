@@ -2,7 +2,7 @@
 
 Estado auditado no repositório em 21-09-2026. Derivado do [inventário integral](INVENTARIO_TRES_CONVERSAS.md), que é a fonte de descrição dos requisitos. **[x]** significa recurso identificado como existente/implementado, não certificação independente; **[ ] parcial** significa código ou infraestrutura ainda insuficiente; **[ ] pendente** significa requisito ainda não entregue. Não afirmar “terminei” enquanto houver caixas abertas.
 
-Atualizações desta execução: pesquisa por técnica, oportunidades e taxa-base registrada; scanner Swiss em Worker com cancelamento; PWA opt-in/CacheStorage; manifesto SHA-256 dos seis ativos Swiss; código de cofre cifrado AES-GCM com RLS preparado (sem projeto Supabase conectado); validação de hora natal/coordenadas; testes adicionais de CI.
+Atualizações desta execução: retomada validada de volumes Atlas e PDF da auditoria; pesquisa por técnica, oportunidades e taxa-base registrada; scanner Swiss em Worker com cancelamento; PWA opt-in/CacheStorage; manifesto SHA-256 dos seis ativos Swiss; código de cofre cifrado AES-GCM com RLS preparado (sem projeto Supabase conectado); validação de hora natal/coordenadas; testes adicionais de CI.
 **Contagem:** 92 requisitos; 26 marcados existentes/implementados; 52 parciais; 14 pendentes. Para cumprir o pedido integral, todas as 66 caixas abertas precisam ser encerradas e verificadas.
 
 
@@ -75,7 +75,7 @@ Atualizações desta execução: pesquisa por técnica, oportunidades e taxa-bas
 - [ ] pendente — **PR11** Retificação por lista biográfica com função objetivo e incerteza — N.
 - [ ] parcial — **PR12** Retornos, estações, ingressos, eclipses, retrogradação — E/P.
 - [ ] parcial — **PR13** Volumes de até 90 dias, cancelamento, persistência/retomada — E/P.
-- [ ] parcial — **PR14** Retomar sem recalcular volumes concluídos e evitar limites artificiais de janelas — N/P.
+- [ ] parcial — **PR14** Retomar sem recalcular volumes concluídos e evitar limites artificiais de janelas — A/P; retomada por fingerprint SHA-256 e verificação dos volumes no IndexedDB; janelas nas fronteiras ainda não são unificadas.
 - [ ] parcial — **PR15** Comparar técnicas com critérios separados sem aumentar artificialmente “acertos” — A/P.
 - [ ] parcial — **PR16** Definir casas/orbes/escolas e origem de cada evento para reprodução — P.
 
@@ -96,7 +96,7 @@ Atualizações desta execução: pesquisa por técnica, oportunidades e taxa-bas
 - [ ] parcial — **PE13** Exportação/restauração integrais e exclusão explícita — A/P; importação e snapshots com selo, gravação atômica e bloqueio de sobrescrita de dados ilegíveis; restauração integral de todos os tipos de dados não comprovada.
 - [ ] parcial — **PE14** Sincronização opcional Supabase privada sob RLS e teste com duas contas — P; cofre cifrado e SQL RLS implementados; nenhum projeto Supabase conectado, migração e teste com contas reais pendentes.
 - [ ] parcial — **PE15** Cifrar/sincronizar dados pessoais mediante consentimento, jamais torná-los públicos por padrão — A/P; WebCrypto AES-256-GCM, PBKDF2 e upload explícito de snapshots; integração real pendente.
-- [ ] parcial — **PE16** Relatórios PDF de auditoria e identidade técnica — P.
+- [ ] parcial — **PE16** Relatórios PDF de auditoria e identidade técnica — A/P; PDF de protocolo selado e avaliações com paginação; PDF específico da identidade técnica e validação visual em navegador pendentes.
 - [ ] pendente — **PE17** Importação opcional de mapas de referência com qualidade do horário/Rodden Rating — N.
 - [ ] pendente — **PE18** Registro observacional com janela encerrada por evento, não por volume computacional — N.
 
