@@ -19,6 +19,16 @@ O documento principal, de cerca de 15,8 MB antes dos módulos adicionais, ainda 
 
 Os arquivos usados pelo site devem ser alterados em `.site-src/`, e não em `_site/` (artefato descartável). O script `.site-src/atlas-release.py` mantém modificações de compatibilidade com verificações explícitas. As atualizações de setembro de 2026 consolidam os cálculos solares do Pro Studio na Swiss Ephemeris e reutilizam `OATraditionalEngine` para arco solar, firdaria e Zodiacal Releasing.
 
+## Laboratório prospectivo e relógio de trânsitos
+
+O [inventário das três conversas](docs/INVENTARIO_TRES_CONVERSAS.md) identifica requisitos existentes, parcialmente implementados e pendentes. A primeira implementação dessa consolidação acrescentou:
+
+- `.site-src/research-core.js` — protocolo prospectivo canônico, selo SHA-256, verificação do conteúdo, critérios prévios, matriz TP/FP/FN/TN e identidade técnica do mapa.
+- `.site-src/research-lab.html` e `.site-src/research-lab.js` — formulário de investigação, avaliações append-only, exportação/importação JSON, exclusão local e laudo de proveniência. **Nenhum dado é enviado automaticamente à nuvem.**
+- `.site-src/timeline-core.js`, `.site-src/timeline.html`, `.site-src/timeline-ui.js` — relógio UTC com saltos de minuto/hora/dia/mês/ano, consulta pontual da Swiss Ephemeris, roda SVG e aspectos/orbes configuráveis. É um cálculo instantâneo; **a Swiss ainda não foi transferida para um Web Worker**.
+
+O selo protege o conteúdo, mas **não comprova sozinho a data de criação**; para protocolo verificável por terceiros, publique o hash em um registro externo com data independente. O laboratório exige que o registro seja selado antes do início da janela em UTC. Os resultados estatísticos só têm significado com denominadores, população e taxa-base definidos antecipadamente; coincidências não demonstram causalidade.
+
 ## Validação
 
 O workflow executa os testes do motor tradicional e verifica sintaticamente o JavaScript extraído **de fato** das interfaces tradicional e Pro Studio; a ausência de scripts deve falhar. O build também verifica referências aos ativos locais, tamanhos mínimos e assinatura do binário WASM antes de publicar.
