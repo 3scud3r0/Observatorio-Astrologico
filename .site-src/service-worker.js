@@ -62,8 +62,13 @@ self.addEventListener('message',event=>{
     const cache=await caches.open(CACHE);
     const provenancePath=new URL('./ephemeris-provenance.json',self.registration.scope).pathname;
     // Reload the manifest before considering a previously cached astronomical file valid.
-    const manifestResponse=await fetch(new URL(provenancePath,self.location.origin),{cache:'reload'});
-    if(!manifestResponse.ok)throw Error('Não foi possível validar as efemérides sem o manifesto.');
+    let manifestResponse;
+    try{
+      manifestResponse=await fetch(new URL(provenancePath,self.location.origin),{cache:'reload'});
+    }catch{
+      manifestResponse=await cache.match(provenancePath);
+    }
+    if(!manifestResponse?.ok)throw Error('Não foi possível validar as efemérides sem o manifesto.');
     const manifest=await manifestResponse.clone().json();
     if(manifest.schema!=='oa-asset-provenance/v1'||!manifest.assets)
       throw Error('Manifesto de efemérides inválido.');
@@ -93,5 +98,7 @@ self.addEventListener('message',event=>{
       target?.postMessage({type:'OA_OFFLINE_PROGRESS',id:message.id,count,total:allowed.size,errors});
     }
     target?.postMessage({type:'OA_OFFLINE_DONE',id:message.id,count,total:allowed.size,errors});
-  })());
+  })().catch(error=>{
+    target?.postMessage({type:'OA_OFFLINE_DONE',id:message.id,count:0,total:allowed.size,errors:[error.message]});
+  }));
 });
