@@ -1,0 +1,20 @@
+{
+  "name": "Observatório Astrológico",
+  "short_name": "Observatório",
+  "description": "Cálculo astronômico local e estudo guiado, com diários opcionais locais.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "display": "standalone",
+  "start_url": "./",
+  "scope": "./",
+  "background_color": "#09172b",
+  "theme_color": "#17416d",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
