@@ -2,8 +2,8 @@
 (()=>{
   'use strict';
   const root=document.getElementById('oa-research');
-  const E=window.OAResearch;
-  if(!root||!E)return;
+  const E=window.OAResearch,A=window.OAResearchAnalysis;
+  if(!root||!E||!A)return;
   const byId=id=>document.getElementById('oa-r-'+id);
   const KEY='oa-research-v1';
   let items=[];
@@ -76,6 +76,9 @@
     const out=byId('seal-output'),button=byId('seal');
     button.disabled=true;
     try{
+      const rawRate=byId('baseline-rate').value.trim();
+      if(rawRate&&!byId('baseline-rate').checkValidity())
+        throw Error('Taxa-base: informe de 0% a 100%.');
       const record=await E.seal({
         question:byId('question').value,
         techniques:byId('techniques').value.split('\n').map(x=>x.trim()).filter(Boolean),
@@ -84,7 +87,8 @@
         criterion:byId('criterion').value,
         nonConfirmation:byId('nonconfirmation').value,
         baseline:byId('baseline').value,
-        predicted:byId('predicted').value==='yes'
+        predicted:byId('predicted').value==='yes',
+        ...(rawRate!==''?{baselineRate:Number(rawRate)/100}:{})
       });
       if(items.some(item=>item.record.hash===record.hash))
         throw Error('Um protocolo idêntico já foi selado.');
@@ -116,24 +120,46 @@
       status('Avaliação anexada sem modificar o protocolo original.');
     }catch(error){status(error.message)}
   };
-  byId('summary').onclick=()=>{
+  byId('summary').onclick=async()=>{
+    const button=byId('summary');button.disabled=true;
+    status('Verificando os selos SHA-256 antes de calcular os resultados…');
     try{
-      const result=E.confusion(items.map(item=>({
-        record:item.record,
-        assessment:item.assessments.length?item.assessments[item.assessments.length-1]:null
-      })));
+      for(const item of items)
+        if(!await E.verify(item.record))
+          throw Error('Selo divergente: corrija ou restaure os dados antes de calcular estatísticas.');
+      const report=A.summarize(items),groups=A.byTechnique(items);
       const fmt=n=>n===null?'indefinido (denominador zero)':(100*n).toFixed(2)+'%';
-      status('Verdadeiros positivos: '+result.tp+
-        '\nFalsos positivos: '+result.fp+
-        '\nFalsos negativos: '+result.fn+
-        '\nVerdadeiros negativos: '+result.tn+
-        '\nInconclusivos/pendentes: '+result.inconclusive+
-        '\nPrecisão: '+fmt(result.precision)+
-        '\nSensibilidade: '+fmt(result.sensitivity)+
-        '\nEspecificidade: '+fmt(result.specificity)+
-        '\nTaxa de falsos positivos: '+fmt(result.falsePositiveRate)+
-        '\nExige referência sem astrologia e registro de todas as janelas para interpretação responsável. Correlação não demonstra causalidade.');
+      const ci=report.eventRateCI95?
+        report.eventRateCI95.map(fmt).join('–'):'indefinido';
+      const details=groups.map(g=>g.name+
+        ': '+g.reviewed+'/'+g.opportunities+' avaliados; TP/FP/FN/TN '+
+        [g.tp,g.fp,g.fn,g.tn].join('/')+
+        '; pendentes '+g.pending+'; inconclusivos '+g.inconclusive).join('\n');
+      status('Oportunidades previamente seladas: '+report.opportunities+
+        '\nJanelas ainda abertas: '+report.pending+
+        '\nEncerradas sem avaliação: '+report.unreviewed+
+        '\nInconclusivas: '+report.inconclusive+
+        '\nAvaliadas com resultado: '+report.reviewed+
+        '\nVerdadeiros positivos/falsos positivos/falsos negativos/verdadeiros negativos: '+
+        [report.tp,report.fp,report.fn,report.tn].join('/')+
+        '\nTaxa observada de eventos: '+fmt(report.eventRate)+
+        '\nIntervalo descritivo Wilson 95%: '+ci+
+        '\nPrecisão: '+fmt(report.precision)+
+        '\nSensibilidade: '+fmt(report.sensitivity)+
+        '\nEspecificidade: '+fmt(report.specificity)+
+        '\nTaxa de falsos positivos: '+fmt(report.falsePositiveRate)+
+        '\nTaxas-base numéricas pré-registradas: '+report.baselineCovered+
+        '/'+report.reviewed+' avaliadas'+
+        '\nMédia da taxa-base informada: '+fmt(report.baselineExpectedRate)+
+        (report.baselineComparable?'\nCobertura completa para comparação descritiva.':
+          '\nCobertura incompleta: NÃO inferir desempenho relativo à taxa-base.')+
+        '\n\nGrupos de técnicas (o mesmo protocolo pode aparecer em vários grupos; NÃO são independentes):\n'+
+        (details||'nenhuma técnica registrada')+
+        '\nLimite alfa Bonferroni apenas ilustrativo para '+groups.length+
+        ' comparações: '+(groups.length?(0.05/groups.length).toPrecision(3):'não aplicável')+
+        '. Nenhum p-valor, efeito causal ou poder preditivo é calculado.');
     }catch(error){status(error.message)}
+    finally{button.disabled=false}
   };
   byId('backup').onclick=()=>download({schema:E.SCHEMA,records:items},'observatorio-auditoria-backup.json');
   byId('import').onchange=async()=>{
