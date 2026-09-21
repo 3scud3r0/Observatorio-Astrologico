@@ -37,6 +37,7 @@ jobs:
           node --check .site-src/guided-study.js
           node --check .site-src/offline-client.js
           node --check .site-src/service-worker.js
+          python -m py_compile .site-src/asset-provenance.py
           python .site-src/ui-contracts.test.py
           python - <<'PY'
           import re
@@ -123,6 +124,7 @@ jobs:
           test "$(stat -c%s _site/swiss/ephe/sepl_18.se1)" -gt 100000
           test "$(stat -c%s _site/swiss/ephe/semo_18.se1)" -gt 500000
           test "$(stat -c%s _site/swiss/ephe/seas_18.se1)" -gt 100000
+          python .site-src/asset-provenance.py
 
           python - <<'PY'
           from pathlib import Path
@@ -145,6 +147,7 @@ jobs:
               './offline-client.js',
               './manifest.webmanifest',
               './service-worker.js',
+              './ephemeris-provenance.json',
           ]
           missing = [x for x in required if x not in html]
           if missing:
