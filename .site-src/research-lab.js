@@ -171,6 +171,19 @@
     finally{button.disabled=false}
   };
   byId('backup').onclick=()=>download({schema:E.SCHEMA,records:items},'observatorio-auditoria-backup.json');
+  byId('pdf').onclick=async()=>{
+    const button=byId('pdf');button.disabled=true;
+    try{
+      const item=selected();
+      if(!await E.verify(item.record))
+        throw Error('Selo divergente. PDF bloqueado até restaurar um protocolo íntegro.');
+      if(!window.OAResearchPDF)
+        throw Error('Gerador PDF indisponível; use o backup JSON.');
+      window.OAResearchPDF.render(item);
+      status('PDF do protocolo selecionado exportado; confira os downloads do navegador.');
+    }catch(error){status(error.message)}
+    finally{button.disabled=false}
+  };
   byId('import').onchange=async()=>{
     try{
       const file=byId('import').files[0];
