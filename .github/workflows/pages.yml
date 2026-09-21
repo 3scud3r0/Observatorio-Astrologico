@@ -34,6 +34,7 @@ jobs:
           node --check .site-src/timeline-core.js
           node --check .site-src/timeline-ui.js
           node .site-src/timeline-core.test.js
+          python .site-src/ui-contracts.test.py
           python - <<'PY'
           import re
           from pathlib import Path
