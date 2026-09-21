@@ -6,14 +6,22 @@
   if(!root||!E||!A)return;
   const byId=id=>document.getElementById('oa-r-'+id);
   const KEY='oa-research-v1';
-  let items=[];
+  let items=[],storageReadable=true;
   const status=message=>{byId('matrix').textContent=message};
   try{
     const stored=JSON.parse(localStorage.getItem(KEY)||'[]');
     if(!Array.isArray(stored))throw Error('Armazenamento inválido.');
     items=stored;
-  }catch(error){status('Arquivo local ilegível: '+error.message+'. Exporte/corrija antes de salvar novos registros.')}
-  const save=()=>localStorage.setItem(KEY,JSON.stringify(items));
+  }catch(error){
+    storageReadable=false;
+    status('Dados locais ilegíveis: '+error.message+
+      '. Novas gravações estão BLOQUEADAS para evitar perda; restaure manualmente um backup ou exclua explicitamente os dados locais.');
+  }
+  const save=next=>{
+    if(!storageReadable)throw Error('Armazenamento protegido: exclua explicitamente o conteúdo ilegível para recomeçar.');
+    localStorage.setItem(KEY,JSON.stringify(next));
+    items=next;
+  };
   function download(data,name){
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob),anchor=document.createElement('a');
@@ -92,8 +100,8 @@
       });
       if(items.some(item=>item.record.hash===record.hash))
         throw Error('Um protocolo idêntico já foi selado.');
-      items.push({record,assessments:[]});
-      save();refresh();
+      save([...items,{record,assessments:[]}]);
+      refresh();
       out.textContent='Selo SHA-256: '+record.hash+
         '\nSalvo somente neste navegador. Exporte o backup; publique o selo em registro externo para datá-lo independentemente.';
     }catch(error){out.textContent=error.message}
@@ -115,8 +123,9 @@
       const observed=byId('observed').value;
       const outcome=E.assessment(item.record,
         observed==='unknown'?null:observed==='yes',byId('evidence').value);
-      item.assessments.push(outcome);
-      save();history();
+      const updated=items.map(candidate=>candidate===item?
+        {...item,assessments:[...item.assessments,outcome]}:candidate);
+      save(updated);history();
       status('Avaliação anexada sem modificar o protocolo original.');
     }catch(error){status(error.message)}
   };
@@ -180,17 +189,21 @@
             throw Error('Avaliação sem vínculo íntegro ao protocolo.');
       }
       const known=new Set(items.map(x=>x.record.hash));
+      const next=[...items];
       let count=0;
       for(const item of parsed.records){
-        if(!known.has(item.record.hash)){items.push(item);known.add(item.record.hash);count++}
+        if(!known.has(item.record.hash)){next.push(item);known.add(item.record.hash);count++}
       }
-      save();refresh();status(count+' registros restaurados; duplicatas ignoradas.');
+      save(next);refresh();status(count+' registros restaurados; duplicatas ignoradas.');
     }catch(error){status('Importação recusada: '+error.message)}
     finally{byId('import').value=''}
   };
   byId('delete').onclick=()=>{
     if(!window.confirm('Excluir permanentemente todos os protocolos e avaliações locais deste navegador? Exporte um backup antes.'))return;
-    items=[];localStorage.removeItem(KEY);refresh();status('Registros locais excluídos.');
+    try{
+      localStorage.removeItem(KEY);
+      storageReadable=true;items=[];refresh();status('Registros locais excluídos.');
+    }catch(error){status('Falha ao excluir os dados locais: '+error.message)}
   };
   byId('precision').onchange=()=>{
     const unknown=byId('precision').value==='desconhecida';
@@ -235,8 +248,7 @@
       }
       if(items.some(old=>old.record.hash===item.record.hash))
         return false;
-      items.push(JSON.parse(JSON.stringify(item)));
-      save();refresh();return true;
+      save([...items,JSON.parse(JSON.stringify(item))]);refresh();return true;
     }
   };
   refresh();
