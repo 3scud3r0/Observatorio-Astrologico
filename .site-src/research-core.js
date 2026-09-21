@@ -25,6 +25,8 @@
   function finite(value,label,min,max){
     if(value===null||value===undefined||String(value).trim()==='')
       throw Error(label+': informe um número.');
+    if(typeof value!=='number'&&typeof value!=='string'||typeof value==='boolean')
+      throw Error(label+': número inválido.');
     const n=Number(value);
     if(!Number.isFinite(n)||n<min||n>max)throw Error(label+': fora do intervalo '+min+' a '+max+'.');
     return n;
@@ -107,6 +109,12 @@
       specificity:ratio(tn,tn+fp),falsePositiveRate:ratio(fp,fp+tn),
       evaluated:tp+fp+fn+tn,total:records.length};
   }
+  function validTime(value){
+    const time=text(value,'Hora natal',12);
+    if(!/^(?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?$/.test(time))
+      throw Error('Hora natal: use HH:MM ou HH:MM:SS.');
+    return time;
+  }
   function provenance(input){
     if(!input||typeof input!=='object')throw Error('Dados de origem inválidos.');
     const precision=['documentada','aproximada','desconhecida'];
@@ -114,9 +122,10 @@
     const result={
       schema:'oa-chart-provenance/v1',
       birthDate:date(input.birthDate,'Data natal'),
-      birthTime:input.timePrecision==='desconhecida'?null:text(input.birthTime,'Hora natal',12),
+      birthTime:input.timePrecision==='desconhecida'?null:validTime(input.birthTime),
       timePrecision:input.timePrecision,
-      timeSource:input.timePrecision==='documentada'?text(input.timeSource,'Fonte da hora',300):(input.timeSource||''),
+      timeSource:input.timePrecision==='documentada'?text(input.timeSource,'Fonte da hora',300):
+        input.timeSource===undefined||input.timeSource===''?'':text(input.timeSource,'Fonte da hora',300),
       timezone:input.timePrecision==='desconhecida'?null:finite(input.timezone,'UTC',-14,14),
       latitude:finite(input.latitude,'Latitude',-90,90),
       longitude:finite(input.longitude,'Longitude geográfica',-180,180),
