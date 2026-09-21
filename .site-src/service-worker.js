@@ -10,6 +10,7 @@ const STATIC=[
   './swiss/ephe/sepl_18.se1','./swiss/ephe/semo_18.se1','./swiss/ephe/seas_18.se1',
   './traditional-engine.js','./research-core.js','./research-lab.js',
   './research-vault.js','./research-vault-ui.js',
+  './swiss-scan-ui.js','./swiss-scan-worker.js',
   './timeline-core.js','./timeline-ui.js','./guided-study.js',
   './manifest.webmanifest','./app-icon.svg','./offline-client.js',
   './ephemeris-provenance.json'
