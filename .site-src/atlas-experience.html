@@ -94,6 +94,7 @@ async function connect(){try{const response=await fetch('./atlas-auth.json',{cac
 connect();
 })();
 </script>
+<script src="./atlas-resume.js"></script>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id), day=86400000;
@@ -105,6 +106,12 @@ dbPromise.catch(()=>{});
 async function record(mode,value){const db=await dbPromise;return new Promise((resolve,reject)=>{const tx=db.transaction('volumes',mode==='get'?'readonly':'readwrite'),store=tx.objectStore('volumes');const req=mode==='get'?store.get(value):store.put(value);let result;req.onsuccess=()=>{result=req.result};tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Armazenamento interrompido'))})}
 let job=null, busy=false;
 const plusDays=(date,n)=>new Date(Date.parse(date+'T00:00:00Z')+n*day).toISOString().slice(0,10);
+async function inputFingerprint(data){
+ const engine=window.OAAtlasResume;
+ if(!engine)throw Error('Verificador de retomada Atlas indisponível.');
+ return engine.fingerprint({fields:data.v,natal:data.natal,
+   method:'Swiss Ephemeris; grade de 3 horas; volumes de 90 dias'});
+}
 function selectOptions(){const s=$('atlasVolumeSelect');s.replaceChildren();for(let i=0;i<(job?.completed||0);i++){const opt=document.createElement('option');opt.value=String(i);const a=plusDays(job.start,i*90),b=plusDays(a,89);opt.textContent='Volume '+(i+1)+' · '+a+' a '+(b>job.end?job.end:b);s.append(opt)}controls.hidden=!job;$('atlasCancel').hidden=!busy}
 async function showVolume(index){const item=await record('get',job.id+':'+index);if(!item)throw Error('Volume não encontrado neste navegador.');guideLast=item.report;guideRender(guideLast);$('analise').prepend(controls);$('atlasVolumeSelect').value=String(index);}
 $('atlasVolumeSelect').onchange=()=>showVolume(+$('atlasVolumeSelect').value).catch(e=>tell(e.message));
@@ -114,10 +121,22 @@ $('guideForm').onsubmit=async event=>{
  event.preventDefault();if(busy)return;
  for(let n=0;n<3;n++){const bad=[...document.querySelector('.guideStep[data-step="'+n+'"]').querySelectorAll('input,textarea,select')].find(x=>!x.checkValidity());if(bad){guideShow(n);bad.reportValidity();return}}
  let data;try{data=guideCollect();await dbPromise}catch(e){tell('Não foi possível iniciar: '+e.message);return}
+ let fingerprint;try{fingerprint=await inputFingerprint(data)}catch(e){tell('Não foi possível identificar a consulta para retomada: '+e.message);return}
  busy=true;window.atlasScanCancelled=false;$('gRun').disabled=true;cancel.hidden=false;
- job={id:crypto.randomUUID(),start:data.v.gStart,end:data.v.gEnd,completed:0,total:Math.ceil((Date.parse(data.v.gEnd)-Date.parse(data.v.gStart)+day)/(90*day))};selectOptions();
+ const previous=job,total=Math.ceil((Date.parse(data.v.gEnd)-Date.parse(data.v.gStart)+day)/(90*day));
+ job={id:crypto.randomUUID(),start:data.v.gStart,end:data.v.gEnd,completed:0,total,fingerprint};
  try{
+  const restored=await window.OAAtlasResume.recover(previous,{
+    fingerprint,start:data.v.gStart,end:data.v.gEnd,total,
+    read:key=>record('get',key)
+  });
+  if(restored)job=restored;
+  selectOptions();
+  if(restored&&restored.completed)
+   $('atlasVolumeStatus').textContent='Retomando consulta idêntica: '+restored.completed+
+     ' volume(s) íntegros reutilizados; demais volumes serão calculados.';
   for(let date=job.start,index=0;date<=job.end;date=plusDays(date,90),index++){
+   if(index<job.completed)continue;
    if(window.atlasScanCancelled)throw Error('Consulta cancelada. Os volumes concluídos estão disponíveis.');
    const last=plusDays(date,89)>job.end?job.end:plusDays(date,89),v={...data.v,gStart:date,gEnd:last};
    const start=zonedMidnight(date,v.gTimezone)/day+2440587.5,end=zonedMidnight(plusDays(last,1),v.gTimezone)/day+2440587.5;
