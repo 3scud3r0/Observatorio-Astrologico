@@ -1,0 +1,67 @@
+<!-- Observatório: laboratory is opt-in. No natal or research data is sent to a server. -->
+<style>
+#oa-research{position:fixed;left:14px;bottom:14px;z-index:2147483645;font:14px/1.5 system-ui,sans-serif;color:#eef6ff}
+#oa-research *{box-sizing:border-box}
+#oa-r-toggle,#oa-r-panel button{background:#17416d;color:#fff;border:1px solid #82cde8;border-radius:9px;padding:8px 12px;cursor:pointer}
+#oa-r-panel{width:min(850px,calc(100vw - 28px));max-height:calc(100vh - 95px);overflow:auto;background:#092038;color:#f5fbff;border:1px solid #82cde8;border-radius:16px;padding:16px;box-shadow:0 24px 70px #000b}
+#oa-r-panel h2,#oa-r-panel h3{color:#ffde8b;margin:6px 0}
+#oa-r-panel fieldset{min-width:0;border:1px solid #3f749d;border-radius:9px;margin:14px 0;padding:12px}
+#oa-r-panel legend{color:#ffde8b}
+#oa-r-panel label{display:block;margin:8px 0}
+#oa-r-panel input,#oa-r-panel textarea,#oa-r-panel select{width:100%;background:#102c4b;border:1px solid #6a93b9;border-radius:6px;color:#fff;padding:7px}
+#oa-r-panel textarea{min-height:62px}
+#oa-r-panel .oa-r-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#oa-r-panel .oa-r-actions{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}
+#oa-r-panel .oa-r-notice{border-left:3px solid #ffde8b;padding:8px;background:#173858}
+#oa-r-panel output{display:block;white-space:pre-wrap;overflow-wrap:anywhere;background:#061528;border-radius:9px;padding:10px;margin:10px 0}
+#oa-r-panel button:focus-visible{outline:3px solid #ffde8b}
+#oa-r-panel button[disabled]{opacity:.5}
+@media(max-width:600px){#oa-r-panel .oa-r-grid{grid-template-columns:1fr}}
+</style>
+<section id="oa-research" aria-label="Laboratório verificável">
+  <button id="oa-r-toggle" type="button" aria-expanded="false" aria-controls="oa-r-panel">Laboratório de hipóteses</button>
+  <div id="oa-r-panel" hidden>
+    <div class="oa-r-actions"><h2>Laboratório prospectivo</h2><button id="oa-r-close" type="button">Fechar</button></div>
+    <p class="oa-r-notice">Hipóteses astrológicas não são evidência de capacidade preditiva. O SHA-256 protege o conteúdo, mas não prova sozinho sua data. Tudo fica neste navegador, salvo exportação explícita.</p>
+    <fieldset><legend>1 · Definir e selar antes da janela</legend>
+      <label>Pergunta verificável<input id="oa-r-question" placeholder="Haverá uma contratação documentada?"></label>
+      <label>Técnicas (uma por linha)<textarea id="oa-r-techniques" placeholder="Profecção anual&#10;Trânsito"></textarea></label>
+      <label>Configurações e orbes (com versão do motor)<textarea id="oa-r-config" placeholder="Sol trígono Saturno ±1°; Swiss Ephemeris"></textarea></label>
+      <div class="oa-r-grid"><label>Início da janela<input id="oa-r-start" type="date"></label><label>Fim da janela<input id="oa-r-end" type="date"></label></div>
+      <label>Critério explícito de confirmação<textarea id="oa-r-criterion"></textarea></label>
+      <label>Critério explícito de não confirmação<textarea id="oa-r-nonconfirmation"></textarea></label>
+      <label>Referencial sem astrologia<textarea id="oa-r-baseline" placeholder="Frequência natural do evento em população comparável"></textarea></label>
+      <label>Previsão registrada<select id="oa-r-predicted"><option value="yes">Ocorrerá na janela</option><option value="no">Não ocorrerá na janela</option></select></label>
+      <div class="oa-r-actions"><button id="oa-r-seal" type="button">Selar hipótese em SHA-256</button></div>
+      <output id="oa-r-seal-output" aria-live="polite"></output>
+    </fieldset>
+    <fieldset><legend>2 · Avaliar sem modificar o original</legend>
+      <label>Registro selado<select id="oa-r-records"></select></label>
+      <label>Resultado documentado<select id="oa-r-observed"><option value="unknown">Inconclusivo</option><option value="yes">Aconteceu</option><option value="no">Não aconteceu</option></select></label>
+      <label>Justificativa ou referência verificável<textarea id="oa-r-evidence"></textarea></label>
+      <div class="oa-r-actions"><button id="oa-r-evaluate" type="button">Anexar avaliação</button><button id="oa-r-verify" type="button">Verificar selo</button></div>
+      <output id="oa-r-history" aria-live="polite">Nenhum registro selecionado.</output>
+    </fieldset>
+    <fieldset><legend>3 · Estatística e preservação</legend>
+      <div class="oa-r-actions"><button id="oa-r-summary" type="button">Matriz TP/FP/FN/TN</button><button id="oa-r-backup" type="button">Exportar backup JSON</button><button id="oa-r-delete" type="button">Excluir registros deste navegador</button></div>
+      <label>Restaurar um backup JSON local<input id="oa-r-import" type="file" accept=".json,application/json"></label>
+      <output id="oa-r-matrix" aria-live="polite"></output>
+    </fieldset>
+    <fieldset><legend>4 · Identidade técnica do mapa</legend>
+      <p>O arquivo técnico identifica entradas e convenções, não valida interpretações. Hora desconhecida desativa casa e Ascendente exatos.</p>
+      <div class="oa-r-grid">
+        <label>Data natal<input id="oa-r-birth" type="date"></label><label>Qualidade da hora<select id="oa-r-precision"><option value="documentada">Documentada</option><option value="aproximada">Aproximada</option><option value="desconhecida">Desconhecida</option></select></label>
+        <label>Hora local<input id="oa-r-time" type="time"></label><label>Fonte da hora<input id="oa-r-source" placeholder="Certidão / informado"></label>
+        <label>Deslocamento UTC (horas)<input id="oa-r-utc" type="number" min="-14" max="14" step=".25"></label>
+        <label>Latitude geográfica<input id="oa-r-lat" type="number" min="-90" max="90" step=".00001"></label>
+        <label>Longitude geográfica<input id="oa-r-lon" type="number" min="-180" max="180" step=".00001"></label>
+        <label>Sistema de casas<input id="oa-r-houses" value="Placidus"></label>
+        <label>Zodíaco<select id="oa-r-zodiac"><option value="Tropical">Tropical</option><option value="Sideral">Sideral</option></select></label>
+      </div>
+      <div class="oa-r-actions"><button id="oa-r-provenance" type="button">Exportar identidade técnica JSON</button></div>
+      <output id="oa-r-provenance-output" aria-live="polite"></output>
+    </fieldset>
+  </div>
+</section>
+<script src="./research-core.js"></script>
+<script src="./research-lab.js"></script>
