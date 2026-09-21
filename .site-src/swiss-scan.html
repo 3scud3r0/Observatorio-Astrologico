@@ -1,0 +1,38 @@
+<!-- Swiss scanning runs in a separate module Web Worker, using local .se1 files. -->
+<style>
+#oa-scan{position:fixed;right:14px;top:180px;z-index:2147483640;font:14px/1.4 system-ui;color:#effaff}
+#oa-scan *{box-sizing:border-box}
+#oa-s-toggle,#oa-s-panel button{background:#17416d;color:#fff;border:1px solid #82cde8;padding:8px 12px;border-radius:8px;cursor:pointer}
+#oa-s-panel{width:min(590px,calc(100vw - 28px));max-height:calc(100vh - 230px);overflow:auto;background:#092038;border:1px solid #82cde8;border-radius:14px;padding:16px;box-shadow:0 25px 70px #000b}
+#oa-s-panel h2{color:#ffde8b;margin:4px 0}
+#oa-s-panel label{display:block;margin:9px 0}
+#oa-s-panel input,#oa-s-panel select{width:100%;display:block;background:#102c4b;color:#fff;border:1px solid #6a93b9;padding:7px;border-radius:6px}
+#oa-s-panel .oa-s-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#oa-s-panel .oa-s-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#oa-s-result{display:block;white-space:pre-wrap;overflow-wrap:anywhere;background:#061528;padding:10px;border-radius:9px}
+#oa-s-panel button:focus-visible{outline:3px solid #ffde8b}
+@media(max-width:650px){#oa-scan{top:auto;bottom:295px}#oa-s-panel{max-height:calc(100vh - 355px)}#oa-s-panel .oa-s-grid{grid-template-columns:1fr}}
+</style>
+<section id="oa-scan" aria-label="Scanner suíço em worker">
+ <button id="oa-s-toggle" type="button" aria-expanded="false" aria-controls="oa-s-panel">Scanner em Worker</button>
+ <div id="oa-s-panel" hidden>
+  <div class="oa-s-actions"><h2>Janelas de aspecto · Swiss WASM</h2><button id="oa-s-close" type="button">Fechar</button></div>
+  <p>Os cálculos e efemérides executam em Web Worker separado. Janelas são refinadas por bisseção quando a amostragem detecta entrada e saída; eventos mais curtos que o intervalo amostral podem escapar. Datas são UTC.</p>
+  <div class="oa-s-grid">
+   <label>Início UTC<input id="oa-s-start" type="date"></label>
+   <label>Fim UTC<input id="oa-s-end" type="date"></label>
+   <label>Corpo móvel<select id="oa-s-body">
+    <option value="0">Sol</option><option value="1">Lua</option><option value="2">Mercúrio</option>
+    <option value="3">Vênus</option><option value="4">Marte</option><option value="5">Júpiter</option>
+    <option value="6">Saturno</option><option value="7">Urano</option><option value="8">Netuno</option><option value="9">Plutão</option>
+   </select></label>
+   <label>Longitude natal (0–360°)<input id="oa-s-target" type="number" min="0" max="360" step="any" placeholder="Posição alvo obrigatória"></label>
+   <label>Aspecto<select id="oa-s-aspect"><option value="0">Conjunção 0°</option><option value="30">Semissextil 30°</option><option value="45">Semiquadratura 45°</option><option value="60">Sextil 60°</option><option value="90">Quadratura 90°</option><option value="120">Trígono 120°</option><option value="135">Sesquiquadratura 135°</option><option value="150">Quincúncio 150°</option><option value="180">Oposição 180°</option></select></label>
+   <label>Orbe (0,01–15°)<input id="oa-s-orb" type="number" min="0.01" max="15" step="any" value="1"></label>
+   <label>Intervalo da amostragem (horas)<select id="oa-s-hours"><option value="1">1 hora</option><option value="3" selected>3 horas</option><option value="6">6 horas</option><option value="12">12 horas</option><option value="24">24 horas</option></select></label>
+  </div>
+  <div class="oa-s-actions"><button id="oa-s-run" type="button">Consultar em Worker</button><button id="oa-s-cancel" type="button" disabled>Cancelar</button><button id="oa-s-export" type="button" disabled>Exportar JSON</button></div>
+  <output id="oa-s-result" aria-live="polite">Defina data, corpo, longitude natal e aspecto.</output>
+ </div>
+</section>
+<script src="./swiss-scan-ui.js"></script>
