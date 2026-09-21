@@ -62,6 +62,9 @@
   async function seal(input,{now=()=>new Date().toISOString(),subtle}={}){
     const p=protocol(input),createdAt=now();
     if(!Number.isFinite(Date.parse(createdAt)))throw Error('Relógio inválido.');
+    // A prospective protocol must be closed before the first instant of its window (UTC).
+    if(Date.parse(createdAt)>=Date.parse(p.windowStart+'T00:00:00.000Z'))
+      throw Error('Hipótese retrospectiva: sele antes do início da janela em UTC.');
     const record={schema:SCHEMA,protocol:p,createdAt,hash:''};
     record.hash=await digest(canonical(record),subtle);
     return record;
