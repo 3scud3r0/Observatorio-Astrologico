@@ -34,6 +34,8 @@ jobs:
           node --check .site-src/research-vault-ui.js
           node .site-src/research-vault.test.js
           node .site-src/research-core.test.js
+          node --check .site-src/research-analysis.js
+          node .site-src/research-analysis.test.js
           node --check .site-src/timeline-core.js
           node --check .site-src/timeline-ui.js
           node .site-src/timeline-core.test.js
@@ -112,6 +114,7 @@ jobs:
           cp .site-src/timeline-ui.js _site/timeline-ui.js
           cp .site-src/research-core.js _site/research-core.js
           cp .site-src/research-lab.js _site/research-lab.js
+          cp .site-src/research-analysis.js _site/research-analysis.js
           cp .site-src/atlas-auth.json _site/atlas-auth.json
           cp .site-src/traditional-engine.js _site/traditional-engine.js
 
@@ -152,6 +155,7 @@ jobs:
               './traditional-engine.js',
               './research-core.js',
               './research-lab.js',
+              './research-analysis.js',
               './research-vault.js',
               './research-vault-ui.js',
               './timeline-core.js',
