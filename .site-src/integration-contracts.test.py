@@ -1,6 +1,7 @@
 """Smoke-test published PWA and research-vault contracts without a browser or Supabase project."""
 from pathlib import Path
 import hashlib
+import gzip
 import json
 
 site = Path("_site")
@@ -49,4 +50,11 @@ for expected in ("enable row level security", "to authenticated",
 assert "grant select, insert, delete" in sql
 assert "grant select, insert, update" not in sql
 
-print("Release contracts: PWA assets, SHA-256 ephemerides and encrypted vault SQL OK")
+metrics=json.loads((site/"build-metrics.json").read_text("utf-8"))
+assert metrics["schema"]=="oa-build-metrics/v1"
+initial=(site/"index.html").read_bytes()
+assert metrics["initialHtml"]["bytes"]==len(initial)
+assert metrics["initialHtml"]["gzipBytes"]==len(gzip.compress(initial,compresslevel=9))
+assert metrics["initialHtmlTargetMet"]==(len(initial)<metrics["initialHtmlTargetBytes"])
+assert "swiss/swisseph.wasm" in metrics["assets"]
+print("Release contracts: PWA assets, SHA-256 ephemerides, gzip metrics and encrypted vault SQL OK")
