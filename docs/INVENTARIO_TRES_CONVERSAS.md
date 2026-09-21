@@ -66,7 +66,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 
 | ID | Requisito | Estado |
 |---|---|---|
-| PR01 | Linha do tempo interativa ±minuto/hora/dia/mês/ano, roda atualizável | N/P |
+| PR01 | Linha do tempo interativa ±minuto/hora/dia/mês/ano, roda atualizável | A/P; relógio Swiss e roda SVG, sem bi-wheel |
 | PR02 | Scanner anual de trânsito com motor suíço, não Sol médio | A |
 | PR03 | Trânsitos exatos, orbe de entrada/saída, aspectos e agenda | E/P |
 | PR04 | Progressões secundárias com idade fracionária | E/A |
