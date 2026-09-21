@@ -30,6 +30,9 @@ jobs:
           node .site-src/traditional-engine.test.js
           node --check .site-src/research-core.js
           node --check .site-src/research-lab.js
+          node --check .site-src/research-vault.js
+          node --check .site-src/research-vault-ui.js
+          node .site-src/research-vault.test.js
           node .site-src/research-core.test.js
           node --check .site-src/timeline-core.js
           node --check .site-src/timeline-ui.js
@@ -89,6 +92,9 @@ jobs:
           python .site-src/atlas-release.py
           # Append the opt-in laboratory without changing the legacy application.
           cat .site-src/research-lab.html >> _site/index.html
+          cat .site-src/research-vault-ui.html >> _site/index.html
+          cp .site-src/research-vault.js _site/research-vault.js
+          cp .site-src/research-vault-ui.js _site/research-vault-ui.js
           cat .site-src/timeline.html >> _site/index.html
           cat .site-src/guided-study.html >> _site/index.html
           cat .site-src/offline.html >> _site/index.html
@@ -141,6 +147,8 @@ jobs:
               './traditional-engine.js',
               './research-core.js',
               './research-lab.js',
+              './research-vault.js',
+              './research-vault-ui.js',
               './timeline-core.js',
               './timeline-ui.js',
               './guided-study.js',
