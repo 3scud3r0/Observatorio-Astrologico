@@ -39,6 +39,21 @@ jobs:
           PY
           node --check /tmp/traditional-suite-inline.js
 
+      - name: Validate Pro Studio inline JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          source=Path('.site-src/pro-upgrade.html').read_text('utf-8')
+          scripts=[x for x in re.findall(r'<script(?:\\s[^>]*)?>([\\s\\S]*?)</script>',source,re.I) if x.strip()]
+          if not scripts:
+              raise SystemExit('Pro Studio inline JavaScript was not extracted')
+          Path('/tmp/pro-studio-inline.js').write_text('\\n'.join(scripts),'utf-8')
+          PY
+          node --check /tmp/pro-studio-inline.js
+
       - name: Assemble and validate static site
         shell: bash
         run: |
