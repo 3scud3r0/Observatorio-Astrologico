@@ -52,5 +52,15 @@ const base={
     timezone:'',latitude:0,longitude:0,zodiac:'Tropical',houseSystem:'Placidus',
     timeSource:'Certidão'
   }),/UTC/);
+  assert.throws(()=>E.provenance({
+    birthDate:'2000-01-01',timePrecision:'documentada',birthTime:'99:99',
+    timezone:-3,latitude:0,longitude:0,zodiac:'Tropical',houseSystem:'Placidus',
+    timeSource:'Certidão'
+  }),/Hora natal/);
+  assert.throws(()=>E.provenance({
+    birthDate:'2000-01-01',timePrecision:'documentada',birthTime:'12:00',
+    timezone:-3,latitude:true,longitude:0,zodiac:'Tropical',houseSystem:'Placidus',
+    timeSource:'Certidão'
+  }),/Latitude/);
   console.log('Research core tests: OK (audit, digest, outcomes, matrix, provenance)');
 })().catch(error=>{console.error(error);process.exitCode=1});
