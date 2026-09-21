@@ -9,7 +9,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | ID | Requisito integral | Estado |
 |---|---|---|
 | AR01 | Manter Swiss Ephemeris WASM local, sem API remota para cálculos | E |
-| AR02 | Fixar versão e proveniência dos arquivos .se1 e runtime | P |
+| AR02 | Fixar versão e proveniência dos arquivos .se1 e runtime | A/P; versões fixadas e seis checksums SHA-256 publicados; comparação entre builds pendente |
 | AR03 | Servir JS, WASM e efemérides sob a mesma origem | E |
 | AR04 | Manter AGPL-3.0/avisos e auditar licenças antes de copiar dependências | E/P |
 | AR05 | Desmembrar o HTML de ~15,8 MB dividido em 18 partes | N |
@@ -100,8 +100,8 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | PE11 | Evitar inferir causalidade ou poder preditivo de coincidências | A |
 | PE12 | Dados locais sem cadastro obrigatório; backups JSON | E/A |
 | PE13 | Exportação/restauração integrais e exclusão explícita | A/P |
-| PE14 | Sincronização opcional Supabase privada sob RLS e teste com duas contas | N; configuração vazia |
-| PE15 | Cifrar/sincronizar dados pessoais mediante consentimento, jamais torná-los públicos por padrão | N |
+| PE14 | Sincronização opcional Supabase privada sob RLS e teste com duas contas | P; cofre cifrado e SQL RLS implementados; nenhum projeto Supabase conectado, migração e teste com contas reais pendentes |
+| PE15 | Cifrar/sincronizar dados pessoais mediante consentimento, jamais torná-los públicos por padrão | A/P; WebCrypto AES-256-GCM, PBKDF2 e upload explícito de snapshots; integração real pendente |
 | PE16 | Relatórios PDF de auditoria e identidade técnica | P |
 | PE17 | Importação opcional de mapas de referência com qualidade do horário/Rodden Rating | N |
 | PE18 | Registro observacional com janela encerrada por evento, não por volume computacional | N |
