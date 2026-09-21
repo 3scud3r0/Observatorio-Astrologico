@@ -39,7 +39,7 @@
     if(typeof input.predicted!=='boolean')throw Error('Defina a hipótese como previsão de ocorrência ou ausência.');
     const techniques=Array.isArray(input.techniques)?input.techniques:[];
     if(!techniques.length||techniques.length>20)throw Error('Defina pelo menos uma técnica (máximo 20).');
-    return {
+    const result={
       question:text(input.question,'Pergunta'),
       techniques:techniques.map(t=>text(t,'Técnica',120)),
       configuration:text(input.configuration,'Configuração/orbes'),
@@ -50,6 +50,10 @@
       predicted:input.predicted,
       provenance:input.provenance===undefined?null:JSON.parse(JSON.stringify(input.provenance))
     };
+    // Added only when supplied: existing sealed v1 hashes remain byte-for-byte verifiable.
+    if(input.baselineRate!==undefined&&input.baselineRate!==null&&input.baselineRate!=='')
+      result.baselineRate=finite(input.baselineRate,'Taxa-base',0,1);
+    return result;
   }
   function canonical(record){
     return JSON.stringify({schema:SCHEMA,protocol:record.protocol,createdAt:record.createdAt});
