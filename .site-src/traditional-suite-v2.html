@@ -101,8 +101,13 @@ populate(); if(!E())setTimeout(populate,0);
 q('.tt-tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-tt]');if(!b)return;q('.tt-tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));view.querySelectorAll('[data-tt-pane]').forEach(x=>x.hidden=x.dataset.ttPane!==b.dataset.tt)});
 
 function localJD(date,time,offset){
-  const ms=Date.parse(date+'T'+(time||'12:00:00')+'Z')-(Number(offset)||0)*3600000;
-  if(!Number.isFinite(ms))throw Error('Data/hora inválida.');return ms/86400000+2440587.5;
+  if(!date||!time)throw Error('Informe data e hora; horário desconhecido não pode ser tratado como meio-dia exato.');
+  if(!Number.isFinite(Number(offset)))throw Error('Deslocamento UTC inválido.');
+  const raw=Date.parse(date+'T'+time+'Z');
+  if(!Number.isFinite(raw)||new Date(raw).toISOString().slice(0,10)!==date)
+    throw Error('Data ou hora civil inválida.');
+  const ms=raw-Number(offset)*3600000;
+  return ms/86400000+2440587.5;
 }
 function refJD(){return localJD(q('#tt-ref-date').value,q('#tt-ref-time').value,0)}
 function birthJD(){const offset=q('#tt-birth-offset').value.trim();if(!offset||!Number.isFinite(Number(offset))||Math.abs(Number(offset))>14)throw Error('Informe um deslocamento UTC válido (−14 a +14 h).');return localJD(q('#tt-birth-date').value,q('#tt-birth-time').value,offset)}
@@ -132,7 +137,8 @@ function pointsText(){
 q('#tt-use-map').onclick=()=>{
   const f=id=>document.getElementById(id);
   if(f('data')?.value)q('#tt-birth-date').value=f('data').value;
-  if(f('hora')?.value)q('#tt-birth-time').value=f('hora').value.length===5?f('hora').value+':00':f('hora').value;
+  const natalTime=f('hora')?.value||'';
+  q('#tt-birth-time').value=f('precision')?.value==='desconhecida'?'':natalTime.length===5?natalTime+':00':natalTime;
   if(f('utc')?.value!=='')q('#tt-birth-offset').value=f('utc').value;
   const ps=currentPoints(); if(ps.length){q('#tt-sun').value=ps[0].lon;q('#tt-moon').value=ps[1].lon;q('#tt-directed-lon').value=ps[0].lon;q('#tt-star-lon').value=ps[0].lon;q('#tt-points').value=pointsText();q('#tt-prom').value=ps[6]?.lon??ps[0].lon;q('#tt-sig').value=ps[0].lon}
   if(window.currentHouseGeometry){q('#tt-asc').value=window.currentHouseGeometry.asc;q('#tt-prof-sign').value=E().signIndex(window.currentHouseGeometry.asc)}
