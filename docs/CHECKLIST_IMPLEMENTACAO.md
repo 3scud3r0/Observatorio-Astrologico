@@ -2,8 +2,8 @@
 
 Estado auditado no repositório em 21-09-2026. Derivado do [inventário integral](INVENTARIO_TRES_CONVERSAS.md), que é a fonte de descrição dos requisitos. **[x]** significa recurso identificado como existente/implementado, não certificação independente; **[ ] parcial** significa código ou infraestrutura ainda insuficiente; **[ ] pendente** significa requisito ainda não entregue. Não afirmar “terminei” enquanto houver caixas abertas.
 
-Atualizações desta execução: scanner Swiss em Worker com cancelamento; PWA opt-in/CacheStorage; manifesto SHA-256 dos seis ativos Swiss; código de cofre cifrado AES-GCM com RLS preparado (sem projeto Supabase conectado); validação de hora natal/coordenadas; testes adicionais de CI.
-**Contagem:** 92 requisitos; 26 marcados existentes/implementados; 51 parciais; 15 pendentes. Para cumprir o pedido integral, todas as 66 caixas abertas precisam ser encerradas e verificadas.
+Atualizações desta execução: pesquisa por técnica, oportunidades e taxa-base registrada; scanner Swiss em Worker com cancelamento; PWA opt-in/CacheStorage; manifesto SHA-256 dos seis ativos Swiss; código de cofre cifrado AES-GCM com RLS preparado (sem projeto Supabase conectado); validação de hora natal/coordenadas; testes adicionais de CI.
+**Contagem:** 92 requisitos; 26 marcados existentes/implementados; 52 parciais; 14 pendentes. Para cumprir o pedido integral, todas as 66 caixas abertas precisam ser encerradas e verificadas.
 
 
 ## Arquitetura, desempenho e segurança
@@ -88,12 +88,12 @@ Atualizações desta execução: scanner Swiss em Worker com cancelamento; PWA o
 - [x] existente/implementado — **PE05** Distinguir hash de carimbo temporal externo confiável — A.
 - [x] existente/implementado — **PE06** Anexar avaliações sem sobrescrever protocolo selado — A.
 - [x] existente/implementado — **PE07** TP/FP/FN/TN, precisão, sensibilidade, especificidade, taxa falso positivo — A.
-- [ ] parcial — **PE08** Denominador/oportunidades e taxa-base; controle sem astrologia — P.
+- [ ] parcial — **PE08** Denominador/oportunidades e taxa-base; controle sem astrologia — A/P; oportunidades totais, janelas abertas/inconclusivas e taxa-base numérica selada; coorte independente sem astrologia ainda não implementada.
 - [x] existente/implementado — **PE09** Preservar não confirmações e histórico de revisões — A.
-- [ ] pendente — **PE10** Estatística por técnica/protocolo e correção por múltiplas comparações — N.
+- [ ] parcial — **PE10** Estatística por técnica/protocolo e correção por múltiplas comparações — A/P; grupos descritivos por técnica e referência alfa Bonferroni; p-valores, correção inferencial e desenho independente ainda pendentes.
 - [x] existente/implementado — **PE11** Evitar inferir causalidade ou poder preditivo de coincidências — A.
 - [x] existente/implementado — **PE12** Dados locais sem cadastro obrigatório; backups JSON — E/A.
-- [ ] parcial — **PE13** Exportação/restauração integrais e exclusão explícita — A/P.
+- [ ] parcial — **PE13** Exportação/restauração integrais e exclusão explícita — A/P; importação e snapshots com selo, gravação atômica e bloqueio de sobrescrita de dados ilegíveis; restauração integral de todos os tipos de dados não comprovada.
 - [ ] parcial — **PE14** Sincronização opcional Supabase privada sob RLS e teste com duas contas — P; cofre cifrado e SQL RLS implementados; nenhum projeto Supabase conectado, migração e teste com contas reais pendentes.
 - [ ] parcial — **PE15** Cifrar/sincronizar dados pessoais mediante consentimento, jamais torná-los públicos por padrão — A/P; WebCrypto AES-256-GCM, PBKDF2 e upload explícito de snapshots; integração real pendente.
 - [ ] parcial — **PE16** Relatórios PDF de auditoria e identidade técnica — P.
