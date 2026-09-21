@@ -171,7 +171,7 @@
     for(const id of ['time','utc','houses'])byId(id).disabled=unknown;
     if(unknown)status('Hora desconhecida: o laudo não incluirá casas ou horário exatos.');
   };
-  byId('provenance').onclick=()=>{
+  byId('provenance').onclick=async()=>{
     try{
       const info=E.provenance({
         birthDate:byId('birth').value,birthTime:byId('time').value,
@@ -180,6 +180,12 @@
         longitude:byId('lon').value,houseSystem:byId('houses').value,
         zodiac:byId('zodiac').value
       });
+      const response=await fetch('./ephemeris-provenance.json',{cache:'no-store'});
+      if(!response.ok)throw Error('Metadados das efemérides indisponíveis.');
+      const manifest=await response.json();
+      if(manifest.schema!=='oa-asset-provenance/v1'||!manifest.assets)
+        throw Error('Metadados das efemérides inválidos.');
+      info.assetProvenance=manifest;
       download(info,'observatorio-identidade-tecnica.json');
       byId('provenance-output').textContent='Identidade técnica exportada. A versão do motor e a fonte dos dados constam no arquivo.';
     }catch(error){byId('provenance-output').textContent=error.message}
