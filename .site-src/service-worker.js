@@ -10,7 +10,8 @@ const STATIC=[
   './swiss/ephe/sepl_18.se1','./swiss/ephe/semo_18.se1','./swiss/ephe/seas_18.se1',
   './traditional-engine.js','./research-core.js','./research-lab.js',
   './timeline-core.js','./timeline-ui.js','./guided-study.js',
-  './manifest.webmanifest','./app-icon.svg','./offline-client.js'
+  './manifest.webmanifest','./app-icon.svg','./offline-client.js',
+  './ephemeris-provenance.json'
 ];
 const allowed=new Set(STATIC.map(x=>new URL(x,self.registration.scope).pathname));
 const rootPath=new URL('./',self.registration.scope).pathname;
