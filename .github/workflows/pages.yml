@@ -32,8 +32,10 @@ jobs:
           import re
           from pathlib import Path
           html=Path('.site-src/traditional-suite-v2.html').read_text('utf-8')
-          scripts=[x for x in re.findall(r'<script(?:\\s[^>]*)?>([\\s\\S]*?)</script>',html,re.I) if x.strip()]
-          Path('/tmp/traditional-suite-inline.js').write_text('\\n'.join(scripts),'utf-8')
+          scripts=[x for x in re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',html,re.I) if x.strip()]
+          if not scripts:
+              raise SystemExit('No inline scripts were extracted; aborting JavaScript validation')
+          Path('/tmp/traditional-suite-inline.js').write_text('\n'.join(scripts),'utf-8')
           PY
           node --check /tmp/traditional-suite-inline.js
 
