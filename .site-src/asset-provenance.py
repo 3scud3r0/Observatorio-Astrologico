@@ -35,7 +35,7 @@ def inspect():
                 if name.endswith(".se1") else PKG
             ),
         }
-    if (SITE / "swiss/swisseph.wasm").read_bytes()[:4] != b"\\x00asm":
+    if (SITE / "swiss/swisseph.wasm").read_bytes()[:4] != b"\x00asm":
         raise SystemExit("Invalid WASM magic")
     return {
         "schema": "oa-asset-provenance/v1",
