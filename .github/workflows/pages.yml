@@ -146,12 +146,17 @@ jobs:
               './guided-study.js',
               './offline-client.js',
               './manifest.webmanifest',
-              './service-worker.js',
-              './ephemeris-provenance.json',
           ]
           missing = [x for x in required if x not in html]
           if missing:
               raise SystemExit(f'Missing local runtime references in index.html: {missing}')
+          for name in ('service-worker.js','ephemeris-provenance.json','manifest.webmanifest','offline-client.js','app-icon.svg'):
+              if not (Path('_site')/name).is_file():
+                  raise SystemExit('Missing published offline/provenance asset: '+name)
+          if './service-worker.js' not in Path('_site/offline-client.js').read_text('utf-8'):
+              raise SystemExit('Offline client did not register the worker')
+          if './ephemeris-provenance.json' not in Path('_site/research-lab.js').read_text('utf-8'):
+              raise SystemExit('Natal provenance does not use the released asset manifest')
           if 'Técnicas tradicionais Pro' not in html:
               raise SystemExit('Traditional Pro suite was not assembled')
           print('Static site, Swiss Ephemeris assets and Traditional Pro suite validated.')
