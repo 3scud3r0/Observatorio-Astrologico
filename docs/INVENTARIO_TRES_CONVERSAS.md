@@ -94,12 +94,12 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | PE05 | Distinguir hash de carimbo temporal externo confiável | A |
 | PE06 | Anexar avaliações sem sobrescrever protocolo selado | A |
 | PE07 | TP/FP/FN/TN, precisão, sensibilidade, especificidade, taxa falso positivo | A |
-| PE08 | Denominador/oportunidades e taxa-base; controle sem astrologia | P |
+| PE08 | Denominador/oportunidades e taxa-base; controle sem astrologia | A/P; oportunidades totais, janelas abertas/inconclusivas e taxa-base numérica selada; coorte independente sem astrologia ainda não implementada |
 | PE09 | Preservar não confirmações e histórico de revisões | A |
-| PE10 | Estatística por técnica/protocolo e correção por múltiplas comparações | N |
+| PE10 | Estatística por técnica/protocolo e correção por múltiplas comparações | A/P; grupos descritivos por técnica e referência alfa Bonferroni; p-valores, correção inferencial e desenho independente ainda pendentes |
 | PE11 | Evitar inferir causalidade ou poder preditivo de coincidências | A |
 | PE12 | Dados locais sem cadastro obrigatório; backups JSON | E/A |
-| PE13 | Exportação/restauração integrais e exclusão explícita | A/P |
+| PE13 | Exportação/restauração integrais e exclusão explícita | A/P; importação e snapshots com selo, gravação atômica e bloqueio de sobrescrita de dados ilegíveis; restauração integral de todos os tipos de dados não comprovada |
 | PE14 | Sincronização opcional Supabase privada sob RLS e teste com duas contas | P; cofre cifrado e SQL RLS implementados; nenhum projeto Supabase conectado, migração e teste com contas reais pendentes |
 | PE15 | Cifrar/sincronizar dados pessoais mediante consentimento, jamais torná-los públicos por padrão | A/P; WebCrypto AES-256-GCM, PBKDF2 e upload explícito de snapshots; integração real pendente |
 | PE16 | Relatórios PDF de auditoria e identidade técnica | P |
