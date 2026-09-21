@@ -1,0 +1,26 @@
+<!-- Offline preparation is explicit because efemérides may require many MB of device storage. -->
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#17416d">
+<style>
+#oa-offline{position:fixed;right:14px;top:70px;z-index:2147483642;font:14px/1.45 system-ui;color:#eaf8ff}
+#oa-offline *{box-sizing:border-box}
+#oa-o-toggle,#oa-o-panel button{background:#17416d;color:#fff;border:1px solid #82cde8;border-radius:8px;padding:8px 12px;cursor:pointer}
+#oa-o-panel{width:min(435px,calc(100vw - 28px));max-height:65vh;overflow:auto;border-radius:14px;border:1px solid #82cde8;background:#092038;padding:15px;box-shadow:0 24px 70px #000b}
+#oa-o-panel h2{color:#ffde8b;margin:0 0 9px}
+#oa-o-panel output{display:block;white-space:pre-wrap;overflow-wrap:anywhere;background:#061528;padding:10px;border-radius:9px}
+#oa-o-panel button:focus-visible{outline:3px solid #ffde8b}
+@media(max-width:650px){#oa-offline{top:auto;bottom:180px}}
+</style>
+<section id="oa-offline" aria-label="Instalar e usar offline">
+  <button id="oa-o-toggle" type="button" aria-expanded="false" aria-controls="oa-o-panel">Offline / Instalar</button>
+  <div id="oa-o-panel" hidden>
+    <h2>Funcionamento sem rede</h2>
+    <p>Prepare os arquivos públicos do Observatório, Swiss WASM e efemérides neste aparelho. O download completo pode ocupar dezenas de MB e depende de espaço disponível. Seus mapas e hipóteses não são enviados.</p>
+    <p>O acesso offline só é confirmado quando todos os arquivos estão em cache. A ativação do Service Worker requer HTTPS; recarregue a página ao concluir.</p>
+    <button id="oa-o-prepare" type="button">Preparar uso offline</button>
+    <button id="oa-o-clear" type="button">Remover arquivos offline</button>
+    <button id="oa-o-close" type="button">Fechar</button>
+    <output id="oa-o-status" aria-live="polite">Não preparado neste navegador.</output>
+  </div>
+</section>
+<script src="./offline-client.js"></script>
