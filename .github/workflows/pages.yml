@@ -34,6 +34,7 @@ jobs:
           node --check .site-src/timeline-core.js
           node --check .site-src/timeline-ui.js
           node .site-src/timeline-core.test.js
+          node --check .site-src/guided-study.js
           python .site-src/ui-contracts.test.py
           python - <<'PY'
           import re
@@ -86,6 +87,8 @@ jobs:
           # Append the opt-in laboratory without changing the legacy application.
           cat .site-src/research-lab.html >> _site/index.html
           cat .site-src/timeline.html >> _site/index.html
+          cat .site-src/guided-study.html >> _site/index.html
+          cp .site-src/guided-study.js _site/guided-study.js
           cp .site-src/timeline-core.js _site/timeline-core.js
           cp .site-src/timeline-ui.js _site/timeline-ui.js
           cp .site-src/research-core.js _site/research-core.js
@@ -131,6 +134,7 @@ jobs:
               './research-lab.js',
               './timeline-core.js',
               './timeline-ui.js',
+              './guided-study.js',
           ]
           missing = [x for x in required if x not in html]
           if missing:
