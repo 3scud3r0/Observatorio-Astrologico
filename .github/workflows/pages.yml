@@ -169,6 +169,7 @@ jobs:
               raise SystemExit('Traditional Pro suite was not assembled')
           print('Static site, Swiss Ephemeris assets and Traditional Pro suite validated.')
           PY
+          python .site-src/integration-contracts.test.py
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
