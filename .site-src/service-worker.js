@@ -11,6 +11,7 @@ const STATIC=[
   './zodiac-mode.js','./traditional-engine.js','./research-core.js','./research-lab.js',
   './research-vault.js','./research-vault-ui.js',
   './swiss-scan-ui.js','./swiss-scan-worker.js',
+  './biwheel-core.js','./biwheel-ui.js',
   './timeline-core.js','./timeline-ui.js','./didactic-boundary.js','./guided-study.js','./study-missions.js',
   './reference-maps.js','./reference-maps-ui.js',
   './manifest.webmanifest','./app-icon.svg','./offline-client.js',
