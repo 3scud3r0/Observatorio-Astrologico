@@ -51,3 +51,18 @@ test('entry shell stays inside portrait and landscape mobile viewports', async (
     await expect(page.getByRole('button',{name:'Começar'})).toBeVisible();
   }
 });
+
+test('explicit preparation serves the shell and local app without network', async ({page, context, browserName}) => {
+  test.skip(browserName!=='chromium','One offline control-path test is sufficient; navigation/layout runs in all three engines.');
+  await page.goto('/');
+  await page.getByRole('button',{name:'Preparar arquivos para uso offline'}).click();
+  await expect(page.locator('#status')).toContainText('Offline PREPARADO',{timeout:90_000});
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)),{timeout:15_000}).toBeTruthy();
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('button',{name:'Começar'})).toBeVisible();
+  await page.getByRole('button',{name:'Começar'}).click();
+  await expect(page.locator('#appFrame')).toHaveAttribute('src','./app.html');
+  await expect(page.frameLocator('#appFrame').locator('#dados')).toBeVisible({timeout:30_000});
+  await context.setOffline(false);
+});
