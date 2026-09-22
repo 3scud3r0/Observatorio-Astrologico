@@ -5,7 +5,7 @@
 const VERSION='oa-offline-v1-20260921';
 const CACHE='oa-pages-'+VERSION;
 const STATIC=[
-  './','./index.html','./app.html',
+  './','./index.html','./app.html','./catalog-data.json',
   './swiss/swisseph-browser.js','./swiss/swisseph.js','./swiss/swisseph.wasm',
   './swiss/ephe/sepl_18.se1','./swiss/ephe/semo_18.se1','./swiss/ephe/seas_18.se1',
   './zodiac-mode.js','./traditional-engine.js','./research-core.js','./research-lab.js',
