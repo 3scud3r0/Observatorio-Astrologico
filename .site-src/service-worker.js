@@ -11,7 +11,7 @@ const STATIC=[
   './traditional-engine.js','./research-core.js','./research-lab.js',
   './research-vault.js','./research-vault-ui.js',
   './swiss-scan-ui.js','./swiss-scan-worker.js',
-  './timeline-core.js','./timeline-ui.js','./guided-study.js',
+  './timeline-core.js','./timeline-ui.js','./guided-study.js','./study-missions.js',
   './manifest.webmanifest','./app-icon.svg','./offline-client.js',
   './ephemeris-provenance.json'
 ];
