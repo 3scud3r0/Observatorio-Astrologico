@@ -35,7 +35,9 @@ self.addEventListener('fetch',event=>{
   const indexPath=new URL('./index.html',self.registration.scope).pathname;
   const appPath=new URL('./app.html',self.registration.scope).pathname;
   if(request.mode==='navigate'&&url.pathname!==rootPath&&url.pathname!==indexPath&&url.pathname!==appPath)return;
-  const path=request.mode==='navigate'?rootPath:url.pathname;
+  // Preserve the distinct cache keys for /, /index.html and /app.html.
+  // In particular, the iframe must never receive the entry shell while offline.
+  const path=url.pathname;
   if(!allowed.has(path))return;
   event.respondWith((async()=>{
     const cache=await caches.open(CACHE);
