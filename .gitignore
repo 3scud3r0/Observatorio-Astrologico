@@ -1,0 +1,9 @@
+node_modules/
+_site/
+_shell/
+_swisseph-browser/
+test-results/
+playwright-report/
+__pycache__/
+*.tgz
+*.local.sh
