@@ -22,10 +22,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Install pinned shell toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --ignore-scripts --no-audit --no-fund
+
       - name: Test traditional calculation engine
         shell: bash
         run: |
           set -euo pipefail
+          npm run typecheck
           node --check .site-src/traditional-engine.js
           node .site-src/traditional-engine.test.js
           node --check .site-src/atlas-resume.js
@@ -92,11 +99,11 @@ jobs:
           set -euo pipefail
           mkdir -p _site/swiss/ephe
 
-          cat .site-src/index/part-*.html > _site/index.html
+          cat .site-src/index/part-*.html > _site/app.html
           # Injeta ferramentas adicionais antes do fechamento do documento, preservando o fonte principal dividido.
           python - <<'PY'
           from pathlib import Path
-          page = Path('_site/index.html')
+          page = Path('_site/app.html')
           enhancement = Path('.site-src/pro-tools.html').read_text('utf-8') + Path('.site-src/pro-upgrade.html').read_text('utf-8') + Path('.site-src/traditional-suite-v2.html').read_text('utf-8') + Path('.site-src/atlas-layout.html').read_text('utf-8')
           text = page.read_text('utf-8')
           marker = '</body>'
@@ -107,17 +114,17 @@ jobs:
           print(f'Assembled {page.stat().st_size} bytes including professional tools.')
           PY
 
-          python .site-src/atlas-release.py
+          python .site-src/atlas-release.py _site/app.html
           cp .site-src/atlas-resume.js _site/atlas-resume.js
           # Append the opt-in laboratory without changing the legacy application.
-          cat .site-src/research-lab.html >> _site/index.html
-          cat .site-src/research-vault-ui.html >> _site/index.html
+          cat .site-src/research-lab.html >> _site/app.html
+          cat .site-src/research-vault-ui.html >> _site/app.html
           cp .site-src/research-vault.js _site/research-vault.js
           cp .site-src/research-vault-ui.js _site/research-vault-ui.js
-          cat .site-src/timeline.html >> _site/index.html
-          cat .site-src/guided-study.html >> _site/index.html
-          cat .site-src/offline.html >> _site/index.html
-          cat .site-src/swiss-scan.html >> _site/index.html
+          cat .site-src/timeline.html >> _site/app.html
+          cat .site-src/guided-study.html >> _site/app.html
+          cat .site-src/offline.html >> _site/app.html
+          cat .site-src/swiss-scan.html >> _site/app.html
           cp .site-src/swiss-scan-ui.js _site/swiss-scan-ui.js
           cp .site-src/swiss-scan-worker.js _site/swiss-scan-worker.js
           cp .site-src/offline-client.js _site/offline-client.js
@@ -156,13 +163,19 @@ jobs:
           test "$(stat -c%s _site/swiss/ephe/seas_18.se1)" -gt 100000
           python .site-src/asset-provenance.py
 
+          # Build the lightweight TypeScript/Vite entry only after the complete legacy app exists.
+          npm run build
+          cp -R _shell/. _site/
+          test "$(stat -c%s _site/index.html)" -lt 500000
+
           python - <<'PY'
           from pathlib import Path
           wasm = Path('_site/swiss/swisseph.wasm')
           magic = wasm.read_bytes()[:4]
           if magic != bytes([0, 97, 115, 109]):
               raise SystemExit(f'Invalid WASM magic: {magic!r}')
-          html = Path('_site/index.html').read_text('utf-8')
+          app = Path('_site/app.html').read_text('utf-8')
+          shell = Path('_site/index.html').read_text('utf-8')
           required = [
               './swiss/swisseph-browser.js',
               './swiss/ephe/sepl_18.se1',
@@ -183,9 +196,13 @@ jobs:
               './swiss-scan-ui.js',
               './manifest.webmanifest',
           ]
-          missing = [x for x in required if x not in html]
+          missing = [x for x in required if x not in app]
           if missing:
-              raise SystemExit(f'Missing local runtime references in index.html: {missing}')
+              raise SystemExit(f'Missing local runtime references in app.html: {missing}')
+          if './app.html' not in shell:
+              raise SystemExit('Vite shell does not lazy-load app.html')
+          if Path('_site/index.html').stat().st_size >= 500000:
+              raise SystemExit('Initial Vite shell exceeds 500 KB')
           for name in ('service-worker.js','ephemeris-provenance.json','manifest.webmanifest','offline-client.js','app-icon.svg','swiss-scan-worker.js'):
               if not (Path('_site')/name).is_file():
                   raise SystemExit('Missing published offline/provenance asset: '+name)
@@ -193,7 +210,7 @@ jobs:
               raise SystemExit('Offline client did not register the worker')
           if './ephemeris-provenance.json' not in Path('_site/research-lab.js').read_text('utf-8'):
               raise SystemExit('Natal provenance does not use the released asset manifest')
-          if 'Técnicas tradicionais Pro' not in html:
+          if 'Técnicas tradicionais Pro' not in app:
               raise SystemExit('Traditional Pro suite was not assembled')
           print('Static site, Swiss Ephemeris assets and Traditional Pro suite validated.')
           PY
