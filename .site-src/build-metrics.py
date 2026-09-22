@@ -15,12 +15,15 @@ def measure(path):
 
 def report():
     html=SITE/"index.html"
+    legacy=SITE/"app.html"
     result={
-        "schema":"oa-build-metrics/v1",
+        "schema":"oa-build-metrics/v2",
         "commit":os.getenv("GITHUB_SHA","local-build"),
         "initialHtmlTargetBytes":TARGET,
         "initialHtml":measure(html),
         "initialHtmlTargetMet":html.stat().st_size<TARGET,
+        "lazyLegacyHtml":measure(legacy),
+        "lazyLegacyLoadedInitially":False,
         "assets":{}
     }
     files=(
@@ -43,7 +46,9 @@ if __name__=="__main__":
         json.dumps(result,indent=2,ensure_ascii=False)+"\n",encoding="utf-8"
     )
     initial=result["initialHtml"]
-    print("Initial HTML size:",initial["bytes"],"bytes; gzip:",
+    print("Initial Vite shell:",initial["bytes"],"bytes; gzip:",
           initial["gzipBytes"],"bytes; target:",TARGET,
           "bytes; target met:",result["initialHtmlTargetMet"])
+    print("Lazy legacy app:",result["lazyLegacyHtml"]["bytes"],
+          "bytes; gzip:",result["lazyLegacyHtml"]["gzipBytes"],"bytes")
     print("NOTE: Transfer size is not FCP, TTI, RAM, FPS or mobile performance.")
