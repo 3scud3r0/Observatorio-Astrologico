@@ -7,7 +7,7 @@ test('public homepage retains the original Observatório interface', async ({pag
   await expect(page.locator('#guideForm')).toBeAttached();
   await expect(page.locator('#mapform')).toBeAttached();
   await expect(page.locator('#appFrame')).toHaveCount(0);
-  await expect(page.locator('#oa-atlas [data-route="dados"]')).toBeVisible();
+  await expect(page.locator('nav button[data-tab="dados"]')).toBeVisible();
   await expect(page.getByRole('button',{name:'Mapa',exact:true})).toBeVisible();
 });
 
@@ -15,7 +15,7 @@ test('legacy navigation keeps the original main sections', async ({page}) => {
   await page.goto('/');
   await page.getByRole('button',{name:'Mapa',exact:true}).click();
   await expect(page.locator('#mapa')).toHaveClass(/active/);
-  await page.locator('#oa-atlas [data-route="dados"]').click();
+  await page.locator('nav button[data-tab="dados"]').click();
   await expect(page.locator('#dados')).toHaveClass(/active/);
 });
 
@@ -33,7 +33,7 @@ test('restored homepage fits mobile portrait and landscape', async ({page}) => {
     await page.setViewportSize(viewport);
     await page.goto('/');
     await expect(page.locator('#dados')).toHaveClass(/active/);
-    await expect(page.locator('#oa-atlas [data-route="dados"]')).toBeVisible();
+    await expect(page.locator('nav button[data-tab="dados"]')).toBeVisible();
   }
 });
 
