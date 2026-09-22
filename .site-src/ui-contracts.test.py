@@ -50,6 +50,7 @@ for html_name, core in [
     ("research-lab.html", "research-core.js"),
     ("timeline.html", "timeline-core.js"),
     ("guided-study.html", "guided-study.js"),
+    ("guided-study.html", "didactic-boundary.js"),
     ("research-vault-ui.html", "research-vault.js"),
 ]:
     html = (ROOT / html_name).read_text("utf-8")
