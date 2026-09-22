@@ -130,7 +130,7 @@ async function mergeSavedVolumes(){
   ' · fronteiras reunidas: '+mergedReport.boundaryJoins+
   ' · volumes: '+mergedReport.completedVolumes+'/'+mergedReport.totalVolumes+
   (mergedReport.complete?' · consulta completa.':' · consulta parcial.')+
-  '\\n'+mergedReport.limitation;
+  '\n'+mergedReport.limitation;
 }
 $('atlasMerge').onclick=()=>mergeSavedVolumes().catch(e=>{$('atlasMergedStatus').textContent=e.message});
 $('atlasMergedExport').onclick=()=>{
