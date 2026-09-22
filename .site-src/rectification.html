@@ -1,0 +1,42 @@
+<!-- Exploratory retrospective rectification: never claims to discover a true birth time. -->
+<style>
+#oa-rect{position:fixed;right:15px;bottom:206px;z-index:2147483635;font:14px/1.45 system-ui;color:#eef7ff}
+#oa-rect *{box-sizing:border-box}
+#oa-rect button{background:#193f68;color:white;border:1px solid #89d7f0;border-radius:8px;padding:8px 11px;cursor:pointer}
+#oa-rect button:focus-visible,#oa-rect input:focus-visible,#oa-rect select:focus-visible,#oa-rect textarea:focus-visible{outline:3px solid #a1e7fd}
+#oa-rect-panel{width:min(620px,calc(100vw - 30px));max-height:min(82vh,840px);overflow:auto;background:#091e35;border:1px solid #4c7d9f;border-radius:12px;padding:17px;box-shadow:0 20px 65px #0009}
+#oa-rect-panel h2{color:#ffdfab;margin:0 0 8px}
+#oa-rect-panel label{display:block;margin:10px 0;color:#d7eafa}
+#oa-rect-panel input,#oa-rect-panel select,#oa-rect-panel textarea{display:block;width:100%;min-height:35px;border:1px solid #7295b1;background:#102a47;color:white;border-radius:7px;padding:8px}
+#oa-rect-panel textarea{min-height:125px;resize:vertical}
+#oa-rect-panel .oa-rect-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+#oa-rect-panel .oa-rect-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+#oa-rect-output{display:block;white-space:pre-wrap;overflow-wrap:anywhere;background:#061527;border-radius:9px;padding:12px}
+@media(max-width:650px){#oa-rect{position:static;margin:12px}#oa-rect-panel .oa-rect-grid{grid-template-columns:1fr}}
+</style>
+<section id="oa-rect" aria-label="Retificação biográfica exploratória">
+<button id="oa-rect-open" type="button" aria-expanded="false" aria-controls="oa-rect-panel">Retificação exploratória</button>
+<div id="oa-rect-panel" hidden>
+<div class="oa-rect-actions"><h2>Retificação por eventos documentados</h2><button id="oa-rect-close" type="button">Fechar</button></div>
+<p>Esta ferramenta ajusta RETROSPECTIVAMENTE a hora que minimiza um erro geométrico que você escolheu. Não prova a hora real, não valida astrologia e não gera um intervalo estatístico de confiança.</p>
+<div class="oa-rect-actions"><button id="oa-rect-use-map" type="button">Copiar data, fuso e local do formulário</button></div>
+<div class="oa-rect-grid">
+<label>Data local do nascimento<input id="oa-rect-birth" type="date" min="1800-01-01" max="2100-12-31"></label>
+<label>UTC offset natal (horas)<input id="oa-rect-offset" type="number" min="-14" max="14" step="0.25" placeholder="-3"></label>
+<label>Latitude geográfica (°)<input id="oa-rect-lat" type="number" min="-89.999" max="89.999" step="any"></label>
+<label>Longitude geográfica (°)<input id="oa-rect-lon" type="number" min="-180" max="180" step="any"></label>
+<label>Hora local mínima<input id="oa-rect-from" type="time" value="00:00"></label>
+<label>Hora local máxima<input id="oa-rect-to" type="time" value="23:55"></label>
+<label>Passo da grade (minutos)<input id="oa-rect-step" type="number" min="1" max="60" step="1" value="5"></label>
+<label>Orbe normalizador (°)<input id="oa-rect-orb" type="number" min=".1" max="15" step=".1" value="2"></label>
+<label>Casas<select id="oa-rect-house"><option value="E">Iguais</option><option value="W">Signos inteiros</option><option value="P">Placidus</option><option value="K">Koch</option><option value="R">Regiomontanus</option><option value="C">Campanus</option></select></label>
+<label>Tolerância do escore (não é confiança)<input id="oa-rect-delta" type="number" min="0" max="10" step=".1" value="1"></label>
+</div>
+<label>Um evento por linha, em UTC. Formato: instante|planeta|ângulo|aspecto|peso|fonte documental<textarea id="oa-rect-events" spellcheck="false" placeholder="2020-05-10T15:00:00Z|Sol|ASC|0|1|Registro A\n2021-06-20T10:30:00Z|Lua|MC|90|1|Registro B"></textarea></label>
+<p>Planetas: Sol, Lua, Mercúrio, Vênus, Marte, Júpiter, Saturno, Urano, Netuno, Plutão. Ângulo: ASC ou MC. Aspecto: 0, 60, 90, 120 ou 180°. Peso: 0,1–10. Inclua eventos conhecidos independentemente da análise e declare fontes. Cada execução avalia até 500 horários e 100 eventos.</p>
+<div class="oa-rect-actions"><button id="oa-rect-run" type="button">Comparar horários pela função objetivo</button><button id="oa-rect-export" type="button" disabled>Exportar análise JSON</button></div>
+<output id="oa-rect-output" aria-live="polite">Informe dois ou mais eventos biográficos e os parâmetros de busca.</output>
+</div>
+</section>
+<script src="./rectification-core.js"></script>
+<script src="./rectification-ui.js"></script>
