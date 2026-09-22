@@ -209,9 +209,11 @@ async function eventSearch(kind){
     const precession=q('#tt-return-precession').value;
     if(precession==='none'){
       rows=eng.findPlanetReturn(body,target,start,end,window.calc,body===1?.125:.25)
-        .map(j=>[fmtJD(j),fmtLon(window.calc(j,body).lon),'Retorno tropical · alvo fixo']);
+        .map(j=>[fmtJD(j),fmtLon(window.calc(j,body).lon),'Retorno no zodíaco selecionado · alvo fixo']);
     }else{
       if(body!==0&&body!==1)throw Error('Correção por precessão disponível somente para revoluções solar e lunar.');
+      if(document.getElementById('zodiacMode')?.value==='sidereal')
+        throw Error('Esta convenção aproximada de precessão exige zodíaco tropical; altere-o no formulário natal ou use retorno sem correção.');
       const b=birthJD(),natal=window.calc(b,body).lon;
       if(eng.sep(target,natal)>0.0001)
         throw Error('Para precessão, limpe a longitude-alvo ou use o valor natal exato calculado do mapa.');
