@@ -66,3 +66,29 @@ test('explicit preparation serves the shell and local app without network', asyn
   await expect(page.frameLocator('#appFrame').locator('#dados')).toBeVisible({timeout:30_000});
   await context.setOffline(false);
 });
+
+test('retrospective rectification uses the real Swiss engine and discloses the objective', async ({page,browserName}) => {
+  test.skip(browserName!=='chromium','Verify the astronomy integration in Chromium; the entry shell runs in all three engines.');
+  await page.goto('/');
+  await page.getByRole('button',{name:'Começar'}).click();
+  const app=page.frameLocator('#appFrame');
+  await expect(app.locator('#oa-rect-open')).toBeVisible({timeout:30_000});
+  await app.locator('#oa-rect-open').click();
+  await expect(app.locator('#oa-rect-panel')).toBeVisible();
+  await app.locator('#oa-rect-birth').fill('1990-01-01');
+  await app.locator('#oa-rect-offset').fill('-3');
+  await app.locator('#oa-rect-lat').fill('-22.9');
+  await app.locator('#oa-rect-lon').fill('-43.2');
+  await app.locator('#oa-rect-from').fill('08:00');
+  await app.locator('#oa-rect-to').fill('09:00');
+  await app.locator('#oa-rect-step').fill('15');
+  await app.locator('#oa-rect-events').fill(
+    '2020-05-10T15:00:00Z|Sol|ASC|0|1|Registro A\\n'+
+    '2021-06-20T10:30:00Z|Lua|MC|90|1|Registro B'
+  );
+  await expect(app.locator('#swissEngineState')).toContainText(/Swiss Ephemeris pronto|WASM pronto/, {timeout:40_000});
+  await app.locator('#oa-rect-run').click();
+  await expect(app.locator('#oa-rect-output')).toContainText('Melhor ajuste na grade:',{timeout:40_000});
+  await expect(app.locator('#oa-rect-output')).toContainText('NÃO é intervalo de confiança');
+  await expect(app.locator('#oa-rect-export')).toBeEnabled();
+});
