@@ -1,5 +1,6 @@
 """Apply small, asserted compatibility edits before appending the Atlas release."""
 from pathlib import Path
+import sys
 
 def upgrade(text):
     old = "||end-start>93)throw Error('Escolha um período de 1 a 93 dias.');"
@@ -43,5 +44,11 @@ def upgrade(text):
     return text
 
 if __name__ == '__main__':
-    page = Path('_site/index.html')
-    page.write_text(upgrade(page.read_text('utf-8')) + Path('.site-src/atlas-experience.html').read_text('utf-8'), 'utf-8')
+    page = Path(sys.argv[1] if len(sys.argv) > 1 else '_site/app.html')
+    if not page.is_file():
+        raise SystemExit('Atlas release target does not exist: ' + str(page))
+    page.write_text(
+        upgrade(page.read_text('utf-8')) +
+        Path('.site-src/atlas-experience.html').read_text('utf-8'),
+        'utf-8'
+    )
