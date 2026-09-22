@@ -42,6 +42,8 @@ assert "crypto.subtle.digest('SHA-256'" in worker, "Check checksums before decla
 assert "SHA-256 divergiu do manifesto" in worker
 assert "'oa-data-payload/v1'" in worker
 assert "payloadManifest.files[assetName]" in worker
+assert "codeManifest.files[assetName]" in worker
+assert "legacy-code-manifest.json" in worker
 assert "const path=url.pathname;" in worker, "Offline iframe and shell require independent keys"
 assert "'./atlas-auth.json'" not in worker, "Auth configuration must not be precached"
 assert "request.method!=='GET'" in worker, "Never cache mutation responses"
@@ -64,7 +66,10 @@ assert metrics["initialHtml"]["bytes"]==len(initial)
 assert metrics["initialHtml"]["gzipBytes"]==len(gzip.compress(initial,compresslevel=9))
 assert metrics["initialHtmlTargetMet"]==(len(initial)<metrics["initialHtmlTargetBytes"])
 assert metrics["originalHomeRestored"] is True
-assert metrics["initialHtmlTargetMet"] is False, "Do not represent the restored original homepage as under 500 KB"
+assert metrics["initialHtmlTargetMet"] is True, "Original homepage HTML must remain under 500 KB"
+assert metrics["declaredInitialPayloadTargetMet"] is False, (
+    "Do not misreport parser-loaded base/city/fonts/scripts as a sub-500 KB transfer"
+)
 modular=(site/"entrada.html").read_bytes()
 assert metrics["optionalModularEntry"]["bytes"]==len(modular)
 assert metrics["optionalModularEntryTargetMet"] is True
@@ -88,7 +93,22 @@ assert "window.OBS_BASE=" in (site/"base-data.js").read_text("utf-8")
 assert "const CITY_DATA=" in (site/"city-data.js").read_text("utf-8")
 assert "const PDF_FONT=" in (site/"pdf-font.js").read_text("utf-8")
 assert "const PDF_FONT=" not in app, "PDF font must not be embedded in HTML"
-assert len(legacy)<5_000_000, "lazy app HTML should stay modular after externalizing heavy data"
+assert len(legacy)<500_000, "Original app HTML must be code-split without redesign"
+code=json.loads((site/"legacy-code-manifest.json").read_text("utf-8"))
+assert code["schema"]=="oa-legacy-code/v1"
+assert len(code["files"])>=10
+assert metrics["legacyCodeAssets"]["count"]==len(code["files"])
+assert metrics["legacyCodeAssets"]["bytes"]==sum(
+    entry["bytes"] for entry in code["files"].values()
+)
+for name,meta in code["files"].items():
+    assert name.startswith(("legacy-inline-","legacy-json-")),name
+    binary=(site/name).read_bytes()
+    assert len(binary)==meta["bytes"],name
+    assert hashlib.sha256(binary).hexdigest()==meta["sha256"],name
+    assert f'src="./{name}"' in html,name
+assert "legacy-inline-" in (site/"atlas.html").read_text("utf-8")
+
 assert metrics["lazyLegacyLoadedInitially"] is True
 assert "swiss/swisseph.wasm" in metrics["assets"]
-print("Release contracts: PWA assets, SHA-256 ephemerides, gzip metrics and encrypted vault SQL OK")
+print("Release contracts: original UI, sub-500 KB HTML, extracted script integrity, PWA and Swiss ephemerides OK")
