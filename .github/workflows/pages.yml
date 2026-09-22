@@ -69,7 +69,7 @@ jobs:
           node --check .site-src/swiss-scan-ui.js
           node --input-type=module --check < .site-src/swiss-scan-worker.js
           node --check .site-src/service-worker.js
-          python -m py_compile .site-src/asset-provenance.py .site-src/build-metrics.py .site-src/atlas-release.py .site-src/catalog-extract.py .site-src/payload-extract.py
+          python -m py_compile .site-src/asset-provenance.py .site-src/build-metrics.py .site-src/atlas-release.py .site-src/catalog-extract.py .site-src/large-data-extract.py .site-src/payload-extract.py
           python .site-src/payload-extract.test.py
           python .site-src/atlas-release.test.py
           python .site-src/supply-chain.test.py
@@ -138,6 +138,9 @@ jobs:
           PY
 
           python .site-src/catalog-extract.py _site/app.html _site/catalog-data.json
+          python .site-src/large-data-extract.py _site/app.html _site
+          node --check _site/base-data.js
+          node --check _site/city-data.js
           python .site-src/payload-extract.py _site/app.html _site
           python .site-src/atlas-release.py _site/app.html
           cp .site-src/atlas-resume.js _site/atlas-resume.js
@@ -225,6 +228,8 @@ jobs:
               './zodiac-mode.js',
               './traditional-engine.js',
               './atlas-resume.js',
+              './base-data.js',
+              './city-data.js',
               './research-core.js',
               './research-lab.js',
               './research-analysis.js',
