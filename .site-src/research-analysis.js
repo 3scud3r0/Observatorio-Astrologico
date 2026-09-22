@@ -27,7 +27,7 @@
     const time=checkedNow(now);
     const state={opportunities:items.length,pending:0,unreviewed:0,inconclusive:0,
       tp:0,fp:0,fn:0,tn:0,observedEvents:0,baselineExpected:0,
-      baselineCovered:0,finalized:0,reviewed:0};
+      baselineCovered:0,finalized:0,reviewed:0,eventClosed:0};
     for(const item of items){
       const record=item?.record,assessments=item?.assessments;
       if(!record||typeof record.protocol?.predicted!=='boolean'||!Array.isArray(assessments))
@@ -37,12 +37,22 @@
          !/^\d{4}-\d\d-\d\d$/.test(windowStart)||
          !/^\d{4}-\d\d-\d\d$/.test(windowEnd)||
          windowStart>windowEnd)throw Error('Janela de pesquisa inválida.');
-      // The 23:59:59.999 UTC of the final day must have elapsed before scoring.
+      // The 23:59:59.999 UTC of the final day is the hard deadline.
+      const start=Date.parse(windowStart+'T00:00:00.000Z');
       const end=Date.parse(windowEnd+'T00:00:00.000Z')+DAY;
-      if(!Number.isFinite(end))throw Error('Data final de pesquisa inválida.');
-      if(time<end){state.pending++;continue}
+      if(!Number.isFinite(start)||!Number.isFinite(end))throw Error('Data final de pesquisa inválida.');
+      let review=null,eventClosed=false;
+      if(record.protocol.closureMode==='first-confirming-event'){
+        const confirmed=assessments.find(a=>a?.observed===true&&Number.isFinite(Date.parse(a.evaluatedAt)));
+        if(confirmed){
+          const when=Date.parse(confirmed.evaluatedAt);
+          if(when>=start&&when<end&&when<=time){review=confirmed;eventClosed=true}
+        }
+      }
+      if(!review&&time<end){state.pending++;continue}
       state.finalized++;
-      const review=assessments.at(-1);
+      if(eventClosed)state.eventClosed++;
+      if(!review)review=assessments.at(-1);
       if(!review){state.unreviewed++;continue}
       if(review.observed===null){state.inconclusive++;continue}
       if(typeof review.observed!=='boolean')throw Error('Resultado da avaliação inválido.');
