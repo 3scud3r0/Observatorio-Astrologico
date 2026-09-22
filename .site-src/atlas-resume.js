@@ -38,7 +38,7 @@
   }
   const DAY=86400000;
   function validDay(value,label){
-    if(typeof value!=='string'||!/^\\d{4}-\\d\\d-\\d\\d$/.test(value)||
+    if(typeof value!=='string'||!/^\d{4}-\d\d-\d\d$/.test(value)||
        !Number.isFinite(Date.parse(value+'T00:00:00.000Z'))||
        new Date(Date.parse(value+'T00:00:00.000Z')).toISOString().slice(0,10)!==value)
       throw Error(label+': data inválida.');
