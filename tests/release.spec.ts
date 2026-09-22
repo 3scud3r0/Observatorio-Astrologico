@@ -83,7 +83,7 @@ test('retrospective rectification uses the real Swiss engine and discloses the o
 });
 
 test('Swiss tropical and named sidereal frames produce distinct reproducible coordinates', async ({page,browserName}) => {
-  test.skip(true,'Swiss zodiac fallback investigation remains open; do not block restoration of the public homepage.');
+  test.skip(browserName!=='chromium','Verify the Swiss zodiac frame in Chromium.');
   await page.goto('/');
   const app=page;
   await expect(app.locator('#swissEngineState')).toContainText(/Swiss Ephemeris pronto|WASM pronto/,{timeout:40_000});
@@ -102,6 +102,7 @@ test('Swiss tropical and named sidereal frames produce distinct reproducible coo
     zodiac.value='tropical';
     return {tropical,sidereal,tropicalHouses,siderealHouses};
   });
+  console.log('SWISS_ZODIAC_DIAGNOSTIC '+JSON.stringify(values));
   expect(values.tropical.engine).toBe('Swiss Ephemeris/WASM');
   expect(values.sidereal.engine).toBe('Swiss Ephemeris/WASM');
   expect(values.sidereal.flags & 65536).toBeTruthy();
