@@ -102,17 +102,8 @@ test('Swiss tropical and named sidereal frames produce distinct reproducible coo
     zodiac.value='sidereal';ayanamsha.value='lahiri';
     const sidereal=w.calc(jd,0),siderealHouses=w.houseGeometry(jd,0,0,'E');
     zodiac.value='tropical';
-    return {tropical,sidereal,tropicalHouses,siderealHouses,
-      debug:{
-        obsSwiss:(window as unknown as {obsSwiss?:{ready?:boolean;fullSwiss?:boolean;error?:string}}).obsSwiss,
-        calcSource:String(w.calc).slice(0,450),
-        houseSource:String(w.houseGeometry).slice(0,450),
-        lexicalCalcSource:String(eval('calc')).slice(0,300),
-        lexicalHouseSource:String(eval('houseGeometry')).slice(0,300),
-        hasZodiac:Boolean((window as unknown as {OAZodiacMode?:unknown}).OAZodiacMode)
-      }};
+    return {tropical,sidereal,tropicalHouses,siderealHouses};
   });
-  console.log('Swiss zodiac after final WASM initialization: '+JSON.stringify(values.debug));
   expect(values.tropical.engine).toBe('Swiss Ephemeris/WASM');
   expect(values.sidereal.engine).toBe('Swiss Ephemeris/WASM');
   expect(values.sidereal.flags & 65536).toBeTruthy();
