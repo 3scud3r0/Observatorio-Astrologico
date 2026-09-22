@@ -475,16 +475,49 @@
   }
 
   function findPlanetReturn(body,target,startJD,endJD,calcBody,step=.25){
+    if(!Number.isFinite(startJD)||!Number.isFinite(endJD)||endJD<=startJD||
+       !Number.isFinite(step)||step<1e-4||step>10||
+       !Number.isFinite(target)||typeof calcBody!=='function')
+      throw new Error('Retorno: início, fim, passo, alvo e motor válidos são obrigatórios.');
     const roots=[];let a=startJD,fa=signed(calcBody(a,body).lon,target);
-    for(let b=a+step;b<=endJD+1e-9;b+=step){
+    for(let b=Math.min(a+step,endJD);b>a+1e-10;b=Math.min(a+step,endJD)){
       const fb=signed(calcBody(b,body).lon,target);
       if((fa===0||fb===0||fa*fb<0)&&Math.abs(fb-fa)<180){
-        const root=bisectRoot(b-step,b,j=>signed(calcBody(j,body).lon,target));
-        if(!roots.length||Math.abs(root-roots[roots.length-1])>.02) roots.push(root);
+        const root=bisectRoot(a,b,j=>signed(calcBody(j,body).lon,target));
+        if(!roots.length||Math.abs(root-roots[roots.length-1])>.02)roots.push(root);
       }
       a=b;fa=fb;
     }
     return roots;
+  }
+
+  function planetaryRevolutions({kind,birthJD,startJD,endJD,calcBody,
+    precession='none',precessionArcsecPerYear=50.29,step}={}){
+    if(kind!=='solar'&&kind!=='lunar')throw new Error('Revolução deve ser solar ou lunar.');
+    if(!Number.isFinite(birthJD)||typeof calcBody!=='function')
+      throw new Error('Revolução exige nascimento JD e motor astronômico.');
+    if(!['none','equinox-approximate'].includes(precession)||
+       !Number.isFinite(precessionArcsecPerYear)||precessionArcsecPerYear<0||
+       precessionArcsecPerYear>100)
+      throw new Error('Convenção de precessão inválida.');
+    const body=kind==='solar'?0:1,natal=mod(calcBody(birthJD,body).lon);
+    const correction=jd=>precession==='equinox-approximate'?
+      (jd-birthJD)/TROPICAL_YEAR*precessionArcsecPerYear/3600:0;
+    const adjusted=(jd,b)=>{
+      const p=calcBody(jd,b);
+      return {...p,lon:mod(p.lon-correction(jd))};
+    };
+    const roots=findPlanetReturn(body,natal,startJD,endJD,adjusted,
+      step===undefined?(kind==='lunar'?.125:.5):step);
+    return roots.map(jd=>({
+      kind,jd,body,natalLongitude:natal,
+      longitude:mod(calcBody(jd,body).lon),
+      targetLongitude:mod(natal+correction(jd)),
+      precession,correctionDegrees:correction(jd),
+      convention:precession==='none'?
+        'Retorno de longitude tropical geocêntrica ao valor natal no mesmo referencial.':
+        'Retorno à longitude natal acrescida de precessão aproximada dos equinócios, taxa constante '+precessionArcsecPerYear+' segundos de arco/ano; NÃO equivale a correção rigorosa por precessão tridimensional.'
+    }));
   }
 
   function findAspectsToTarget(body,target,startJD,endJD,calcBody,aspectList=[0,60,90,120,180],step=.25){
@@ -554,6 +587,6 @@
     TRIPLICITY,TRIPLICITY_SCHOOLS,TERMS,EGYPTIAN_TERMS,TERM_SCHOOLS,FACES,FIXED_STARS,DEFAULT_BODY_ORBS,TRADITIONAL_SOURCES,
     mod,parseLongitude,sep,signed,signIndex,signDegree,jdFromDate,isoFromJD,ageYears,civilAnniversaryJD,completedCivilYears,trueSolarArc,annualProfection,monthlyProfection,firdaria,hermeticLots,sevenHermeticLots,
     zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,triplicityRulers,termRuler,essentialDignity,solarCondition,aspectState,contextualDignity,eclipticToEquatorial,eclipticToRA,raToEclipticLongitude,progressedAngles,zodiacalPrimaryDirection,semiArcs,isAboveHorizonRA,placidianSemiArcDirection,prenatalSyzygy,
-    mutualReceptions,fixedStarConjunctions,findPlanetReturn,findAspectsToTarget,findStations,findIngresses
+    mutualReceptions,fixedStarConjunctions,findPlanetReturn,planetaryRevolutions,findAspectsToTarget,findStations,findIngresses
   };
 });
