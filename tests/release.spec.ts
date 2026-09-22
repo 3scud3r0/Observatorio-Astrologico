@@ -75,7 +75,8 @@ test('retrospective rectification uses the real Swiss engine and discloses the o
     '2020-05-10T15:00:00Z|Sol|ASC|0|1|Registro A\n'+
     '2021-06-20T10:30:00Z|Lua|MC|90|1|Registro B'
   );
-  await expect(app.locator('#swissEngineState')).toContainText(/Swiss Ephemeris pronto|WASM pronto/, {timeout:40_000});
+  await expect.poll(()=>app.evaluate(()=>(window as unknown as {obsSwiss?:{ready?:boolean}}).obsSwiss?.ready===true),{timeout:90_000}).toBe(true);
+  await expect(app.locator('#swissEngineState')).toContainText(/Swiss Ephemeris pronto|WASM pronto · Moshier ativo/);
   await app.locator('#oa-rect-run').click();
   await expect(app.locator('#oa-rect-output')).toContainText('Melhor ajuste na grade:',{timeout:40_000});
   await expect(app.locator('#oa-rect-output')).toContainText('NÃO é intervalo de confiança');
