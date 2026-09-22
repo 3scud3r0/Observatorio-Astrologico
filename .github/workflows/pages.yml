@@ -98,6 +98,12 @@ jobs:
           PY
           node --check /tmp/pro-studio-inline.js
 
+      - name: Install release browsers
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright install --with-deps chromium firefox webkit
+
       - name: Assemble and validate static site
         shell: bash
         run: |
@@ -229,6 +235,12 @@ jobs:
           PY
           python .site-src/build-metrics.py
           python .site-src/integration-contracts.test.py
+
+      - name: Cross-browser release smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:browser
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
