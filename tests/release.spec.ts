@@ -83,7 +83,7 @@ test('retrospective rectification uses the real Swiss engine and discloses the o
   await app.locator('#oa-rect-to').fill('09:00');
   await app.locator('#oa-rect-step').fill('15');
   await app.locator('#oa-rect-events').fill(
-    '2020-05-10T15:00:00Z|Sol|ASC|0|1|Registro A\\n'+
+    '2020-05-10T15:00:00Z|Sol|ASC|0|1|Registro A\n'+
     '2021-06-20T10:30:00Z|Lua|MC|90|1|Registro B'
   );
   await expect(app.locator('#swissEngineState')).toContainText(/Swiss Ephemeris pronto|WASM pronto/, {timeout:40_000});
