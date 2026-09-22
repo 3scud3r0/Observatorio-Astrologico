@@ -1,0 +1,55 @@
+<style>
+  #oa-pathways{margin:26px 0 34px}
+  #oa-pathways h2{margin:0 0 6px;font:600 clamp(24px,3vw,32px)/1.2 Georgia,serif}
+  #oa-pathways>p{margin:0 0 18px;color:var(--subtle,#526d63)}
+  .oa-path-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .oa-path{display:flex;flex-direction:column;align-items:flex-start;gap:9px;width:100%;min-height:165px;padding:19px!important;text-align:left;color:#183b3b!important;background:#fff!important;border:1px solid #c8d9cf!important;border-radius:16px!important;box-shadow:0 8px 24px #153a2910;white-space:normal}
+  .oa-path:hover{background:#f1f8f1!important;border-color:#196b63!important;transform:translateY(-2px)}
+  .oa-path:focus-visible{outline:3px solid #126b85!important;outline-offset:3px}
+  .oa-path strong{font:600 21px/1.2 Georgia,serif;color:#124c43}
+  .oa-path span{font:14px/1.5 system-ui,sans-serif;color:#405b52}
+  .oa-path small{margin-top:auto;color:#196b63;font-weight:700}
+  @media(max-width:900px){.oa-path-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:520px){.oa-path-grid{grid-template-columns:1fr}.oa-path{min-height:0}}
+  @media(prefers-reduced-motion:reduce){.oa-path:hover{transform:none}}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const home=document.getElementById('dados');
+  const hero=home?.querySelector('.heroPanel');
+  if(!hero)return;
+  const badge=hero.querySelector('.heroTag');
+  if(badge)badge.textContent='CÁLCULOS LOCAIS · OFFLINE APÓS PREPARAÇÃO';
+  const paths=document.createElement('div');
+  paths.id='oa-pathways';
+  paths.innerHTML='<h2>Como você quer começar?</h2><p>Escolha um caminho. Você pode mudar de ideia a qualquer momento.</p><div class="oa-path-grid">'
+    +'<button class="oa-path" type="button" data-path="question"><strong>Investigar uma pergunta</strong><span>Organize fatos, período e critérios antes de comparar cenários.</span><small>Começar a investigação →</small></button>'
+    +'<button class="oa-path" type="button" data-path="birth"><strong>Calcular meu mapa</strong><span>Informe nascimento e local. A qualidade da hora acompanha os resultados.</span><small>Informar os dados →</small></button>'
+    +'<button class="oa-path" type="button" data-path="learn"><strong>Aprender astrologia</strong><span>Explore conceitos e veja a diferença entre cálculo e interpretação.</span><small>Abrir estudo →</small></button>'
+    +'<button class="oa-path" type="button" data-path="expert"><strong>Ferramentas profissionais</strong><span>Acesse técnicas tradicionais, parâmetros e resultados técnicos.</span><small>Abrir Pro Studio →</small></button>'
+    +'</div>';
+  hero.after(paths);
+  paths.addEventListener('click',event=>{
+    const button=event.target.closest('button[data-path]');
+    if(!button)return;
+    const path=button.dataset.path;
+    if(path==='question'){
+      const field=document.getElementById('gSubject');
+      field?.scrollIntoView({block:'center',behavior:'smooth'});
+      field?.focus({preventScroll:true});
+    }else if(path==='birth'){
+      const details=document.getElementById('advancedMap');
+      if(details)details.open=true;
+      details?.scrollIntoView({block:'start',behavior:'smooth'});
+      details?.querySelector('input:not([type="hidden"])')?.focus({preventScroll:true});
+    }else if(path==='learn'){
+      document.querySelector('nav button[data-tab="aprender"]')?.click();
+      document.getElementById('aprender')?.querySelector('h1,h2')?.setAttribute('tabindex','-1');
+      document.getElementById('aprender')?.querySelector('h1,h2')?.focus();
+    }else if(path==='expert'){
+      document.getElementById('oa-studio-launch')?.click();
+      document.getElementById('oa-studio-close')?.focus();
+    }
+  });
+});
+</script>
