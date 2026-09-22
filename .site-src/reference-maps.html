@@ -1,0 +1,26 @@
+<!-- Reference maps are imported locally; nothing is uploaded automatically. -->
+<style>
+#oa-ref{position:fixed;left:14px;top:130px;z-index:2147483638;font:14px/1.45 system-ui;color:#edf7ff}
+#oa-ref *{box-sizing:border-box}
+#oa-ref-open,#oa-ref-panel button{background:#173f68;color:#fff;border:1px solid #83cee9;border-radius:8px;padding:8px 11px;cursor:pointer}
+#oa-ref-panel{width:min(520px,calc(100vw - 28px));max-height:72vh;overflow:auto;background:#091e35;border:1px solid #47799e;border-radius:14px;padding:15px;box-shadow:0 22px 65px #000a}
+#oa-ref-panel h2{color:#ffdb9c;margin:4px 0}
+#oa-ref-panel label{display:block;margin:9px 0}
+#oa-ref-panel input,#oa-ref-panel select{display:block;width:100%;background:#102c4b;color:#fff;border:1px solid #678aaa;border-radius:6px;padding:8px}
+#oa-ref-panel .oa-ref-actions{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+#oa-ref-status{display:block;white-space:pre-wrap;background:#061527;padding:10px;border-radius:9px}
+@media(max-width:650px){#oa-ref{position:static;margin:12px}}
+</style>
+<section id="oa-ref" aria-label="Mapas de referência locais">
+ <button id="oa-ref-open" type="button" aria-expanded="false" aria-controls="oa-ref-panel">Mapas de referência</button>
+ <div id="oa-ref-panel" hidden>
+  <div class="oa-ref-actions"><h2>Importar referência documentada</h2><button id="oa-ref-close" type="button">Fechar</button></div>
+  <p>Importe JSON local com Rodden Rating. AA é tratado como horário documentado; A/B/C/DD como aproximado; X/XX como horário desconhecido e sem casas exatas. Nada é enviado.</p>
+  <label>Arquivo JSON<input id="oa-ref-file" type="file" accept=".json,application/json"></label>
+  <label>Mapa importado<select id="oa-ref-list"></select></label>
+  <div class="oa-ref-actions"><button id="oa-ref-apply" type="button">Aplicar ao formulário principal</button><button id="oa-ref-export" type="button">Exportar referências locais</button><button id="oa-ref-delete" type="button">Excluir referências locais</button></div>
+  <output id="oa-ref-status" aria-live="polite">Nenhuma referência importada.</output>
+ </div>
+</section>
+<script src="./reference-maps.js"></script>
+<script src="./reference-maps-ui.js"></script>
