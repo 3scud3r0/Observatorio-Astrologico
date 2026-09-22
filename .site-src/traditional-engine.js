@@ -271,21 +271,87 @@
   const harmonic=(lon,n)=>mod(Number(lon)*Number(n));
   const antiscia=lon=>({antiscion:mod(180-Number(lon)),contraAntiscion:mod(360-Number(lon))});
 
-  function essentialDignity(planet,lon,sect='day'){
-    const s=signIndex(lon),deg=signDegree(lon),ruler=SIGN_RULERS[s];
-    const oppositeRuler=SIGN_RULERS[mod(s+6,12)];
+  function triplicityRulers(lon,sect='day',school='dorothean'){
+    const table=TRIPLICITY_SCHOOLS[school];
+    if(!table)throw new Error('Escola de triplicidade inválida.');
+    if(sect!=='day'&&sect!=='night')throw new Error('Seita deve ser day ou night.');
+    const element=ELEMENTS[signIndex(lon)],trip=table[element];
+    return {school,element,sect,primary:sect==='night'?trip.night:trip.day,
+      secondary:sect==='night'?trip.day:trip.night,participating:trip.participating};
+  }
+  function termRuler(lon,school='ptolemaic'){
+    const table=TERM_SCHOOLS[school];
+    if(!table)throw new Error('Sistema de termos inválido.');
+    const sign=signIndex(lon),degree=signDegree(lon);
+    const entry=table[sign].find(([upper])=>degree<upper)||table[sign][table[sign].length-1];
+    return {school,sign,degree,upper:entry[0],ruler:entry[1]};
+  }
+  function essentialDignity(planet,lon,sect='day',{triplicitySchool='dorothean',termSchool='ptolemaic'}={}){
+    const sign=signIndex(lon),ruler=SIGN_RULERS[sign];
+    const oppositeRuler=SIGN_RULERS[mod(sign+6,12)];
     const exaltSign=EXALTATIONS[planet];
     const fallSign=exaltSign===undefined?undefined:mod(exaltSign+6,12);
-    const trip=TRIPLICITY[ELEMENTS[s]];
-    const tripLord=sect==='night'?trip.night:trip.day;
-    const term=(TERMS[s].find(([upper])=>deg<upper)||TERMS[s][TERMS[s].length-1])[1];
-    const face=FACES[s][Math.min(2,Math.floor(deg/10))];
+    const trip=triplicityRulers(lon,sect,triplicitySchool);
+    const term=termRuler(lon,termSchool);
+    const face=FACES[sign][Math.min(2,Math.floor(signDegree(lon)/10))];
     const dignity={
-      domicile:ruler===planet,exaltation:exaltSign===s,triplicity:tripLord===planet,term:term===planet,face:face===planet,
-      detriment:oppositeRuler===planet,fall:fallSign===s,ruler,triplicityLord:tripLord,participatingTriplicity:trip.participating,termLord:term,faceLord:face
+      domicile:ruler===planet,exaltation:exaltSign===sign,triplicity:trip.primary===planet,
+      participatingTriplicityDignity:trip.participating===planet,
+      term:term.ruler===planet,face:face===planet,
+      detriment:oppositeRuler===planet,fall:fallSign===sign,ruler,
+      triplicityLord:trip.primary,participatingTriplicity:trip.participating,
+      termLord:term.ruler,faceLord:face,triplicitySchool,termSchool
     };
-    dignity.score=(dignity.domicile?5:0)+(dignity.exaltation?4:0)+(dignity.triplicity?3:0)+(dignity.term?2:0)+(dignity.face?1:0)-(dignity.detriment?5:0)-(dignity.fall?4:0);
+    dignity.peregrine=!(dignity.domicile||dignity.exaltation||dignity.triplicity||dignity.term||dignity.face);
+    dignity.score=(dignity.domicile?5:0)+(dignity.exaltation?4:0)+(dignity.triplicity?3:0)+
+      (dignity.term?2:0)+(dignity.face?1:0)-(dignity.detriment?5:0)-(dignity.fall?4:0);
     return dignity;
+  }
+  function solarCondition(planetLon,sunLon,{cazimi=17/60,combustion=8.5,underBeams=17}={}){
+    for(const [name,value] of [['cazimi',cazimi],['combustion',combustion],['underBeams',underBeams]])
+      if(!Number.isFinite(Number(value))||Number(value)<0)throw new Error(name+': orbe inválido.');
+    if(cazimi>combustion||combustion>underBeams)
+      throw new Error('Orbes solares devem obedecer cazimi ≤ combustão ≤ sob os raios.');
+    const distance=sep(planetLon,sunLon);
+    const state=distance<=cazimi?'cazimi':distance<=combustion?'combust':distance<=underBeams?'under-beams':'free';
+    return {state,distance,cazimi,combustion,underBeams,
+      convention:'Limites configuráveis em separação eclíptica absoluta do Sol.'};
+  }
+  const DEFAULT_BODY_ORBS={Sol:15,Lua:12,Mercúrio:7,Vênus:7,Marte:7.5,Júpiter:9,Saturno:9};
+  function aspectState(first,second,angle,{aspectOrb=null,bodyOrbs=DEFAULT_BODY_ORBS,orbPolicy='minimum',probeDays=1/24}={}){
+    if(!first||!second||!Number.isFinite(Number(first.lon))||!Number.isFinite(Number(second.lon)))
+      throw new Error('Aspecto exige duas longitudes válidas.');
+    const target=Number(angle);
+    if(!Number.isFinite(target)||target<0||target>180)throw new Error('Ângulo de aspecto inválido.');
+    const aBody=Number(bodyOrbs[first.name]),bBody=Number(bodyOrbs[second.name]);
+    const bodyMoiety=Number.isFinite(aBody)&&Number.isFinite(bBody)?(aBody+bBody)/2:null;
+    const explicit=aspectOrb===null?null:Number(aspectOrb);
+    if(explicit!==null&&(!Number.isFinite(explicit)||explicit<0))throw new Error('Orbe do aspecto inválido.');
+    let effectiveOrb;
+    if(orbPolicy==='aspect')effectiveOrb=explicit;
+    else if(orbPolicy==='body-moiety')effectiveOrb=bodyMoiety;
+    else if(orbPolicy==='maximum')effectiveOrb=Math.max(explicit??0,bodyMoiety??0);
+    else if(orbPolicy==='minimum'){
+      const values=[explicit,bodyMoiety].filter(Number.isFinite);
+      effectiveOrb=values.length?Math.min(...values):null;
+    }else throw new Error('Política de orbe inválida.');
+    if(effectiveOrb===null)throw new Error('Informe orbe do aspecto ou orbes dos corpos.');
+    const separation=sep(first.lon,second.lon),deviation=Math.abs(separation-target);
+    const aSpeed=Number(first.speed),bSpeed=Number(second.speed);
+    let phase='unknown',futureDeviation=null;
+    if(Number.isFinite(aSpeed)&&Number.isFinite(bSpeed)&&Number.isFinite(Number(probeDays))&&probeDays>0){
+      futureDeviation=Math.abs(sep(Number(first.lon)+aSpeed*probeDays,Number(second.lon)+bSpeed*probeDays)-target);
+      const tolerance=1e-9;
+      phase=futureDeviation<deviation-tolerance?'applying':futureDeviation>deviation+tolerance?'separating':'exact-or-stationary';
+    }
+    return {angle:target,separation,deviation,aspectOrb:explicit,bodyMoiety,effectiveOrb,orbPolicy,
+      inOrb:deviation<=effectiveOrb,phase,futureDeviation,probeDays};
+  }
+  function contextualDignity(planet,lon,sunLon,sect='day',options={}){
+    const essential=essentialDignity(planet,lon,sect,options);
+    const solar=planet==='Sol'?{state:'solar-center',distance:0}:solarCondition(lon,sunLon,options.solar||{});
+    return {essential,solar,score:essential.score,
+      note:'A pontuação 5/4/3/2/1 permanece essencial; condição solar e peregrinação são informadas separadamente para não misturar escolas silenciosamente.'};
   }
 
   function eclipticToEquatorial(lon,lat=0,obliquity=23.4392911){
@@ -484,9 +550,10 @@
   }
 
   return {
-    DAY,TROPICAL_YEAR,SIGN_NAMES,SIGN_RULERS,ZR_YEARS,CHALDEAN,FIRDAR_DAY,FIRDAR_NIGHT,FIRDAR_YEARS,FIXED_STARS,
+    DAY,TROPICAL_YEAR,SIGN_NAMES,SIGN_RULERS,ZR_YEARS,CHALDEAN,FIRDAR_DAY,FIRDAR_NIGHT,FIRDAR_YEARS,
+    TRIPLICITY,TRIPLICITY_SCHOOLS,TERMS,EGYPTIAN_TERMS,TERM_SCHOOLS,FACES,FIXED_STARS,DEFAULT_BODY_ORBS,TRADITIONAL_SOURCES,
     mod,parseLongitude,sep,signed,signIndex,signDegree,jdFromDate,isoFromJD,ageYears,civilAnniversaryJD,completedCivilYears,trueSolarArc,annualProfection,monthlyProfection,firdaria,hermeticLots,sevenHermeticLots,
-    zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,essentialDignity,eclipticToEquatorial,eclipticToRA,raToEclipticLongitude,progressedAngles,zodiacalPrimaryDirection,semiArcs,isAboveHorizonRA,placidianSemiArcDirection,prenatalSyzygy,
+    zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,triplicityRulers,termRuler,essentialDignity,solarCondition,aspectState,contextualDignity,eclipticToEquatorial,eclipticToRA,raToEclipticLongitude,progressedAngles,zodiacalPrimaryDirection,semiArcs,isAboveHorizonRA,placidianSemiArcDirection,prenatalSyzygy,
     mutualReceptions,fixedStarConjunctions,findPlanetReturn,findAspectsToTarget,findStations,findIngresses
   };
 });
