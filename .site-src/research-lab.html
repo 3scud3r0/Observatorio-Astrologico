@@ -35,6 +35,7 @@
         <input id="oa-r-baseline-rate" type="number" min="0" max="100" step="any" placeholder="Ex.: 20 para 20%">
       </label>
       <label>Previsão registrada<select id="oa-r-predicted"><option value="yes">Ocorrerá na janela</option><option value="no">Não ocorrerá na janela</option></select></label>
+      <label>Encerramento da observação<select id="oa-r-closure"><option value="fixed-date">Somente no prazo final</option><option value="first-confirming-event">No primeiro evento confirmatório documentado (ou no prazo final)</option></select></label>
       <div class="oa-r-actions"><button id="oa-r-seal" type="button">Selar hipótese em SHA-256</button></div>
       <output id="oa-r-seal-output" aria-live="polite"></output>
     </fieldset>
