@@ -28,12 +28,13 @@ test('record browser performance with an explicit mobile viewport', async ({page
     const fcp=performance.getEntriesByType('paint').find(x=>x.name==='first-contentful-paint');
     return {
       makeMapMs:renderMs,
+      positionRows:document.querySelectorAll('#positions tr').length,
       domContentLoadedMs:navigation?.domContentLoadedEventEnd??null,
       firstContentfulPaintMs:fcp?.startTime??null,
       fullSwissEphemerides:Boolean(w.obsSwiss?.fullSwiss)
     };
   });
-  await expect(app.locator('#mapa')).toHaveClass(/active/);
+  expect(map.positionRows).toBeGreaterThan(0);
   await expect(app.locator('#wheel svg')).toHaveCount(1);
   const session=await page.context().newCDPSession(page);
   await session.send('Performance.enable');
