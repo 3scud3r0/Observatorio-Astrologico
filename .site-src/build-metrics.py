@@ -43,6 +43,22 @@ def report():
     )
     for name in ("base-data.js","city-data.js","pdf-font.js"):
         result["externalPayloads"][name]=measure(SITE/name)
+    code=json.loads((SITE/"legacy-code-manifest.json").read_text("utf-8"))
+    if code["schema"]!="oa-legacy-code/v1" or len(code["files"])<10:
+        raise SystemExit("Legacy code manifest invalid")
+    code_bytes=sum(value["bytes"] for value in code["files"].values())
+    code_gzip=sum(measure(SITE/name)["gzipBytes"] for name in code["files"])
+    result["legacyCodeAssets"]={
+        "count":len(code["files"]),"bytes":code_bytes,"gzipBytes":code_gzip
+    }
+    # Conservative sum of parser-loaded code/data; not a measured network waterfall.
+    result["declaredInitialPayloadWithoutSwissBytes"]=(
+        result["initialHtml"]["bytes"]+code_bytes+
+        sum(value["bytes"] for value in result["externalPayloads"].values())
+    )
+    result["declaredInitialPayloadTargetMet"]=(
+        result["declaredInitialPayloadWithoutSwissBytes"]<TARGET
+    )
     for name in files:
         path=SITE/name
         if not path.is_file():raise SystemExit("Missing metric asset: "+name)
@@ -62,6 +78,10 @@ if __name__=="__main__":
     print("Optional Vite entry:",result["optionalModularEntry"]["bytes"],"bytes; target met:",
           result["optionalModularEntryTargetMet"])
     print("External data assets:", {key:value["bytes"] for key,value in result["externalPayloads"].items()})
+    print("Legacy code assets:",result["legacyCodeAssets"])
+    print("Declared initial code/data without Swiss:",
+          result["declaredInitialPayloadWithoutSwissBytes"],
+          "bytes; 500 KB total target met:",result["declaredInitialPayloadTargetMet"])
     print("Lazy legacy app:",result["lazyLegacyHtml"]["bytes"],
           "bytes; gzip:",result["lazyLegacyHtml"]["gzipBytes"],"bytes")
-    print("NOTE: Transfer size is not FCP, TTI, RAM, FPS or mobile performance.")
+    print("NOTE: Declared asset bytes are not FCP, TTI, RAM, FPS or a measured network waterfall.")
