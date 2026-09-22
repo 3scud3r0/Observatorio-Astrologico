@@ -10,6 +10,23 @@ const refAge=y=>birth+y*E.TROPICAL_YEAR;
   const rate=.98564736;
   const sun=jd=>E.mod(100+(jd-birth)*rate);
   const r=E.trueSolarArc(birth,refAge(46.75),sun);
+  const angleSolar=E.progressedAngles({
+    asc:123.4,mc:35.2,birthJD:birth,refJD:refAge(46.75),sunLongitude:sun,mode:'solar-arc'
+  });
+  close(angleSolar.asc,E.mod(123.4+r.arc),1e-8,'progressed ASC solar arc');
+  close(angleSolar.mc,E.mod(35.2+r.arc),1e-8,'progressed MC solar arc');
+  assert.match(angleSolar.convention,/Arco solar verdadeiro/);
+  const angleRA=E.progressedAngles({
+    asc:123.4,mc:35.2,birthJD:birth,refJD:refAge(46.75),sunLongitude:sun,mode:'right-ascension'
+  });
+  assert.match(angleRA.convention,/ascensão reta/);
+  assert.ok(Number.isFinite(angleRA.asc)&&Number.isFinite(angleRA.mc));
+  assert.notEqual(angleRA.arc,angleSolar.arc,'RA and ecliptic solar arcs are distinct conventions');
+  const zero=E.progressedAngles({asc:123.4,mc:35.2,birthJD:birth,refJD:birth,sunLongitude:sun,mode:'right-ascension'});
+  close(zero.asc,123.4,1e-8,'zero-age RA ASC');
+  close(zero.mc,35.2,1e-8,'zero-age RA MC');
+  assert.throws(()=>E.progressedAngles({asc:1,mc:2,birthJD:birth,refJD:refAge(1),sunLongitude:sun,mode:'invented'}),/Modo/);
+
   close(r.age,46.75,1e-9,'fractional age');
   close(r.progressedJD,birth+46.75,1e-9,'progressed day');
   close(r.arc,E.mod(46.75*rate),1e-8,'true solar arc');
