@@ -96,3 +96,36 @@ test('retrospective rectification uses the real Swiss engine and discloses the o
   await expect(app.locator('#oa-rect-output')).toContainText('NÃO é intervalo de confiança');
   await expect(app.locator('#oa-rect-export')).toBeEnabled();
 });
+
+test('Swiss tropical and named sidereal frames produce distinct reproducible coordinates', async ({page,browserName}) => {
+  test.skip(browserName!=='chromium','Validate Swiss zodiac frame in Chromium; the shell runs in all three engines.');
+  await page.goto('/');
+  await page.getByRole('button',{name:'Começar'}).click();
+  const app=page.frameLocator('#appFrame');
+  await expect(app.locator('#swissEngineState')).toContainText(/Swiss Ephemeris pronto|WASM pronto/,{timeout:40_000});
+  const values=await app.locator('body').evaluate(() => {
+    const w=window as unknown as {
+      calc:(jd:number,body:number)=>{lon:number;engine:string;flags:number;ayanamsha:number|null};
+      houseGeometry:(jd:number,lat:number,lon:number,system:string)=>{asc:number;mc:number;ayanamsha:number|null};
+    };
+    const zodiac=document.getElementById('zodiacMode') as HTMLSelectElement;
+    const ayanamsha=document.getElementById('siderealMode') as HTMLSelectElement;
+    const jd=2451545;
+    zodiac.value='tropical';
+    const tropical=w.calc(jd,0),tropicalHouses=w.houseGeometry(jd,0,0,'E');
+    zodiac.value='sidereal';ayanamsha.value='lahiri';
+    const sidereal=w.calc(jd,0),siderealHouses=w.houseGeometry(jd,0,0,'E');
+    zodiac.value='tropical';
+    return {tropical,sidereal,tropicalHouses,siderealHouses};
+  });
+  expect(values.tropical.engine).toBe('Swiss Ephemeris/WASM');
+  expect(values.sidereal.engine).toBe('Swiss Ephemeris/WASM');
+  expect(values.sidereal.flags & 65536).toBeTruthy();
+  const wrapped=(v:number)=>((v%360)+360)%360;
+  const planetShift=wrapped(values.tropical.lon-values.sidereal.lon);
+  const angleShift=wrapped(values.tropicalHouses.asc-values.siderealHouses.asc);
+  expect(planetShift).toBeGreaterThan(15);
+  expect(planetShift).toBeLessThan(35);
+  expect(Math.abs(planetShift-angleShift)).toBeLessThan(0.1);
+  expect(values.siderealHouses.ayanamsha).not.toBeNull();
+});
