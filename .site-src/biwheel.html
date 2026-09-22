@@ -1,0 +1,29 @@
+<!-- Double wheel: natal inner ring + selected time technique outer ring. -->
+<style>
+#oa-biwheel{position:fixed;left:14px;top:184px;z-index:2147483637;font:14px/1.45 system-ui;color:#edf7ff}
+#oa-biwheel *{box-sizing:border-box}
+#oa-b-open,#oa-b-panel button{background:#173f68;color:#fff;border:1px solid #83cee9;border-radius:8px;padding:8px 11px;cursor:pointer}
+#oa-b-panel{width:min(620px,calc(100vw - 28px));max-height:78vh;overflow:auto;background:#091e35;border:1px solid #47799e;border-radius:14px;padding:15px;box-shadow:0 22px 65px #000a}
+#oa-b-panel h2{color:#ffdb9c;margin:4px 0}#oa-b-panel label{display:block;margin:8px 0}
+#oa-b-panel input,#oa-b-panel select{display:block;width:100%;background:#102c4b;color:#fff;border:1px solid #678aaa;border-radius:6px;padding:8px}
+#oa-b-panel .oa-b-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.oa-b-actions{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+#oa-b-wheel{display:block;width:100%;max-height:520px;background:#061527;border-radius:12px}
+#oa-b-out{display:block;white-space:pre-wrap;background:#061527;padding:10px;border-radius:9px}
+@media(max-width:650px){#oa-biwheel{position:static;margin:12px}#oa-b-panel .oa-b-grid{grid-template-columns:1fr}}
+</style>
+<section id="oa-biwheel" aria-label="Roda dupla temporal">
+ <button id="oa-b-open" type="button" aria-expanded="false" aria-controls="oa-b-panel">Roda dupla</button>
+ <div id="oa-b-panel" hidden>
+  <div class="oa-b-actions"><h2>Natal × técnica temporal</h2><button id="oa-b-close" type="button">Fechar</button></div>
+  <div class="oa-b-grid">
+   <label>Data-alvo UTC<input id="oa-b-date" type="date"></label>
+   <label>Hora UTC<input id="oa-b-time" type="time" value="12:00"></label>
+   <label>Camada externa<select id="oa-b-layer"><option value="transit">Trânsito</option><option value="progression">Progressão secundária</option><option value="solar-true">Direção por arco solar verdadeiro</option><option value="solar-mean">Direção por arco solar médio</option></select></label>
+  </div>
+  <div class="oa-b-actions"><button id="oa-b-run" type="button">Atualizar roda dupla</button></div>
+  <svg id="oa-b-wheel" viewBox="-180 -180 360 360" role="img" aria-label="Roda dupla com mapa natal no anel interno e técnica temporal no externo"></svg>
+  <output id="oa-b-out" aria-live="polite">Calcule um mapa natal antes de abrir a roda dupla.</output>
+ </div>
+</section>
+<script src="./biwheel-core.js"></script>
+<script src="./biwheel-ui.js"></script>
