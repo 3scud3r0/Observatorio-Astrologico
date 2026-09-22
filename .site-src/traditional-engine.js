@@ -18,12 +18,21 @@
   const FIRDAR_DAY=['Sol','Vênus','Mercúrio','Lua','Saturno','Júpiter','Marte','Nodo Norte','Nodo Sul'];
   const FIRDAR_NIGHT=['Lua','Saturno','Júpiter','Marte','Sol','Vênus','Mercúrio','Nodo Norte','Nodo Sul'];
   const ZR_YEARS=[15,8,20,25,19,20,8,15,12,27,30,12];
-  const TRIPLICITY={
-    fire:{day:'Sol',night:'Júpiter',participating:'Saturno'},
-    earth:{day:'Vênus',night:'Lua',participating:'Marte'},
-    air:{day:'Saturno',night:'Mercúrio',participating:'Júpiter'},
-    water:{day:'Vênus',night:'Marte',participating:'Lua'}
+  const TRIPLICITY_SCHOOLS={
+    dorothean:{
+      fire:{day:'Sol',night:'Júpiter',participating:'Saturno'},
+      earth:{day:'Vênus',night:'Lua',participating:'Marte'},
+      air:{day:'Saturno',night:'Mercúrio',participating:'Júpiter'},
+      water:{day:'Vênus',night:'Marte',participating:'Lua'}
+    },
+    ptolemaic:{
+      fire:{day:'Sol',night:'Júpiter',participating:'Marte'},
+      earth:{day:'Vênus',night:'Lua',participating:'Saturno'},
+      air:{day:'Saturno',night:'Mercúrio',participating:'Júpiter'},
+      water:{day:'Vênus',night:'Lua',participating:'Marte'}
+    }
   };
+  const TRIPLICITY=TRIPLICITY_SCHOOLS.dorothean;
   const ELEMENTS=['fire','earth','air','water','fire','earth','air','water','fire','earth','air','water'];
   const FACES=[
     ['Marte','Sol','Vênus'],['Mercúrio','Lua','Saturno'],['Júpiter','Marte','Sol'],['Vênus','Mercúrio','Lua'],
@@ -45,6 +54,29 @@
     [[6,'Saturno'],[12,'Mercúrio'],[20,'Vênus'],[25,'Júpiter'],[30,'Marte']],
     [[8,'Vênus'],[14,'Júpiter'],[20,'Mercúrio'],[26,'Marte'],[30,'Saturno']]
   ];
+  // Egyptian bounds as preserved in Vettius Valens, Anthology I.
+  const EGYPTIAN_TERMS=[
+    [[6,'Júpiter'],[12,'Vênus'],[20,'Mercúrio'],[25,'Marte'],[30,'Saturno']],
+    [[8,'Vênus'],[14,'Mercúrio'],[22,'Júpiter'],[27,'Saturno'],[30,'Marte']],
+    [[6,'Mercúrio'],[12,'Júpiter'],[17,'Vênus'],[24,'Marte'],[30,'Saturno']],
+    [[7,'Marte'],[13,'Vênus'],[19,'Mercúrio'],[26,'Júpiter'],[30,'Saturno']],
+    [[6,'Júpiter'],[11,'Vênus'],[18,'Saturno'],[24,'Mercúrio'],[30,'Marte']],
+    [[7,'Mercúrio'],[17,'Vênus'],[21,'Júpiter'],[28,'Marte'],[30,'Saturno']],
+    [[6,'Saturno'],[11,'Mercúrio'],[19,'Júpiter'],[26,'Vênus'],[30,'Marte']],
+    [[7,'Marte'],[11,'Vênus'],[19,'Mercúrio'],[24,'Júpiter'],[30,'Saturno']],
+    [[12,'Júpiter'],[17,'Vênus'],[21,'Mercúrio'],[26,'Saturno'],[30,'Marte']],
+    [[7,'Mercúrio'],[14,'Júpiter'],[22,'Vênus'],[26,'Saturno'],[30,'Marte']],
+    [[7,'Mercúrio'],[13,'Vênus'],[20,'Júpiter'],[25,'Marte'],[30,'Saturno']],
+    [[12,'Vênus'],[16,'Júpiter'],[19,'Mercúrio'],[28,'Marte'],[30,'Saturno']]
+  ];
+  const TERM_SCHOOLS={ptolemaic:TERMS,egyptian:EGYPTIAN_TERMS};
+  const TRADITIONAL_SOURCES={
+    dorotheanTriplicity:'https://www.skyscript.co.uk/pdf/pubs/texts/dariot/index_20.html',
+    ptolemaicTriplicity:'https://www.skyscript.co.uk/tetrabiblos',
+    ptolemaicTerms:'https://www.skyscript.co.uk/tetrabiblos',
+    egyptianTerms:'https://www.spucchi.com/wiki/astrology/terms-bounds-essential-dignities/term-tables/'
+  };
+
   const FIXED_STARS=[
     ['Algol',56.13,2.12],['Alcyone',60.00,2.87],['Aldebaran',69.80,0.85],['Rigel',78.63,0.13],
     ['Capella',80.00,0.08],['Bellatrix',80.95,1.64],['Betelgeuse',88.79,0.42],['Sirius',104.08,-1.46],
