@@ -1,8 +1,8 @@
 /* Guide is a renderer of already-calculated map values, never a second ephemeris. */
 (()=>{
   'use strict';
-  const root=document.getElementById('oa-guide');
-  if(!root)return;
+  const root=document.getElementById('oa-guide'),D=window.OADidacticBoundary;
+  if(!root||!D)return;
   const $=name=>document.getElementById('oa-g-'+name);
   const signs=['Áries','Touro','Gêmeos','Câncer','Leão','Virgem','Libra','Escorpião','Sagitário','Capricórnio','Aquário','Peixes'];
   const subjects=[
@@ -42,11 +42,22 @@
       const lon=((point()%360)+360)%360;
       const sign=signs[Math.floor(lon/30)],degree=lon%30;
       const subject=subjects[step];
-      emit(subject.name+' · '+sign+'\n'+subject.description+
-        (technical?'\nLongitude eclíptica: '+lon.toFixed(6)+'°'+
-          '\nGrau dentro do signo: '+degree.toFixed(6)+'°'+
-          '\nÍndice do signo: ⌊(λ mod 360°)/30°⌋.':'\nSeu mapa localiza '+subject.name.toLowerCase()+
-          ' no setor '+sign+' do zodíaco. Isso não define personalidade nem garante acontecimentos.'));
+      const calculation={subject:subject.name,longitude:lon,sign,signIndex:Math.floor(lon/30),degreeInSign:degree};
+      const explanation=technical?subject.description:
+        'Seu mapa localiza '+subject.name.toLowerCase()+' no setor '+sign+
+        ' do zodíaco. Isso não define personalidade nem garante acontecimentos.';
+      const didactic=D.envelope({
+        calculation,explanation,generatedByAI:false,
+        sources:[
+          {title:'Swiss Ephemeris — documentação do motor astronômico',url:'https://www.astro.com/swisseph/'},
+          {title:'Fonte do Observatório e metodologia',url:'https://github.com/3scud3r0/Observatorio-Astrologico'}
+        ]
+      });
+      emit('Dados calculados · '+subject.name+' · '+sign+
+        '\nLongitude eclíptica: '+lon.toFixed(6)+'°'+
+        '\nGrau dentro do signo: '+degree.toFixed(6)+'°'+
+        (technical?'\nÍndice do signo: ⌊(λ mod 360°)/30°⌋.':'')+
+        '\n\n'+D.render(didactic));
     }catch(error){emit(error.message)}
   }
   $('toggle').onclick=()=>{
