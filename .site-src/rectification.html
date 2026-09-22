@@ -32,7 +32,7 @@
 <label>Casas<select id="oa-rect-house"><option value="E">Iguais</option><option value="W">Signos inteiros</option><option value="P">Placidus</option><option value="K">Koch</option><option value="R">Regiomontanus</option><option value="C">Campanus</option></select></label>
 <label>Tolerância do escore (não é confiança)<input id="oa-rect-delta" type="number" min="0" max="10" step=".1" value="1"></label>
 </div>
-<label>Um evento por linha, em UTC. Formato: instante|planeta|ângulo|aspecto|peso|fonte documental<textarea id="oa-rect-events" spellcheck="false" placeholder="2020-05-10T15:00:00Z|Sol|ASC|0|1|Registro A\n2021-06-20T10:30:00Z|Lua|MC|90|1|Registro B"></textarea></label>
+<label>Um evento por linha, em UTC. Formato: instante|planeta|ângulo|aspecto|peso|fonte documental<textarea id="oa-rect-events" spellcheck="false" placeholder="2020-05-10T15:00:00Z|Sol|ASC|0|1|Registro A&#10;2021-06-20T10:30:00Z|Lua|MC|90|1|Registro B"></textarea></label>
 <p>Planetas: Sol, Lua, Mercúrio, Vênus, Marte, Júpiter, Saturno, Urano, Netuno, Plutão. Ângulo: ASC ou MC. Aspecto: 0, 60, 90, 120 ou 180°. Peso: 0,1–10. Inclua eventos conhecidos independentemente da análise e declare fontes. Cada execução avalia até 500 horários e 100 eventos.</p>
 <div class="oa-rect-actions"><button id="oa-rect-run" type="button">Comparar horários pela função objetivo</button><button id="oa-rect-export" type="button" disabled>Exportar análise JSON</button></div>
 <output id="oa-rect-output" aria-live="polite">Informe dois ou mais eventos biográficos e os parâmetros de busca.</output>
