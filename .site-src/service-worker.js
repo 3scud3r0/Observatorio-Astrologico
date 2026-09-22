@@ -2,10 +2,11 @@
  * Ephemerides are cached only through an explicit user gesture; never intercept auth.
  */
 'use strict';
-const VERSION='oa-offline-v1-20260921';
+const VERSION='oa-offline-v2-20260922';
 const CACHE='oa-pages-'+VERSION;
 const STATIC=[
   './','./index.html','./app.html','./catalog-data.json',
+  './base-data.js','./city-data.js','./pdf-font.js','./payload-manifest.json',
   './swiss/swisseph-browser.js','./swiss/swisseph.js','./swiss/swisseph.wasm',
   './swiss/ephe/sepl_18.se1','./swiss/ephe/semo_18.se1','./swiss/ephe/seas_18.se1',
   './zodiac-mode.js','./traditional-engine.js','./research-core.js','./research-lab.js',
