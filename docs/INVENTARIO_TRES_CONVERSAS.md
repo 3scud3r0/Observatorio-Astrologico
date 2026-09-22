@@ -1,6 +1,6 @@
 # Inventário integral de requisitos — três conversas anexadas
 
-Atualizado em 21-09-2026. **Fontes:** C1 = primeira mesa-redonda; C2 = auditoria técnica extensa; C3 = referências de repositórios e serviços. Este inventário consolida requisitos e *não transforma uma sugestão em funcionalidade entregue*. A última coluna registra o estado verificado no código deste repositório ou nesta implementação. “Existente” não significa certificado por uma fonte matemática independente.
+Atualizado em 22-09-2026. **Fontes:** C1 = primeira mesa-redonda; C2 = auditoria técnica extensa; C3 = referências de repositórios e serviços. Este inventário consolida requisitos e *não transforma uma sugestão em funcionalidade entregue*. A última coluna registra o estado verificado no código deste repositório ou nesta implementação. “Existente” não significa certificado por uma fonte matemática independente.
 
 Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **A** = acrescentado nesta evolução.
 
@@ -12,15 +12,15 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | AR02 | Fixar versão e proveniência dos arquivos .se1 e runtime | A/P; versões fixadas e seis checksums SHA-256 publicados; comparação entre builds pendente |
 | AR03 | Servir JS, WASM e efemérides sob a mesma origem | E |
 | AR04 | Manter AGPL-3.0/avisos e auditar licenças antes de copiar dependências | E/P |
-| AR05 | Desmembrar o HTML de ~15,8 MB dividido em 18 partes | N |
-| AR06 | Migrar progressivamente a Vite + TypeScript e componentes React/Svelte ou equivalentes | N |
-| AR07 | Retirar substituições literais frágeis do atlas-release.py | N |
-| AR08 | Separar banco de textos e componentes em arquivos modulares | N |
-| AR09 | Code-splitting/lazy loading e meta de <500 KB iniciais (sem efemérides) | N; HTML inicial medido: 15.920.534 bytes (gzip 6.123.632); meta não atingida e code-splitting pendente |
+| AR05 | Desmembrar o HTML de ~15,8 MB dividido em 18 partes | A/P; três blocos extraídos e validados em JS externos (~8,44 MB de BASE, ~3,09 MB de cidades, ~1,01 MB de fonte PDF); app.html ~1,53 MB, mas HTML/JS legado ainda estão entrelaçados |
+| AR06 | Migrar progressivamente a Vite + TypeScript e componentes React/Svelte ou equivalentes | A/P; shell Vite 8.3.0 + TypeScript 7.0.2 compilado e testado, aplicativo principal ainda usa JS/HTML legado |
+| AR07 | Retirar substituições literais frágeis do atlas-release.py | A; release append-only, alterações transferidas aos fragmentos e teste que proíbe rewrites |
+| AR08 | Separar banco de textos e componentes em arquivos modulares | A/P; catálogo JSON, BASE, cidades, fonte PDF, motor e módulos de UX separados; banco de textos e scripts legados remanescentes |
+| AR09 | Code-splitting/lazy loading e meta de <500 KB iniciais (sem efemérides) | A/P; shell index.html 2.296 B no build, <500 KB, app.html lazy ~1,53 MB; base/cidades/fonte ~12,54 MB continuam requeridos ao abrir aplicativo completo |
 | AR10 | Isolar Swiss e varreduras pesadas em Web Worker e protocolo RPC cancelável | A/P; scanner independente em Worker com Swiss/WASM e cancelamento; motor principal continua na thread da UI |
 | AR11 | Limitar memória e preservar responsividade durante consultas longas | P |
 | AR12 | Cache local controlado de efemérides em IndexedDB/CacheStorage | P; CacheStorage opt-in com pacote explicitamente preparado |
-| AR13 | PWA e modo offline real após o primeiro download completo | P; manifest, Service Worker e preparação explícita; teste offline interativo/terceiros remotos pendentes |
+| AR13 | PWA e modo offline real após o primeiro download completo | A/P; preparação explícita e recarga sem rede testadas no Chromium; correção posterior preserva cache distinto de app.html; auditoria real em outros navegadores/dispositivos ainda pendente |
 | AR14 | Benchmark FCP, parse, memória, tempo até primeiro mapa e celulares médios | A/P; tamanhos efetivos do build e gzip publicados em build-metrics.json; FCP, parse, RAM, TTI e celulares sem benchmark |
 | AR15 | Melhorar CI para extrair scripts HTML, falhar se nenhum e verificar sintaxe | A |
 | AR16 | Testar motor, empacotamento, WASM, presença/assinatura/tamanho das efemérides | E/A |
@@ -31,10 +31,10 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | AR21 | Tratar hora natal ausente sem inventar meio-dia ou Ascendente exato | A/P |
 | AR22 | Mitigar injeções de HTML em nomes/diários/resultados | A/P; exige varredura integral |
 | AR23 | Testes de regressão e comparação numérica independente entre versões/motores | P |
-| AR24 | Testes de instalações em navegadores, orientação móvel, teclado e acessibilidade | N |
+| AR24 | Testes de instalações em navegadores, orientação móvel, teclado e acessibilidade | A/P; dez testes Playwright passaram para entrada, teclado, orientação móvel, lazy load e offline Chromium; não equivale a auditoria WCAG ou instalação PWA em aparelhos |
 | AR25 | Versionar e identificar parâmetros de cada cálculo e sua fonte | P/A |
 | AR26 | Medir limites de intervalo das efemérides, fuso histórico e DST, não prometer 1800–2400 cegamente | P |
-| AR27 | Separar matemática determinística de textos gerados por IA; IA só didática e com fontes | N |
+| AR27 | Separar matemática determinística de textos gerados por IA; IA só didática e com fontes | A/P; envelope didático imutável, rotulagem obrigatória de IA e fontes no estudo guiado; legado textual integral ainda não migrado |
 
 ## 2. Astrologia astronômica, tradicional e profissional (C1+C2)
 
@@ -45,10 +45,10 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | AS03 | Alternativas: Alcabitius, Porfírio, Morinus, Meridian, Topocêntrico, Vehlow, Azimutal | E/P |
 | AS04 | Zodíaco tropical/sideral com parâmetros explicitados | P |
 | AS05 | Domicílio, exaltação, detrimento, queda, pontuação 5/4/3/2/1 | E |
-| AS06 | Triplicidades Doroteu/Ptolomeu por seita e regente participante | P |
-| AS07 | Termos/limites ptolemaicos **e** egípcios como tabelas distintas | P; egípcios não certificados |
-| AS08 | Faces/decanatos, combustão e peregrino; pontuação contextual por escola | P |
-| AS09 | Orbes por aspecto, corpo, aplicante/separante, maiores e menores | P |
+| AS06 | Triplicidades Doroteu/Ptolomeu por seita e regente participante | A/P; tabelas nomeadas, UI e regressões; comparação externa por escola pendente |
+| AS07 | Termos/limites ptolemaicos **e** egípcios como tabelas distintas | A/P; duas tabelas nomeadas, UI e regressões; certificação externa das tabelas pendente |
+| AS08 | Faces/decanatos, combustão e peregrino; pontuação contextual por escola | A/P; cazimi/combustão/raios configuráveis e peregrino; score essencial separado da condição solar; escolas adicionais ainda pendentes |
+| AS09 | Orbes por aspecto, corpo, aplicante/separante, maiores e menores | A/P; política aspecto/corpos, velocidade e fase em módulo, UI para inspeção Sol-Lua; cobertura completa da roda principal pendente |
 | AS10 | Lotes Herméticos Fortuna/Espírito e sete lotes por seita | E |
 | AS11 | Profecção anual e mensal; regra de 29/02 explicitada | E |
 | AS12 | Firdaria diurna/noturna e subperíodos caldaicos sem versões contraditórias | A |
@@ -70,13 +70,13 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | PR02 | Scanner anual de trânsito com motor suíço, não Sol médio | A |
 | PR03 | Trânsitos exatos, orbe de entrada/saída, aspectos e agenda | A/P; scanner Swiss em Worker calcula janelas refinadas por bisseção quando detectadas; agenda e garantia de eventos subamostrados pendentes |
 | PR04 | Progressões secundárias com idade fracionária | E/A |
-| PR05 | Ascendente e MC progredidos: opção arco solar/AR, convenção descrita | N |
+| PR05 | Ascendente e MC progredidos: opção arco solar/AR, convenção descrita | A; duas convenções separadas no motor e na suíte tradicional com testes de regressão; certificação independente pendente |
 | PR06 | Direções por arco solar médio e verdadeiro + comparação | P |
-| PR07 | Roda dupla natal x trânsito/progressão/direção | N/P |
+| PR07 | Roda dupla natal x trânsito/progressão/direção | A/P; módulo de bi-wheel e testes; conferir cobertura das três técnicas e interação com rodas legadas |
 | PR08 | Revoluções solar e lunar; correção de precessão opcional | N/P |
 | PR09 | Firdaria e profecções em linha da vida e senhor do ano | P |
 | PR10 | Zodiacal Releasing Fortuna/Espírito como cronologia visual | P |
-| PR11 | Retificação por lista biográfica com função objetivo e incerteza | N |
+| PR11 | Retificação por lista biográfica com função objetivo e incerteza | A/P; busca por eventos documentados, mínimo de erro angular ponderado e faixa de soluções próximas (não estatística), teste unitário; validação matemática externa e UX ampla pendentes |
 | PR12 | Retornos, estações, ingressos, eclipses, retrogradação | E/P |
 | PR13 | Volumes de até 90 dias, cancelamento, persistência/retomada | E/P |
 | PR14 | Retomar sem recalcular volumes concluídos e evitar limites artificiais de janelas | A/P; retomada por fingerprint SHA-256 e verificação dos volumes no IndexedDB; janelas nas fronteiras ainda não são unificadas |
@@ -103,17 +103,17 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | PE14 | Sincronização opcional Supabase privada sob RLS e teste com duas contas | P; cofre cifrado e SQL RLS implementados; nenhum projeto Supabase conectado, migração e teste com contas reais pendentes |
 | PE15 | Cifrar/sincronizar dados pessoais mediante consentimento, jamais torná-los públicos por padrão | A/P; WebCrypto AES-256-GCM, PBKDF2 e upload explícito de snapshots; integração real pendente |
 | PE16 | Relatórios PDF de auditoria e identidade técnica | A/P; PDF de protocolo selado e avaliações com paginação; PDF específico da identidade técnica e validação visual em navegador pendentes |
-| PE17 | Importação opcional de mapas de referência com qualidade do horário/Rodden Rating | N |
-| PE18 | Registro observacional com janela encerrada por evento, não por volume computacional | N |
+| PE17 | Importação opcional de mapas de referência com qualidade do horário/Rodden Rating | A/P; JSON local, AA/A/B/C/DD/X/XX, importação/exportação e supressão de hora desconhecida; integração externa Astro-Databank não conectada |
+| PE18 | Registro observacional com janela encerrada por evento, não por volume computacional | A; evento confirmatório documentado ou prazo final escolhido no protocolo selado, com regressões |
 
 ## 5. UX, didática e qualidade de dados (C1+C2+C3)
 
 | ID | Requisito | Estado |
 |---|---|---|
-| UX01 | Entrada por objetivo: começar, investigar, aprender e especialista | A/P; painel complementar, não entrada principal |
+| UX01 | Entrada por objetivo: começar, investigar, aprender e especialista | A/P; shell principal com quatro objetivos testado; ainda abre parte do aplicativo legado em iframe |
 | UX02 | Alternador leigo/observatório profissional | A/P; explicação simples/técnica no estudo guiado |
 | UX03 | Big 3 em linguagem direta, contexto sobre graus e signos | A/P; painel natal de três etapas |
-| UX04 | Missões de estudo que iluminam casas/planetas | N |
+| UX04 | Missões de estudo que iluminam casas/planetas | A/P; roda SVG própria ilumina Sol/Lua/ASC/MC já calculados; não destaca ainda a roda principal inteira |
 | UX05 | Ajuda contextual “explique de forma simples” sem mudar fórmulas | A/P; painel básico/técnico sem IA |
 | UX06 | Mostrar horas documentadas/aproximadas/desconhecidas, fuso incerto e geolocalização | A/P |
 | UX07 | Impedir resultados dependentes da hora sem horário confiável | A/P |
