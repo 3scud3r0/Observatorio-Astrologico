@@ -207,7 +207,12 @@ jobs:
           # Build the lightweight TypeScript/Vite entry only after the complete legacy app exists.
           npm run build
           cp -R _shell/. _site/
-          test "$(stat -c%s _site/index.html)" -lt 500000
+          # Preserve the original Observatório at the public URL. Vite is an optional
+          # entry at /entrada.html, never the default landing page.
+          cp _site/index.html _site/entrada.html
+          cp _site/app.html _site/index.html
+          cmp _site/index.html _site/app.html
+          test "$(stat -c%s _site/entrada.html)" -lt 500000
 
           python - <<'PY'
           from pathlib import Path
@@ -216,7 +221,10 @@ jobs:
           if magic != bytes([0, 97, 115, 109]):
               raise SystemExit(f'Invalid WASM magic: {magic!r}')
           app = Path('_site/app.html').read_text('utf-8')
-          shell = Path('_site/index.html').read_text('utf-8')
+          home = Path('_site/index.html').read_text('utf-8')
+          shell = Path('_site/entrada.html').read_text('utf-8')
+          if home != app:
+              raise SystemExit('Root URL must render the original Observatório, not the Vite shell')
           required = [
               './swiss/swisseph-browser.js',
               './swiss/ephe/sepl_18.se1',
@@ -254,8 +262,8 @@ jobs:
               raise SystemExit(f'Missing local runtime references in app.html: {missing}')
           if './app.html' not in shell:
               raise SystemExit('Vite shell does not lazy-load app.html')
-          if Path('_site/index.html').stat().st_size >= 500000:
-              raise SystemExit('Initial Vite shell exceeds 500 KB')
+          if Path('_site/entrada.html').stat().st_size >= 500000:
+              raise SystemExit('Optional Vite entry exceeds 500 KB')
           for name in ('service-worker.js','ephemeris-provenance.json','manifest.webmanifest','offline-client.js','app-icon.svg','swiss-scan-worker.js'):
               if not (Path('_site')/name).is_file():
                   raise SystemExit('Missing published offline/provenance asset: '+name)
