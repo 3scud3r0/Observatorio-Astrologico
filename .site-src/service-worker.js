@@ -2,10 +2,10 @@
  * Ephemerides are cached only through an explicit user gesture; never intercept auth.
  */
 'use strict';
-const VERSION='oa-offline-v2-20260922';
+const VERSION='oa-offline-v3-restore-home-20260922';
 const CACHE='oa-pages-'+VERSION;
 const STATIC=[
-  './','./index.html','./app.html','./catalog-data.json',
+  './','./index.html','./app.html','./entrada.html','./catalog-data.json',
   './base-data.js','./city-data.js','./pdf-font.js','./payload-manifest.json',
   './swiss/swisseph-browser.js','./swiss/swisseph.js','./swiss/swisseph.wasm',
   './swiss/ephe/sepl_18.se1','./swiss/ephe/semo_18.se1','./swiss/ephe/seas_18.se1',
@@ -35,7 +35,8 @@ self.addEventListener('fetch',event=>{
   // Navigation fallback only covers the actual application root, not arbitrary URLs.
   const indexPath=new URL('./index.html',self.registration.scope).pathname;
   const appPath=new URL('./app.html',self.registration.scope).pathname;
-  if(request.mode==='navigate'&&url.pathname!==rootPath&&url.pathname!==indexPath&&url.pathname!==appPath)return;
+  const entryPath=new URL('./entrada.html',self.registration.scope).pathname;
+  if(request.mode==='navigate'&&url.pathname!==rootPath&&url.pathname!==indexPath&&url.pathname!==appPath&&url.pathname!==entryPath)return;
   // Preserve the distinct cache keys for /, /index.html and /app.html.
   // In particular, the iframe must never receive the entry shell while offline.
   const path=url.pathname;
@@ -68,14 +69,15 @@ self.addEventListener('message',event=>{
     let count=0,errors=[];
     const cache=await caches.open(CACHE);
     const provenancePath=new URL('./ephemeris-provenance.json',self.registration.scope).pathname;
-    // Discover Vite's content-hashed shell assets without hard-coding generated filenames.
+    // The optional Vite entry has a distinct URL. Never substitute its HTML
+    // for the original application at the root or /index.html.
     try{
-      const shellResponse=await fetch(new URL('./index.html',self.registration.scope),{cache:'reload'});
+      const shellResponse=await fetch(new URL('./entrada.html',self.registration.scope),{cache:'reload'});
       if(shellResponse.ok){
         const shellText=await shellResponse.clone().text();
         for(const match of shellText.matchAll(/(?:src|href)=["'](\.\/assets\/[^"'?#]+)["']/g))
           allowed.add(new URL(match[1],self.registration.scope).pathname);
-        await cache.put(new URL('./index.html',self.registration.scope).pathname,shellResponse);
+        await cache.put(new URL('./entrada.html',self.registration.scope).pathname,shellResponse);
       }
     }catch{}
     // Reload the manifest before considering a previously cached astronomical file valid.
