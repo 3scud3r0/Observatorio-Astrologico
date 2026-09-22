@@ -6,7 +6,7 @@ test('record browser performance with an explicit mobile viewport', async ({page
   await page.setViewportSize({width:390,height:844});
   const navigatedAt=Date.now();
   await page.goto('/',{waitUntil:'domcontentloaded'});
-  await expect(page.getByRole('button',{name:'Começar'})).toBeVisible();
+  await expect(page.locator('#dados')).toHaveClass(/active/);
   const shell=await page.evaluate(()=>({
     domContentLoadedMs:performance.getEntriesByType('navigation')[0] instanceof PerformanceNavigationTiming?
       (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming).domContentLoadedEventEnd:null,
@@ -15,8 +15,7 @@ test('record browser performance with an explicit mobile viewport', async ({page
     resourceCount:performance.getEntriesByType('resource').length
   }));
   const clickedAt=Date.now();
-  await page.getByRole('button',{name:'Começar'}).click();
-  const app=page.frameLocator('#appFrame');
+  const app=page;
   await expect(app.locator('#swissEngineState'))
     .toContainText(/Swiss Ephemeris pronto|WASM pronto/,{timeout:45_000});
   const map=await app.locator('body').evaluate(()=>{
@@ -47,12 +46,12 @@ test('record browser performance with an explicit mobile viewport', async ({page
     browser:browserName,
     viewport:{width:390,height:844},
     capturedAt:new Date(navigatedAt).toISOString(),
-    shell,
+    home:shell,
     firstMapFromClickMs:Date.now()-clickedAt,
     app:map,
     jsHeapUsedBytes:metrics.get('JSHeapUsedSize')??null,
     jsHeapTotalBytes:metrics.get('JSHeapTotalSize')??null,
-    note:'One synthetic map on CI hardware; not representative of a physical mid-range phone, FCP/TTI benchmarks or astronomical certification.'
+    note:'The original Observatório is served at the public URL; this single synthetic map on CI hardware is not representative of a physical mid-range phone or an independent astronomy certificate.'
   };
   writeFileSync('_site/browser-benchmark.json',JSON.stringify(result,null,2)+'\n');
   console.log('Browser benchmark (descriptive, synthetic map):',JSON.stringify(result));
