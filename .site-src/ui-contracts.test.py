@@ -40,6 +40,7 @@ def verify(html_name, js_name, prefix, extract):
 verify("research-lab.html", "research-lab.js", "oa-r-", r"byId\('([^']+)'\)")
 verify("timeline.html", "timeline-ui.js", "oa-t-", r"\$\('([^']+)'\)")
 verify("guided-study.html", "guided-study.js", "oa-g-", r"\$\('([^']+)'\)")
+verify("study-missions.html", "study-missions.js", "oa-m-", r"\$\('([^']+)'\)")
 verify("research-vault-ui.html", "research-vault-ui.js", "oa-v-", r"\$\('([^']+)'\)")
 verify("offline.html", "offline-client.js", "oa-o-", r"\$\('([^']+)'\)")
 verify("swiss-scan.html", "swiss-scan-ui.js", "oa-s-", r"\$\('([^']+)'\)")
