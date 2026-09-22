@@ -46,6 +46,8 @@
       '\nPrevisão: '+(item.record.protocol.predicted?'ocorrência':'ausência')+
       '\nCritério: '+item.record.protocol.criterion+
       '\nReferência sem astrologia: '+item.record.protocol.baseline+
+      '\nEncerramento: '+(item.record.protocol.closureMode==='first-confirming-event'?
+        'primeiro evento confirmatório ou prazo final':'prazo final')+
       '\nAvaliações anexadas:\n'+(item.assessments.length?
         item.assessments.map(a=>a.evaluatedAt+': '+
           (a.observed===null?'inconclusivo':a.observed?'ocorreu':'não ocorreu')+
@@ -96,6 +98,7 @@
         nonConfirmation:byId('nonconfirmation').value,
         baseline:byId('baseline').value,
         predicted:byId('predicted').value==='yes',
+        closureMode:byId('closure').value,
         ...(rawRate!==''?{baselineRate:Number(rawRate)/100}:{})
       });
       if(items.some(item=>item.record.hash===record.hash))
@@ -146,6 +149,7 @@
         '; pendentes '+g.pending+'; inconclusivos '+g.inconclusive).join('\n');
       status('Oportunidades previamente seladas: '+report.opportunities+
         '\nJanelas ainda abertas: '+report.pending+
+        '\nJanelas encerradas pelo primeiro evento confirmatório: '+report.eventClosed+
         '\nEncerradas sem avaliação: '+report.unreviewed+
         '\nInconclusivas: '+report.inconclusive+
         '\nAvaliadas com resultado: '+report.reviewed+
