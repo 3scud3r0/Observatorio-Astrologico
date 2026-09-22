@@ -3,6 +3,8 @@ name: Deploy Observatorio to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -26,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Test traditional calculation engine
         shell: bash
@@ -157,6 +159,7 @@ jobs:
           cp .site-src/biwheel-ui.js _site/biwheel-ui.js
           cat .site-src/timeline.html >> _site/app.html
           cat .site-src/guided-study.html >> _site/app.html
+          cat .site-src/home-pathways.html >> _site/app.html
           cat .site-src/study-missions.html >> _site/app.html
           cat .site-src/reference-maps.html >> _site/app.html
           cp .site-src/reference-maps.js _site/reference-maps.js
@@ -241,13 +244,17 @@ jobs:
           app = Path('_site/app.html').read_text('utf-8')
           home = Path('_site/index.html').read_text('utf-8')
           shell = Path('_site/entrada.html').read_text('utf-8')
+          # Inline scripts were externalized earlier in this job. Check the complete
+          # released runtime, not only the HTML left after code extraction.
+          released_runtime = app + '\n' + '\n'.join(
+              path.read_text('utf-8')
+              for path in sorted(Path('_site').glob('legacy-inline-*'))
+              if path.suffix in ('.js', '.mjs')
+          )
           if home != app:
               raise SystemExit('Root URL must render the original Observatório, not the Vite shell')
           required = [
               './swiss/swisseph-browser.js',
-              './swiss/ephe/sepl_18.se1',
-              './swiss/ephe/semo_18.se1',
-              './swiss/ephe/seas_18.se1',
               './base-data.js',
               './city-data.js',
               './pdf-font.js',
@@ -274,7 +281,10 @@ jobs:
               './swiss-scan-ui.js',
               './manifest.webmanifest',
           ]
-          missing = [x for x in required if x not in app]
+          missing = [x for x in required if x not in released_runtime]
+          for name in ('sepl_18.se1', 'semo_18.se1', 'seas_18.se1'):
+              if name not in released_runtime or not (Path('_site/swiss/ephe') / name).is_file():
+                  missing.append('Swiss ephemeris ' + name)
           if missing:
               raise SystemExit(f'Missing local runtime references in app.html: {missing}')
           if './app.html' not in shell:
@@ -293,7 +303,7 @@ jobs:
               raise SystemExit('Optional Atlas route is not assembled')
           if 'id="oa-atlas"' in app or 'body.ra-home' in app:
               raise SystemExit('Original homepage must not inherit immersive Atlas layout')
-          if 'Técnicas tradicionais Pro' not in app:
+          if 'Técnicas tradicionais Pro' not in released_runtime:
               raise SystemExit('Traditional Pro suite was not assembled')
           print('Static site, Swiss Ephemeris assets and Traditional Pro suite validated.')
           PY
@@ -313,6 +323,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pages: write

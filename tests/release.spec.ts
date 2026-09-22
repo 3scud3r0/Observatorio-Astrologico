@@ -9,6 +9,19 @@ test('public homepage retains the original Observatório interface', async ({pag
   await expect(page.locator('#appFrame')).toHaveCount(0);
   await expect(page.locator('nav button[data-tab="dados"]')).toBeVisible();
   await expect(page.getByRole('button',{name:'Mapa',exact:true})).toBeVisible();
+  await expect(page.locator('#oa-pathways .oa-path')).toHaveCount(4);
+});
+
+test('homepage paths reach beginner, learning and professional tools', async ({page}) => {
+  await page.goto('/');
+  await page.locator('[data-path="birth"]').click();
+  await expect(page.locator('#advancedMap')).toHaveAttribute('open','');
+  await page.locator('[data-path="learn"]').click();
+  await expect(page.locator('#aprender')).toHaveClass(/active/);
+  await page.locator('nav button[data-tab="dados"]').click();
+  await page.locator('[data-path="expert"]').click();
+  await expect(page.locator('#oa-studio-panel')).toBeVisible();
+  await expect(page.locator('.heroTag')).toContainText('OFFLINE APÓS PREPARAÇÃO');
 });
 
 test('legacy navigation keeps the original main sections', async ({page}) => {
