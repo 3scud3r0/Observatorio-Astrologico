@@ -2,11 +2,12 @@
  * Ephemerides are cached only through an explicit user gesture; never intercept auth.
  */
 'use strict';
-const VERSION='oa-offline-v3-restore-home-20260922';
+const VERSION='oa-offline-v4-legacy-code-20260922';
 const CACHE='oa-pages-'+VERSION;
 const STATIC=[
   './','./index.html','./app.html','./atlas.html','./entrada.html','./catalog-data.json',
   './base-data.js','./city-data.js','./pdf-font.js','./payload-manifest.json',
+  './legacy-code-manifest.json',
   './swiss/swisseph-browser.js','./swiss/swisseph.js','./swiss/swisseph.wasm',
   './swiss/ephe/sepl_18.se1','./swiss/ephe/semo_18.se1','./swiss/ephe/seas_18.se1',
   './zodiac-mode.js','./traditional-engine.js','./research-core.js','./research-lab.js',
@@ -41,7 +42,9 @@ self.addEventListener('fetch',event=>{
   // Preserve the distinct cache keys for /, /index.html and /app.html.
   // In particular, the iframe must never receive the entry shell while offline.
   const path=url.pathname;
-  if(!allowed.has(path))return;
+  const dynamicLegacy=path.startsWith(rootPath)&&
+    /^legacy-(?:inline|json)-\\d{3,}\\.(?:js|mjs)$/.test(path.slice(rootPath.length));
+  if(!allowed.has(path)&&!dynamicLegacy)return;
   event.respondWith((async()=>{
     const cache=await caches.open(CACHE);
     const cached=await cache.match(path);
@@ -108,6 +111,26 @@ self.addEventListener('message',event=>{
          Number.isFinite(payloadManifest.files[name]?.bytes)))
       throw Error('Manifesto dos arquivos externos inválido.');
     await cache.put(payloadPath,payloadResponse);
+    const codeManifestPath=new URL('./legacy-code-manifest.json',self.registration.scope).pathname;
+    let codeResponse;
+    try{
+      codeResponse=await fetch(new URL(codeManifestPath,self.location.origin),{cache:'reload'});
+    }catch{
+      codeResponse=await cache.match(codeManifestPath);
+    }
+    if(!codeResponse?.ok)throw Error('Manifesto dos módulos legados indisponível.');
+    const codeManifest=await codeResponse.clone().json();
+    if(codeManifest.schema!=='oa-legacy-code/v1'||!codeManifest.files||
+       Object.keys(codeManifest.files).length<10)
+      throw Error('Manifesto dos módulos legados inválido.');
+    for(const [name,details] of Object.entries(codeManifest.files)){
+      if(!/^legacy-(?:inline|json)-\\d{3,}\\.(?:js|mjs)$/.test(name)||
+         !/^[0-9a-f]{64}$/.test(details?.sha256)||
+         !Number.isFinite(details?.bytes))
+        throw Error('Arquivo legado sem integridade: '+name);
+      allowed.add(new URL('./'+name,self.registration.scope).pathname);
+    }
+    await cache.put(codeManifestPath,codeResponse);
     const checksum=async response=>{
       const sum=await crypto.subtle.digest('SHA-256',await response.arrayBuffer());
       return [...new Uint8Array(sum)].map(v=>v.toString(16).padStart(2,'0')).join('');
@@ -115,7 +138,7 @@ self.addEventListener('message',event=>{
     for(const path of allowed){
       try{
         const assetName=path.slice(rootPath.length);
-        const asset=manifest.assets[assetName]||payloadManifest.files[assetName];
+        const asset=manifest.assets[assetName]||payloadManifest.files[assetName]||codeManifest.files[assetName];
         let existing=await cache.match(path);
         if(asset&&existing&&(await checksum(existing.clone()))!==asset.sha256){
           await cache.delete(path);
