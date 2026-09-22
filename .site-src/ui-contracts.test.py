@@ -59,4 +59,23 @@ for html_name, core in [
     if f'src="./{core}"' not in html:
         raise SystemExit(f"{core} not referenced from {html_name}")
 
+# The legacy shell hides every <section> by default; standalone widget
+# sections must explicitly opt back in or their launchers become unreachable.
+for name, root_id in (
+    ("research-lab.html", "oa-research"),
+    ("research-vault-ui.html", "oa-vault"),
+    ("biwheel.html", "oa-biwheel"),
+    ("timeline.html", "oa-clock"),
+    ("guided-study.html", "oa-guide"),
+    ("study-missions.html", "oa-missions"),
+    ("reference-maps.html", "oa-ref"),
+    ("offline.html", "oa-offline"),
+    ("swiss-scan.html", "oa-scan"),
+    ("rectification.html", "oa-rect"),
+):
+    html = (ROOT / name).read_text("utf-8")
+    assert f"#{root_id}{{display:block;" in html, (
+        f"{name}: widget must override the legacy section display:none rule"
+    )
+
 print("UI contracts: OK")
