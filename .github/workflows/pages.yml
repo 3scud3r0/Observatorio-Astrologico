@@ -49,6 +49,9 @@ jobs:
           node .site-src/research-analysis.test.js
           node --check .site-src/research-pdf.js
           node .site-src/research-pdf.test.js
+          node --check .site-src/rectification-core.js
+          node .site-src/rectification-core.test.js
+          node --check .site-src/rectification-ui.js
           node --check .site-src/biwheel-core.js
           node .site-src/biwheel-core.test.js
           node --check .site-src/biwheel-ui.js
@@ -143,6 +146,9 @@ jobs:
           cat .site-src/research-vault-ui.html >> _site/app.html
           cp .site-src/research-vault.js _site/research-vault.js
           cp .site-src/research-vault-ui.js _site/research-vault-ui.js
+          cat .site-src/rectification.html >> _site/app.html
+          cp .site-src/rectification-core.js _site/rectification-core.js
+          cp .site-src/rectification-ui.js _site/rectification-ui.js
           cat .site-src/biwheel.html >> _site/app.html
           cp .site-src/biwheel-core.js _site/biwheel-core.js
           cp .site-src/biwheel-ui.js _site/biwheel-ui.js
@@ -225,6 +231,8 @@ jobs:
               './research-pdf.js',
               './research-vault.js',
               './research-vault-ui.js',
+              './rectification-core.js',
+              './rectification-ui.js',
               './biwheel-core.js',
               './biwheel-ui.js',
               './timeline-core.js',
