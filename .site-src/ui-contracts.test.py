@@ -45,6 +45,7 @@ verify("reference-maps.html", "reference-maps-ui.js", "oa-ref-", r"\$\('([^']+)'
 verify("research-vault-ui.html", "research-vault-ui.js", "oa-v-", r"\$\('([^']+)'\)")
 verify("offline.html", "offline-client.js", "oa-o-", r"\$\('([^']+)'\)")
 verify("swiss-scan.html", "swiss-scan-ui.js", "oa-s-", r"\$\('([^']+)'\)")
+verify("biwheel.html", "biwheel-ui.js", "oa-b-", r"\$\('([^']+)'\)")
 
 for html_name, core in [
     ("research-lab.html", "research-core.js"),
