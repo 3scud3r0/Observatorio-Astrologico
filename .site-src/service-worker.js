@@ -43,7 +43,7 @@ self.addEventListener('fetch',event=>{
   // In particular, the iframe must never receive the entry shell while offline.
   const path=url.pathname;
   const dynamicLegacy=path.startsWith(rootPath)&&
-    /^legacy-(?:inline|json)-\\d{3,}\\.(?:js|mjs)$/.test(path.slice(rootPath.length));
+    /^legacy-(?:inline|json)-\d{3,}\.(?:js|mjs)$/.test(path.slice(rootPath.length));
   if(!allowed.has(path)&&!dynamicLegacy)return;
   event.respondWith((async()=>{
     const cache=await caches.open(CACHE);
@@ -124,7 +124,7 @@ self.addEventListener('message',event=>{
        Object.keys(codeManifest.files).length<10)
       throw Error('Manifesto dos módulos legados inválido.');
     for(const [name,details] of Object.entries(codeManifest.files)){
-      if(!/^legacy-(?:inline|json)-\\d{3,}\\.(?:js|mjs)$/.test(name)||
+      if(!/^legacy-(?:inline|json)-\d{3,}\.(?:js|mjs)$/.test(name)||
          !/^[0-9a-f]{64}$/.test(details?.sha256)||
          !Number.isFinite(details?.bytes))
         throw Error('Arquivo legado sem integridade: '+name);
