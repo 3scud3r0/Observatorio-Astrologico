@@ -50,6 +50,8 @@ jobs:
           node --check .site-src/timeline-core.js
           node --check .site-src/timeline-ui.js
           node .site-src/timeline-core.test.js
+          node --check .site-src/didactic-boundary.js
+          node .site-src/didactic-boundary.test.js
           node --check .site-src/guided-study.js
           node --check .site-src/study-missions.js
           node --check .site-src/reference-maps.js
@@ -148,6 +150,7 @@ jobs:
           cp .site-src/service-worker.js _site/service-worker.js
           cp .site-src/manifest.webmanifest _site/manifest.webmanifest
           cp .site-src/app-icon.svg _site/app-icon.svg
+          cp .site-src/didactic-boundary.js _site/didactic-boundary.js
           cp .site-src/guided-study.js _site/guided-study.js
           cp .site-src/timeline-core.js _site/timeline-core.js
           cp .site-src/timeline-ui.js _site/timeline-ui.js
@@ -208,6 +211,7 @@ jobs:
               './research-vault-ui.js',
               './timeline-core.js',
               './timeline-ui.js',
+              './didactic-boundary.js',
               './guided-study.js',
               './study-missions.js',
               './reference-maps.js',
