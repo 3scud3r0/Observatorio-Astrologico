@@ -154,4 +154,37 @@ const refAge=y=>birth+y*E.TROPICAL_YEAR;
   assert.equal(E.findStations(0,birth,birth+4,tangent,.25).length,0);
   assert.throws(()=>E.findStations(0,birth,birth+4,calc,0),/passo inválido/);
 }
+{
+  const synthetic=(jd,body)=>({
+    lon:E.mod(20+(jd-birth)*(body===0?1:13)),speed:body===0?1:13
+  });
+  const solar=E.planetaryRevolutions({
+    kind:'solar',birthJD:birth,startJD:birth+350,endJD:birth+370,calcBody:synthetic
+  });
+  assert.equal(solar.length,1);
+  close(solar[0].jd,birth+360,1e-6,'solar revolution');
+  close(solar[0].targetLongitude,20,1e-6,'tropical natal target');
+  const corrected=E.planetaryRevolutions({
+    kind:'solar',birthJD:birth,startJD:birth+350,endJD:birth+370,calcBody:synthetic,
+    precession:'equinox-approximate'
+  });
+  assert.equal(corrected.length,1);
+  assert.ok(corrected[0].jd>solar[0].jd+0.01,'precession adjustment moves the target');
+  assert.match(corrected[0].convention,/NÃO equivale a correção rigorosa/);
+  const lunar=E.planetaryRevolutions({
+    kind:'lunar',birthJD:birth,startJD:birth+20,endJD:birth+31,calcBody:synthetic
+  });
+  assert.equal(lunar.length,1);
+  close(lunar[0].jd,birth+360/13,1e-6,'lunar revolution');
+  const trailing=E.findPlanetReturn(0,20,birth+359.1,birth+360.01,synthetic,.8);
+  assert.equal(trailing.length,1,'return in partial final sample must not be omitted');
+  assert.throws(()=>E.findPlanetReturn(0,20,birth+3,birth+2,synthetic,.25),/Retorno/);
+  assert.throws(()=>E.planetaryRevolutions({
+    kind:'invented',birthJD:birth,startJD:birth,endJD:birth+10,calcBody:synthetic
+  }),/solar ou lunar/);
+  assert.throws(()=>E.planetaryRevolutions({
+    kind:'solar',birthJD:birth,startJD:birth+350,endJD:birth+370,calcBody:synthetic,
+    precession:'uncertain'
+  }),/Convenção/);
+}
 console.log('Traditional engine tests: OK');
