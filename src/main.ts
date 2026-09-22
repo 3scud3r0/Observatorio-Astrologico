@@ -7,6 +7,7 @@ const workspace = document.querySelector<HTMLElement>('#workspace')!;
 const status = document.querySelector<HTMLElement>('#status')!;
 const title = document.querySelector<HTMLElement>('#modeTitle')!;
 const close = document.querySelector<HTMLButtonElement>('#closeApp')!;
+const prepareOffline = document.querySelector<HTMLButtonElement>('#prepareOffline')!;
 
 const modes: Record<Mode, {tab: string; label: string}> = {
   comecar: {tab: 'dados', label: 'Começar'},
@@ -58,9 +59,39 @@ close.addEventListener('click', () => {
   document.querySelector<HTMLButtonElement>('[data-mode]')?.focus();
 });
 
-if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./service-worker.js', {
+let serviceRegistration: Promise<ServiceWorkerRegistration | null> = Promise.resolve(null);
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  serviceRegistration = navigator.serviceWorker.register('./service-worker.js', {
     scope: './',
     updateViaCache: 'none'
-  }).catch(() => {});
+  }).then(() => navigator.serviceWorker.ready).catch(() => null);
 }
+navigator.serviceWorker?.addEventListener('message', event => {
+  const message = event.data as {type?:string; id?:string; count?:number; total?:number; errors?:string[]} | null;
+  if (!message || message.id !== prepareOffline.dataset.job) return;
+  if (message.type === 'OA_OFFLINE_PROGRESS') {
+    status.textContent = 'Preparando offline: ' + message.count + '/' + message.total +
+      ((message.errors?.length || 0) ? ' · falhas: ' + message.errors!.length : '');
+  }
+  if (message.type === 'OA_OFFLINE_DONE') {
+    prepareOffline.disabled = false;
+    delete prepareOffline.dataset.job;
+    status.textContent = message.errors?.length
+      ? 'Preparação offline incompleta: ' + message.errors.join('; ')
+      : 'Offline PREPARADO: ' + message.count + '/' + message.total + ' arquivos públicos verificados.';
+  }
+});
+prepareOffline.addEventListener('click', async () => {
+  prepareOffline.disabled = true;
+  const registration = await serviceRegistration;
+  const worker = registration?.active || registration?.waiting || registration?.installing;
+  if (!worker) {
+    prepareOffline.disabled = false;
+    status.textContent = 'Service Worker indisponível neste contexto.';
+    return;
+  }
+  const id = crypto.randomUUID?.() || String(Date.now());
+  prepareOffline.dataset.job = id;
+  status.textContent = 'Iniciando preparação offline…';
+  worker.postMessage({type:'OA_OFFLINE_PREPARE',id});
+});
