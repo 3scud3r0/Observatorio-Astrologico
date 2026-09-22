@@ -51,6 +51,7 @@ jobs:
           node --check .site-src/timeline-ui.js
           node .site-src/timeline-core.test.js
           node --check .site-src/guided-study.js
+          node --check .site-src/study-missions.js
           node --check .site-src/offline-client.js
           node --check .site-src/swiss-scan-ui.js
           node --input-type=module --check < .site-src/swiss-scan-worker.js
@@ -123,6 +124,8 @@ jobs:
           cp .site-src/research-vault-ui.js _site/research-vault-ui.js
           cat .site-src/timeline.html >> _site/app.html
           cat .site-src/guided-study.html >> _site/app.html
+          cat .site-src/study-missions.html >> _site/app.html
+          cp .site-src/study-missions.js _site/study-missions.js
           cat .site-src/offline.html >> _site/app.html
           cat .site-src/swiss-scan.html >> _site/app.html
           cp .site-src/swiss-scan-ui.js _site/swiss-scan-ui.js
@@ -192,6 +195,7 @@ jobs:
               './timeline-core.js',
               './timeline-ui.js',
               './guided-study.js',
+              './study-missions.js',
               './offline-client.js',
               './swiss-scan-ui.js',
               './manifest.webmanifest',
