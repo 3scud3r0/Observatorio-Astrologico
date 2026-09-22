@@ -21,13 +21,15 @@ for name, metadata in checks["assets"].items():
     assert hashlib.sha256(path.read_bytes()).hexdigest() == metadata["sha256"], name
 
 html = (site / "index.html").read_text("utf-8")
+app = (site / "app.html").read_text("utf-8")
+assert './app.html' in html
+assert './manifest.webmanifest' in html
 for reference in (
-    './manifest.webmanifest',
     './research-vault.js',
     './research-vault-ui.js',
     './offline-client.js',
 ):
-    assert reference in html, reference
+    assert reference in app, reference
 for name in ("service-worker.js", "research-vault.js", "research-vault-ui.js"):
     assert (site / name).is_file(), name
 
@@ -51,10 +53,14 @@ assert "grant select, insert, delete" in sql
 assert "grant select, insert, update" not in sql
 
 metrics=json.loads((site/"build-metrics.json").read_text("utf-8"))
-assert metrics["schema"]=="oa-build-metrics/v1"
+assert metrics["schema"]=="oa-build-metrics/v2"
 initial=(site/"index.html").read_bytes()
 assert metrics["initialHtml"]["bytes"]==len(initial)
 assert metrics["initialHtml"]["gzipBytes"]==len(gzip.compress(initial,compresslevel=9))
 assert metrics["initialHtmlTargetMet"]==(len(initial)<metrics["initialHtmlTargetBytes"])
+assert metrics["initialHtmlTargetMet"] is True
+legacy=(site/"app.html").read_bytes()
+assert metrics["lazyLegacyHtml"]["bytes"]==len(legacy)
+assert metrics["lazyLegacyLoadedInitially"] is False
 assert "swiss/swisseph.wasm" in metrics["assets"]
 print("Release contracts: PWA assets, SHA-256 ephemerides, gzip metrics and encrypted vault SQL OK")
