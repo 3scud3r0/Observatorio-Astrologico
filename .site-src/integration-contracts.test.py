@@ -38,6 +38,9 @@ assert "'./ephemeris-provenance.json'" in worker
 assert "'./swiss-scan-worker.js'" in worker
 assert "crypto.subtle.digest('SHA-256'" in worker, "Check checksums before declaring offline readiness"
 assert "SHA-256 divergiu do manifesto" in worker
+assert "'oa-data-payload/v1'" in worker
+assert "payloadManifest.files[assetName]" in worker
+assert "const path=url.pathname;" in worker, "Offline iframe and shell require independent keys"
 assert "'./atlas-auth.json'" not in worker, "Auth configuration must not be precached"
 assert "request.method!=='GET'" in worker, "Never cache mutation responses"
 assert "url.origin!==self.location.origin" in worker, "Never cache external requests"
