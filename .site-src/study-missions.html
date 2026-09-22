@@ -1,0 +1,29 @@
+<!-- Guided study missions: highlights calculated points without altering the chart engine. -->
+<style>
+#oa-missions{position:fixed;left:14px;top:76px;z-index:2147483639;font:14px/1.45 system-ui;color:#eef7ff}
+#oa-missions *{box-sizing:border-box}
+#oa-m-open,#oa-m-panel button{background:#173f68;color:white;border:1px solid #83cee9;border-radius:8px;padding:8px 11px;cursor:pointer}
+#oa-m-panel{width:min(480px,calc(100vw - 28px));max-height:76vh;overflow:auto;background:#091e35;border:1px solid #47799e;border-radius:14px;padding:15px;box-shadow:0 22px 65px #000a}
+#oa-m-panel h2{margin:4px 0;color:#ffdb9c}
+#oa-m-panel .oa-m-buttons{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+#oa-m-panel button[aria-pressed=true]{background:#9bdff0;color:#071425}
+#oa-m-wheel{display:block;width:100%;max-height:320px;background:#071425;border-radius:12px}
+#oa-m-output{display:block;white-space:pre-wrap;background:#061527;padding:10px;border-radius:9px}
+@media(max-width:650px){#oa-missions{position:static;margin:12px}}
+</style>
+<section id="oa-missions" aria-label="Missões de estudo do mapa">
+ <button id="oa-m-open" type="button" aria-expanded="false" aria-controls="oa-m-panel">Missões de estudo</button>
+ <div id="oa-m-panel" hidden>
+  <div class="oa-m-buttons"><h2>Ilumine uma parte do mapa</h2><button id="oa-m-close" type="button">Fechar</button></div>
+  <p>Cada missão destaca uma coordenada que já foi calculada pelo mapa. Não muda fórmulas nem inventa casas quando o horário é insuficiente.</p>
+  <div class="oa-m-buttons" role="group" aria-label="Escolher missão">
+   <button data-mission="sun" type="button" aria-pressed="false">1 · Sol</button>
+   <button data-mission="moon" type="button" aria-pressed="false">2 · Lua</button>
+   <button data-mission="asc" type="button" aria-pressed="false">3 · Casa 1 / ASC</button>
+   <button data-mission="mc" type="button" aria-pressed="false">4 · Casa 10 / MC</button>
+  </div>
+  <svg id="oa-m-wheel" viewBox="-120 -120 240 240" role="img" aria-label="Roda de estudo com o ponto da missão destacado"></svg>
+  <output id="oa-m-output" aria-live="polite">Calcule um mapa e escolha uma missão.</output>
+ </div>
+</section>
+<script src="./study-missions.js"></script>
