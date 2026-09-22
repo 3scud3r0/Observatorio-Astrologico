@@ -90,13 +90,29 @@ self.addEventListener('message',event=>{
     if(manifest.schema!=='oa-asset-provenance/v1'||!manifest.assets)
       throw Error('Manifesto de efemérides inválido.');
     await cache.put(provenancePath,manifestResponse);
+    const payloadPath=new URL('./payload-manifest.json',self.registration.scope).pathname;
+    let payloadResponse;
+    try{
+      payloadResponse=await fetch(new URL(payloadPath,self.location.origin),{cache:'reload'});
+    }catch{
+      payloadResponse=await cache.match(payloadPath);
+    }
+    if(!payloadResponse?.ok)throw Error('Manifesto dos arquivos externos indisponível.');
+    const payloadManifest=await payloadResponse.clone().json();
+    if(payloadManifest.schema!=='oa-data-payload/v1'||!payloadManifest.files||
+       !['base-data.js','city-data.js','pdf-font.js'].every(name=>
+         typeof payloadManifest.files[name]?.sha256==='string'&&
+         Number.isFinite(payloadManifest.files[name]?.bytes)))
+      throw Error('Manifesto dos arquivos externos inválido.');
+    await cache.put(payloadPath,payloadResponse);
     const checksum=async response=>{
       const sum=await crypto.subtle.digest('SHA-256',await response.arrayBuffer());
       return [...new Uint8Array(sum)].map(v=>v.toString(16).padStart(2,'0')).join('');
     };
     for(const path of allowed){
       try{
-        const asset=manifest.assets[path.slice(rootPath.length)];
+        const assetName=path.slice(rootPath.length);
+        const asset=manifest.assets[assetName]||payloadManifest.files[assetName];
         let existing=await cache.match(path);
         if(asset&&existing&&(await checksum(existing.clone()))!==asset.sha256){
           await cache.delete(path);
