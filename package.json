@@ -2,7 +2,6 @@
   "name": "observatorio-astrologico-shell",
   "private": true,
   "version": "2.0.0",
-  "type": "module",
   "scripts": {
     "build": "vite build",
     "typecheck": "tsc --noEmit"
