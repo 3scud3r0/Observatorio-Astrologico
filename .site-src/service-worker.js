@@ -8,7 +8,7 @@ const STATIC=[
   './','./index.html','./app.html',
   './swiss/swisseph-browser.js','./swiss/swisseph.js','./swiss/swisseph.wasm',
   './swiss/ephe/sepl_18.se1','./swiss/ephe/semo_18.se1','./swiss/ephe/seas_18.se1',
-  './traditional-engine.js','./research-core.js','./research-lab.js',
+  './zodiac-mode.js','./traditional-engine.js','./research-core.js','./research-lab.js',
   './research-vault.js','./research-vault-ui.js',
   './swiss-scan-ui.js','./swiss-scan-worker.js',
   './timeline-core.js','./timeline-ui.js','./didactic-boundary.js','./guided-study.js','./study-missions.js',
