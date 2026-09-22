@@ -74,7 +74,8 @@ def extract(page: Path, output: Path) -> dict:
         body = match.group("body")
         if kind in JS_TYPES:
             js_count += 1
-            filename = f"legacy-inline-{js_count:03d}.js"
+            suffix = ".mjs" if kind == "module" else ".js"
+            filename = f"legacy-inline-{js_count:03d}{suffix}"
             store(filename, body + "\n")
             replacements += 1
             # Only add a local src; do not rewrite type, id, data-* or execution order.
