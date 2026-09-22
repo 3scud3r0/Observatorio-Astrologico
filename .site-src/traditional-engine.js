@@ -265,6 +265,39 @@
   }
   function eclipticToRA(lon,lat=0,obliquity=23.4392911){return eclipticToEquatorial(lon,lat,obliquity).ra}
 
+  function raToEclipticLongitude(ra,obliquity=23.4392911){
+    const r=Math.PI/180,A=mod(ra)*r,e=Number(obliquity)*r;
+    return mod(Math.atan2(Math.sin(A)/Math.cos(e),Math.cos(A))/r);
+  }
+
+  function progressedAngles({asc,mc,birthJD,refJD,sunLongitude,mode='solar-arc',obliquity=23.4392911}={}){
+    if(!Number.isFinite(Number(asc))||!Number.isFinite(Number(mc)))
+      throw new Error('Ascendente e MC natais são obrigatórios.');
+    if(typeof sunLongitude!=='function')throw new Error('Função de longitude solar é obrigatória.');
+    const solar=trueSolarArc(Number(birthJD),Number(refJD),sunLongitude);
+    if(mode==='solar-arc'){
+      return {
+        mode,arc:solar.arc,age:solar.age,
+        asc:mod(Number(asc)+solar.arc),mc:mod(Number(mc)+solar.arc),
+        convention:'Arco solar verdadeiro eclíptico: soma-se ao ASC e MC natais a diferença entre Sol secundariamente progredido e Sol natal.'
+      };
+    }
+    if(mode==='right-ascension'){
+      const natalSunRA=eclipticToRA(solar.natalSun,0,obliquity);
+      const progressedSunRA=eclipticToRA(solar.progressedSun,0,obliquity);
+      const arc=mod(progressedSunRA-natalSunRA);
+      const ascRA=mod(eclipticToRA(Number(asc),0,obliquity)+arc);
+      const mcRA=mod(eclipticToRA(Number(mc),0,obliquity)+arc);
+      return {
+        mode,arc,age:solar.age,asc:raToEclipticLongitude(ascRA,obliquity),
+        mc:raToEclipticLongitude(mcRA,obliquity),
+        natalSunRA,progressedSunRA,ascRA,mcRA,
+        convention:'Arco em ascensão reta: converte-se o deslocamento do Sol secundariamente progredido para AR, soma-se às AR natais dos ângulos e reconverte-se para longitude eclíptica com latitude zero.'
+      };
+    }
+    throw new Error('Modo de progressão dos ângulos inválido.');
+  }
+
   function zodiacalPrimaryDirection(promissorLon,significatorLon,{key=0.98564736,converse=false,obliquity=23.4392911}={}){
     const pRA=eclipticToRA(promissorLon,0,obliquity),sRA=eclipticToRA(significatorLon,0,obliquity);
     const arc=converse?mod(sRA-pRA):mod(pRA-sRA);
@@ -421,7 +454,7 @@
   return {
     DAY,TROPICAL_YEAR,SIGN_NAMES,SIGN_RULERS,ZR_YEARS,CHALDEAN,FIRDAR_DAY,FIRDAR_NIGHT,FIRDAR_YEARS,FIXED_STARS,
     mod,parseLongitude,sep,signed,signIndex,signDegree,jdFromDate,isoFromJD,ageYears,civilAnniversaryJD,completedCivilYears,trueSolarArc,annualProfection,monthlyProfection,firdaria,hermeticLots,sevenHermeticLots,
-    zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,essentialDignity,eclipticToEquatorial,eclipticToRA,zodiacalPrimaryDirection,semiArcs,isAboveHorizonRA,placidianSemiArcDirection,prenatalSyzygy,
+    zrDurationDays,zodiacalReleasing,midpoint,harmonic,antiscia,essentialDignity,eclipticToEquatorial,eclipticToRA,raToEclipticLongitude,progressedAngles,zodiacalPrimaryDirection,semiArcs,isAboveHorizonRA,placidianSemiArcDirection,prenatalSyzygy,
     mutualReceptions,fixedStarConjunctions,findPlanetReturn,findAspectsToTarget,findStations,findIngresses
   };
 });
