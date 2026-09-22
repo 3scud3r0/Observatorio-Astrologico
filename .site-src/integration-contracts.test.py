@@ -66,7 +66,20 @@ assert metrics["catalogData"]["bytes"]==len(catalog)
 catalog_obj=json.loads(catalog.decode("utf-8"))
 assert len(catalog_obj["facts"])>=1000 and isinstance(catalog_obj["entities"],dict)
 assert '"facts":[]' in app, "embedded catalog placeholder should be empty after extraction"
-assert len(app.encode("utf-8"))<5_000_000, "lazy app HTML should stay modular after catalog extraction"
+payload=json.loads((site/"payload-manifest.json").read_text("utf-8"))
+assert payload["schema"]=="oa-data-payload/v1"
+assert set(payload["files"])=={"base-data.js","city-data.js","pdf-font.js"}
+for name, metadata in payload["files"].items():
+    binary=(site/name).read_bytes()
+    assert metadata["bytes"]==len(binary), name
+    assert metadata["sha256"]==hashlib.sha256(binary).hexdigest(), name
+    assert metrics["externalPayloads"][name]["bytes"]==len(binary), name
+    assert f'<script src="./{name}"></script>' in app, name
+assert "window.OBS_BASE=" in (site/"base-data.js").read_text("utf-8")
+assert "const CITY_DATA=" in (site/"city-data.js").read_text("utf-8")
+assert "const PDF_FONT=" in (site/"pdf-font.js").read_text("utf-8")
+assert "const PDF_FONT=" not in app, "PDF font must not be embedded in HTML"
+assert len(legacy)<5_000_000, "lazy app HTML should stay modular after externalizing heavy data"
 assert metrics["lazyLegacyLoadedInitially"] is False
 assert "swiss/swisseph.wasm" in metrics["assets"]
 print("Release contracts: PWA assets, SHA-256 ephemerides, gzip metrics and encrypted vault SQL OK")
