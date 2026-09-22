@@ -22,6 +22,9 @@ view.innerHTML=`
       <label>Referência<input id="tt-ref-date" type="date"></label><label>Hora de referência UTC<input id="tt-ref-time" type="time" step="1" value="12:00:00"></label>
       <label>Seita<select id="tt-sect"><option value="day">Diurna</option><option value="night">Noturna</option></select></label>
       <label>Longitude natal a dirigir (°)<input id="tt-directed-lon" type="number" min="0" max="360" step="0.000001" value="0"></label>
+      <label>ASC natal para progressão (°)<input id="tt-prog-asc" type="number" min="0" max="360" step="0.000001"></label>
+      <label>MC natal para progressão (°)<input id="tt-prog-mc" type="number" min="0" max="360" step="0.000001"></label>
+      <label>Convenção dos ângulos<select id="tt-prog-mode"><option value="solar-arc">Arco solar verdadeiro eclíptico</option><option value="right-ascension">Arco do Sol em ascensão reta</option></select></label>
       <label>Signo inicial da profecção<select id="tt-prof-sign"></select></label><label>Casa inicial<input id="tt-prof-house" type="number" min="1" max="12" value="1"></label>
     </div>
     <div class="tt-note">True Solar Arc: o Sol é progredido continuamente por dia-por-ano tropical; a fração da idade não é descartada. Firdaria usa períodos maiores tradicionais e sete subperíodos iguais iniciando no próprio regente maior. Profeção anual avança uma casa/signo por ano completo.</div>
@@ -141,7 +144,7 @@ q('#tt-use-map').onclick=()=>{
   q('#tt-birth-time').value=f('precision')?.value==='desconhecida'?'':natalTime.length===5?natalTime+':00':natalTime;
   if(f('utc')?.value!=='')q('#tt-birth-offset').value=f('utc').value;
   const ps=currentPoints(); if(ps.length){q('#tt-sun').value=ps[0].lon;q('#tt-moon').value=ps[1].lon;q('#tt-directed-lon').value=ps[0].lon;q('#tt-star-lon').value=ps[0].lon;q('#tt-points').value=pointsText();q('#tt-prom').value=ps[6]?.lon??ps[0].lon;q('#tt-sig').value=ps[0].lon}
-  if(window.currentHouseGeometry){q('#tt-asc').value=window.currentHouseGeometry.asc;q('#tt-prof-sign').value=E().signIndex(window.currentHouseGeometry.asc)}
+  if(window.currentHouseGeometry){q('#tt-asc').value=window.currentHouseGeometry.asc;q('#tt-prog-asc').value=window.currentHouseGeometry.asc;q('#tt-prog-mc').value=window.currentHouseGeometry.mc;q('#tt-prof-sign').value=E().signIndex(window.currentHouseGeometry.asc)}
   q('#tt-sect').value=inferSect();
   if(ps.length&&window.currentHouseGeometry){const lots=E().hermeticLots(window.currentHouseGeometry.asc,ps[0].lon,ps[1].lon,q('#tt-sect').value);q('#tt-fortune').value=lots.fortune;q('#tt-spirit').value=lots.spirit}
 };
@@ -154,13 +157,19 @@ async function timing(){
   const monthly=eng.monthlyProfection(b,r,Number(q('#tt-prof-sign').value),Number(q('#tt-prof-house').value));
   const fir=eng.firdaria(b,r,sect);
   const syz=eng.prenatalSyzygy(b,window.calc);
+  const asc=readLongitude('#tt-prog-asc','ASC natal',true),mc=readLongitude('#tt-prog-mc','MC natal',true);
+  if((asc===null)!==(mc===null))throw Error('Informe ASC e MC juntos para progressão dos ângulos.');
+  const angles=asc===null?null:eng.progressedAngles({asc,mc,birthJD:b,refJD:r,
+    sunLongitude:jd=>window.calc(jd,0).lon,mode:q('#tt-prog-mode').value});
   q('#tt-timing-out').innerHTML=
     '<span class="tt-chip"><b>Idade:</b> '+arc.age.toFixed(6)+' anos tropicais</span>'+
     '<span class="tt-chip"><b>True Solar Arc:</b> '+arc.arc.toFixed(6)+'°</span>'+
     '<p><b>Sol natal:</b> '+fmtLon(arc.natalSun)+'<br><b>Sol secundariamente progredido:</b> '+fmtLon(arc.progressedSun)+' · '+fmtJD(arc.progressedJD)+'<br><b>Longitude dirigida:</b> '+fmtLon(directed)+'</p>'+
     '<p><b>Profeção anual:</b> casa '+prof.house+' · '+prof.signName+' · Senhor do Ano: '+prof.lord+'<br>'+fmtJD(prof.startJD)+' → '+fmtJD(prof.endJD)+'<br><b>Profeção mensal:</b> casa '+monthly.house+' · '+monthly.signName+' · Senhor: '+monthly.lord+'<br>'+fmtJD(monthly.startJD)+' → '+fmtJD(monthly.endJD)+'</p>'+
     '<p><b>Firdaria:</b> '+fir.major.lord+(fir.sub?' / '+fir.sub.lord:'')+'<br>Maior: '+fmtJD(fir.major.startJD)+' → '+fmtJD(fir.major.endJD)+(fir.sub?'<br>Subperíodo: '+fmtJD(fir.sub.startJD)+' → '+fmtJD(fir.sub.endJD):'<br>Período nodal sem subdivisão planetária nesta convenção.')+'</p>'+
-    '<p><b>Sizígia pré-natal:</b> '+syz.type+' · '+fmtJD(syz.jd)+'<br>Sol '+fmtLon(syz.sunLon)+' · Lua '+fmtLon(syz.moonLon)+' · erro de fase '+syz.phaseError.toExponential(2)+'°</p>';
+    '<p><b>Sizígia pré-natal:</b> '+syz.type+' · '+fmtJD(syz.jd)+'<br>Sol '+fmtLon(syz.sunLon)+' · Lua '+fmtLon(syz.moonLon)+' · erro de fase '+syz.phaseError.toExponential(2)+'°</p>'+
+    (angles?'<p><b>ASC/MC progredidos:</b> '+fmtLon(angles.asc)+' / '+fmtLon(angles.mc)+
+      '<br><b>Arco aplicado:</b> '+angles.arc.toFixed(6)+'°<br><small>'+esc(angles.convention)+'</small></p>':'');
 }
 q('#tt-run-all').onclick=()=>timing().catch(e=>q('#tt-timing-out').textContent=e.message);
 
