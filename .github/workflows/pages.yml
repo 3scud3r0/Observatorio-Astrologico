@@ -69,8 +69,9 @@ jobs:
           node --check .site-src/swiss-scan-ui.js
           node --input-type=module --check < .site-src/swiss-scan-worker.js
           node --check .site-src/service-worker.js
-          python -m py_compile .site-src/asset-provenance.py .site-src/build-metrics.py .site-src/atlas-release.py .site-src/catalog-extract.py .site-src/payload-extract.py
+          python -m py_compile .site-src/asset-provenance.py .site-src/build-metrics.py .site-src/atlas-release.py .site-src/catalog-extract.py .site-src/payload-extract.py .site-src/legacy-code-extract.py
           python .site-src/payload-extract.test.py
+          python .site-src/legacy-code-extract.test.py
           python .site-src/atlas-release.test.py
           python .site-src/supply-chain.test.py
           python .site-src/ui-contracts.test.py
@@ -202,6 +203,14 @@ jobs:
           test "$(stat -c%s _site/swiss/ephe/semo_18.se1)" -gt 500000
           test "$(stat -c%s _site/swiss/ephe/seas_18.se1)" -gt 100000
           python .site-src/asset-provenance.py
+          # Preserve the exact classic-script ordering and layout while moving code
+          # and inert JSON out of the initial HTML. Atlas inherits the same assets.
+          python .site-src/legacy-code-extract.py _site/app.html _site
+          for code in _site/legacy-inline-*.js _site/legacy-inline-*.mjs _site/legacy-json-*.js; do
+            test -f "$code" || continue
+            node --check "$code"
+          done
+          test "$(stat -c%s _site/app.html)" -lt 500000
 
           # The original Observatório is the default; the immersive Atlas is opt-in.
           # Assemble the Atlas from the exact same tested application and public assets.
