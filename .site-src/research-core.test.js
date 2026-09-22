@@ -25,6 +25,8 @@ const base={
   );
   assert.equal(E.protocol({...base,baselineRate:0}).baselineRate,0);
   assert.equal(E.protocol({...base,baselineRate:1}).baselineRate,1);
+  assert.equal(E.protocol({...base,closureMode:'first-confirming-event'}).closureMode,'first-confirming-event');
+  assert.throws(()=>E.protocol({...base,closureMode:'volume-end'}),/encerramento/);
   assert.equal(Object.hasOwn(E.protocol(base),'baselineRate'),false,'legacy v1 hash layout unchanged');
   assert.throws(()=>E.protocol({...base,baselineRate:-0.01}),/Taxa-base/);
   assert.throws(()=>E.protocol({...base,baselineRate:1.01}),/Taxa-base/);
