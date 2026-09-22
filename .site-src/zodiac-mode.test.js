@@ -1,0 +1,16 @@
+'use strict';
+const assert=require('node:assert/strict');
+const Z=require('./zodiac-mode.js');
+assert.equal(Z.normalize({mode:'tropical'}).label,'Tropical');
+assert.equal(Z.normalize({mode:'sidereal',ayanamsha:'lahiri'}).ayanamshaId,1);
+assert.equal(Z.normalize({mode:'sidereal',ayanamsha:'krishnamurti'}).ayanamshaId,5);
+assert.equal(Z.flags(2|256,{mode:'sidereal',ayanamsha:'lahiri'}),(2|256|65536));
+assert.equal(Z.flags(2|256,{mode:'tropical'}),(2|256));
+const h=Z.rotateHouses({ascendant:100,mc:10,cusps:[0,100,130,160,190,220,250,280,310,340,10,40,70]},24);
+assert.equal(h.ascendant,76);assert.equal(h.mc,346);
+assert.equal(h.cusps[1],76);assert.equal(h.cusps[10],346);
+assert.match(h.siderealHouseConvention,/rotacionadas/);
+assert.match(Z.label({mode:'sidereal',ayanamsha:'lahiri'},24.1234567),/24.123457/);
+assert.throws(()=>Z.normalize({mode:'sidereal',ayanamsha:'invented'}),/Ayanamsha/);
+assert.throws(()=>Z.normalize({mode:'galactic'}),/Modo/);
+console.log('Zodiac mode tests: OK (flags, ayanamsha, rotated house convention)');
