@@ -98,13 +98,13 @@ connect();
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id), day=86400000;
-const controls=document.createElement('div');controls.id='atlasVolumes';controls.hidden=true;controls.innerHTML='<b>Volumes da consulta</b><p id="atlasVolumeStatus" role="status"></p><label>Consultar volume concluído<select id="atlasVolumeSelect"></select></label><p>O período inteiro é processado em sequência. Janelas que atravessam volumes aparecem cortadas nos limites de cada volume. O PDF e o JSON correspondem ao volume selecionado.</p><button type="button" id="atlasCancel">Cancelar processamento</button>';
+const controls=document.createElement('div');controls.id='atlasVolumes';controls.hidden=true;controls.innerHTML='<b>Volumes da consulta</b><p id="atlasVolumeStatus" role="status"></p><label>Consultar volume concluído<select id="atlasVolumeSelect"></select></label><p>A visualização e o PDF correspondem ao volume selecionado. Para reunir oportunidades atravessando fronteiras, use a consolidação de janelas em JSON (grade real de 6 horas).</p><button type="button" id="atlasCancel">Cancelar processamento</button> <button type="button" id="atlasMerge">Consolidar janelas dos volumes</button> <button type="button" id="atlasMergedExport" hidden>Exportar janelas consolidadas JSON</button><output id="atlasMergedStatus" aria-live="polite"></output>';
 $('analise').prepend(controls);
 const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar consulta';cancel.hidden=true;$('gRun').after(cancel);cancel.onclick=$('atlasCancel').onclick=()=>{window.atlasScanCancelled=true};
 const dbPromise=new Promise((resolve,reject)=>{const req=indexedDB.open('observatorio-atlas-volumes',1);req.onupgradeneeded=()=>{req.result.createObjectStore('volumes',{keyPath:'key'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
 dbPromise.catch(()=>{});
 async function record(mode,value){const db=await dbPromise;return new Promise((resolve,reject)=>{const tx=db.transaction('volumes',mode==='get'?'readonly':'readwrite'),store=tx.objectStore('volumes');const req=mode==='get'?store.get(value):store.put(value);let result;req.onsuccess=()=>{result=req.result};tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Armazenamento interrompido'))})}
-let job=null, busy=false;
+let job=null, busy=false, mergedReport=null;
 const plusDays=(date,n)=>new Date(Date.parse(date+'T00:00:00Z')+n*day).toISOString().slice(0,10);
 async function inputFingerprint(data){
  const engine=window.OAAtlasResume;
@@ -116,6 +116,31 @@ function selectOptions(){const s=$('atlasVolumeSelect');s.replaceChildren();for(
 async function showVolume(index){const item=await record('get',job.id+':'+index);if(!item)throw Error('Volume não encontrado neste navegador.');guideLast=item.report;guideRender(guideLast);$('analise').prepend(controls);$('atlasVolumeSelect').value=String(index);}
 $('atlasVolumeSelect').onchange=()=>showVolume(+$('atlasVolumeSelect').value).catch(e=>tell(e.message));
 const reopen=document.createElement('button');reopen.type='button';reopen.textContent='Abrir volume selecionado';reopen.onclick=()=>showVolume(+$('atlasVolumeSelect').value).catch(e=>tell(e.message));controls.append(reopen);
+async function mergeSavedVolumes(){
+ if(!job?.completed)throw Error('Nenhum volume concluído nesta consulta.');
+ const reports=[];
+ for(let index=0;index<job.completed;index++){
+  const saved=await record('get',job.id+':'+index);
+  if(!saved?.report)throw Error('Volume '+(index+1)+' ausente; a consolidação foi recusada.');
+  reports.push(saved.report);
+ }
+ mergedReport=window.OAAtlasResume.mergeVolumes(reports);
+ $('atlasMergedExport').hidden=false;
+ $('atlasMergedStatus').textContent='Janelas consolidadas: '+mergedReport.contacts.length+
+  ' · fronteiras reunidas: '+mergedReport.boundaryJoins+
+  ' · volumes: '+mergedReport.completedVolumes+'/'+mergedReport.totalVolumes+
+  (mergedReport.complete?' · consulta completa.':' · consulta parcial.')+
+  '\\n'+mergedReport.limitation;
+}
+$('atlasMerge').onclick=()=>mergeSavedVolumes().catch(e=>{$('atlasMergedStatus').textContent=e.message});
+$('atlasMergedExport').onclick=()=>{
+ if(!mergedReport)return;
+ const blob=new Blob([JSON.stringify(mergedReport,null,2)],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download='observatorio-atlas-janelas-consolidadas.json';
+ document.body.append(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
 try{job=JSON.parse(localStorage.getItem('atlas-last-consultation'));if(job&&job.completed){selectOptions();$('atlasVolumeStatus').textContent=job.completed+' volume(s) disponíveis da última consulta. Selecione um volume para abrir.'}}catch{}
 $('guideForm').onsubmit=async event=>{
  event.preventDefault();if(busy)return;
@@ -125,6 +150,7 @@ $('guideForm').onsubmit=async event=>{
  busy=true;window.atlasScanCancelled=false;$('gRun').disabled=true;cancel.hidden=false;
  const previous=job,total=Math.ceil((Date.parse(data.v.gEnd)-Date.parse(data.v.gStart)+day)/(90*day));
  job={id:crypto.randomUUID(),start:data.v.gStart,end:data.v.gEnd,completed:0,total,fingerprint};
+ mergedReport=null;$('atlasMergedExport').hidden=true;$('atlasMergedStatus').textContent='';
  try{
   const restored=await window.OAAtlasResume.recover(previous,{
     fingerprint,start:data.v.gStart,end:data.v.gEnd,total,
