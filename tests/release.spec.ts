@@ -86,7 +86,8 @@ test('Swiss tropical and named sidereal frames produce distinct reproducible coo
   test.skip(browserName!=='chromium','Verify the Swiss zodiac frame in Chromium.');
   await page.goto('/');
   const app=page;
-  await expect(app.locator('#swissEngineState')).toContainText(/Swiss Ephemeris pronto|WASM pronto/,{timeout:40_000});
+  await expect.poll(()=>app.evaluate(()=>(window as unknown as {obsSwiss?:{ready?:boolean}}).obsSwiss?.ready===true),{timeout:90_000}).toBe(true);
+  await expect(app.locator('#swissEngineState')).toContainText(/Swiss Ephemeris pronto|WASM pronto · Moshier ativo/);
   const values=await app.locator('body').evaluate(() => {
     const w=window as unknown as {
       calc:(jd:number,body:number)=>{lon:number;engine:string;flags:number;ayanamsha:number|null};
@@ -110,7 +111,7 @@ test('Swiss tropical and named sidereal frames produce distinct reproducible coo
         hasZodiac:Boolean((window as unknown as {OAZodiacMode?:unknown}).OAZodiacMode)
       }};
   });
-  console.log('SWISS_ZODIAC_DIAGNOSTIC '+JSON.stringify(values));
+  console.log('Swiss zodiac after final WASM initialization: '+JSON.stringify(values.debug));
   expect(values.tropical.engine).toBe('Swiss Ephemeris/WASM');
   expect(values.sidereal.engine).toBe('Swiss Ephemeris/WASM');
   expect(values.sidereal.flags & 65536).toBeTruthy();
