@@ -22,8 +22,10 @@ for name, metadata in checks["assets"].items():
 
 html = (site / "index.html").read_text("utf-8")
 app = (site / "app.html").read_text("utf-8")
-assert './app.html' in html
-assert './manifest.webmanifest' in html
+entry = (site / "entrada.html").read_text("utf-8")
+assert html == app, "Public URL must show the original Observatório"
+assert 'id="mapform"' in html and 'id="mapa"' in html
+assert './app.html' in entry and './manifest.webmanifest' in entry
 for reference in (
     './research-vault.js',
     './research-vault-ui.js',
@@ -56,12 +58,16 @@ assert "grant select, insert, delete" in sql
 assert "grant select, insert, update" not in sql
 
 metrics=json.loads((site/"build-metrics.json").read_text("utf-8"))
-assert metrics["schema"]=="oa-build-metrics/v2"
+assert metrics["schema"]=="oa-build-metrics/v3"
 initial=(site/"index.html").read_bytes()
 assert metrics["initialHtml"]["bytes"]==len(initial)
 assert metrics["initialHtml"]["gzipBytes"]==len(gzip.compress(initial,compresslevel=9))
 assert metrics["initialHtmlTargetMet"]==(len(initial)<metrics["initialHtmlTargetBytes"])
-assert metrics["initialHtmlTargetMet"] is True
+assert metrics["originalHomeRestored"] is True
+assert metrics["initialHtmlTargetMet"] is False, "Do not represent the restored original homepage as under 500 KB"
+modular=(site/"entrada.html").read_bytes()
+assert metrics["optionalModularEntry"]["bytes"]==len(modular)
+assert metrics["optionalModularEntryTargetMet"] is True
 legacy=(site/"app.html").read_bytes()
 assert metrics["lazyLegacyHtml"]["bytes"]==len(legacy)
 catalog=(site/"catalog-data.json").read_bytes()
@@ -83,6 +89,6 @@ assert "const CITY_DATA=" in (site/"city-data.js").read_text("utf-8")
 assert "const PDF_FONT=" in (site/"pdf-font.js").read_text("utf-8")
 assert "const PDF_FONT=" not in app, "PDF font must not be embedded in HTML"
 assert len(legacy)<5_000_000, "lazy app HTML should stay modular after externalizing heavy data"
-assert metrics["lazyLegacyLoadedInitially"] is False
+assert metrics["lazyLegacyLoadedInitially"] is True
 assert "swiss/swisseph.wasm" in metrics["assets"]
 print("Release contracts: PWA assets, SHA-256 ephemerides, gzip metrics and encrypted vault SQL OK")
