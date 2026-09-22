@@ -72,6 +72,10 @@ test('retrospective rectification uses the real Swiss engine and discloses the o
   await page.goto('/');
   await page.getByRole('button',{name:'Começar'}).click();
   const app=page.frameLocator('#appFrame');
+  for(const root of ['oa-research','oa-vault','oa-biwheel','oa-clock','oa-guide',
+    'oa-missions','oa-ref','oa-offline','oa-scan','oa-rect']){
+    await expect(app.locator('#'+root)).toBeVisible({timeout:30_000});
+  }
   await expect(app.locator('#oa-rect-open')).toBeVisible({timeout:30_000});
   await app.locator('#oa-rect-open').click();
   await expect(app.locator('#oa-rect-panel')).toBeVisible();
