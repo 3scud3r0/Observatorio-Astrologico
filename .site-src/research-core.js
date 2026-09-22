@@ -53,6 +53,11 @@
     // Added only when supplied: existing sealed v1 hashes remain byte-for-byte verifiable.
     if(input.baselineRate!==undefined&&input.baselineRate!==null&&input.baselineRate!=='')
       result.baselineRate=finite(input.baselineRate,'Taxa-base',0,1);
+    if(input.closureMode!==undefined){
+      if(!['fixed-date','first-confirming-event'].includes(input.closureMode))
+        throw Error('Modo de encerramento inválido.');
+      result.closureMode=input.closureMode;
+    }
     return result;
   }
   function canonical(record){
