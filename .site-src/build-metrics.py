@@ -16,16 +16,22 @@ def measure(path):
 def report():
     html=SITE/"index.html"
     legacy=SITE/"app.html"
+    entry=SITE/"entrada.html"
+    if html.read_bytes()!=legacy.read_bytes():
+        raise SystemExit("The main URL must render the original Observatório.")
     result={
-        "schema":"oa-build-metrics/v2",
+        "schema":"oa-build-metrics/v3",
         "commit":os.getenv("GITHUB_SHA","local-build"),
         "initialHtmlTargetBytes":TARGET,
         "initialHtml":measure(html),
         "initialHtmlTargetMet":html.stat().st_size<TARGET,
+        "optionalModularEntry":measure(entry),
+        "optionalModularEntryTargetMet":entry.stat().st_size<TARGET,
+        "originalHomeRestored":True,
         "lazyLegacyHtml":measure(legacy),
         "catalogData":measure(SITE/"catalog-data.json"),
         "externalPayloads":{},
-        "lazyLegacyLoadedInitially":False,
+        "lazyLegacyLoadedInitially":True,
         "assets":{}
     }
     files=(
@@ -50,9 +56,11 @@ if __name__=="__main__":
         json.dumps(result,indent=2,ensure_ascii=False)+"\n",encoding="utf-8"
     )
     initial=result["initialHtml"]
-    print("Initial Vite shell:",initial["bytes"],"bytes; gzip:",
+    print("Restored original homepage:",initial["bytes"],"bytes; gzip:",
           initial["gzipBytes"],"bytes; target:",TARGET,
           "bytes; target met:",result["initialHtmlTargetMet"])
+    print("Optional Vite entry:",result["optionalModularEntry"]["bytes"],"bytes; target met:",
+          result["optionalModularEntryTargetMet"])
     print("External data assets:", {key:value["bytes"] for key,value in result["externalPayloads"].items()})
     print("Lazy legacy app:",result["lazyLegacyHtml"]["bytes"],
           "bytes; gzip:",result["lazyLegacyHtml"]["gzipBytes"],"bytes")
