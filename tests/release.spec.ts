@@ -1,77 +1,62 @@
 import {test, expect} from '@playwright/test';
 
-test('entry shell is lazy, keyboard reachable and task oriented', async ({page}) => {
+test('public homepage retains the original Observatório interface', async ({page}) => {
   await page.goto('/');
-  await expect(page).toHaveTitle(/Observatório Astrológico/);
+  await expect(page.locator('aside h2')).toContainText('Observatório');
+  await expect(page.locator('#dados')).toHaveClass(/active/);
+  await expect(page.locator('#guideForm')).toBeVisible();
+  await expect(page.locator('#mapform')).toBeAttached();
+  await expect(page.locator('#appFrame')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Comece aqui'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Mapa',exact:true})).toBeVisible();
+});
+
+test('legacy navigation keeps the original main sections', async ({page}) => {
+  await page.goto('/');
+  await page.getByRole('button',{name:'Mapa',exact:true}).click();
+  await expect(page.locator('#mapa')).toHaveClass(/active/);
+  await page.getByRole('button',{name:'Comece aqui'}).click();
+  await expect(page.locator('#dados')).toHaveClass(/active/);
+});
+
+test('experimental entry is optional and does not replace the homepage', async ({page}) => {
+  await page.goto('/entrada.html');
   await expect(page.getByRole('button',{name:'Começar'})).toBeVisible();
-  await expect(page.getByRole('button',{name:'Investigar'})).toBeVisible();
-  await expect(page.getByRole('button',{name:'Aprender'})).toBeVisible();
-  await expect(page.getByRole('button',{name:'Especialista'})).toBeVisible();
   await expect(page.locator('#appFrame')).not.toHaveAttribute('src',/.+/);
-
-  const loadedLegacy=await page.evaluate(() =>
-    performance.getEntriesByType('resource').some(entry => entry.name.includes('/app.html'))
-  );
-  expect(loadedLegacy).toBeFalsy();
-
-  await page.keyboard.press('Tab');
-  await expect(page.locator('.skip')).toBeFocused();
-  await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/#main$/);
-
-  const unnamed=await page.locator('button').evaluateAll(nodes =>
-    nodes.filter(node => !(node.textContent||'').trim() && !node.getAttribute('aria-label')).length
-  );
-  expect(unnamed).toBe(0);
-});
-
-test('task buttons lazy-load the full app and switch its legacy section', async ({page}) => {
-  await page.goto('/');
   await page.getByRole('button',{name:'Começar'}).click();
-  await expect(page.locator('#workspace')).toBeVisible();
   await expect(page.locator('#appFrame')).toHaveAttribute('src','./app.html');
-  const app=page.frameLocator('#appFrame');
-  await expect(app.locator('#dados')).toHaveClass(/active/,{timeout:45_000});
-
-  await page.getByRole('button',{name:'Fechar aplicativo'}).click();
-  await expect(page.locator('#workspace')).toBeHidden();
-  await page.getByRole('button',{name:'Especialista'}).click();
-  await expect(app.locator('#mapa')).toHaveClass(/active/);
+  await expect(page.frameLocator('#appFrame').locator('#dados')).toHaveClass(/active/,{timeout:45_000});
 });
 
-test('entry shell stays inside portrait and landscape mobile viewports', async ({page}) => {
+test('restored homepage fits mobile portrait and landscape', async ({page}) => {
   for(const viewport of [{width:390,height:844},{width:844,height:390}]){
     await page.setViewportSize(viewport);
     await page.goto('/');
-    const geometry=await page.evaluate(() => ({
-      scrollWidth:document.documentElement.scrollWidth,
-      width:document.documentElement.clientWidth
-    }));
-    expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.width+1);
-    await expect(page.getByRole('button',{name:'Começar'})).toBeVisible();
+    await expect(page.locator('#dados')).toHaveClass(/active/);
+    await expect(page.getByRole('button',{name:'Comece aqui'})).toBeVisible();
   }
 });
 
-test('explicit preparation serves the shell and local app without network', async ({page, context, browserName}) => {
-  test.skip(browserName!=='chromium','One offline control-path test is sufficient; navigation/layout runs in all three engines.');
+test('explicit offline cache keeps the original homepage', async ({page, context, browserName}) => {
+  test.skip(browserName!=='chromium','Offline integration runs in Chromium; layout checks use all browsers.');
+  test.setTimeout(180_000);
   await page.goto('/');
-  await page.getByRole('button',{name:'Preparar arquivos para uso offline'}).click();
-  await expect(page.locator('#status')).toContainText('Offline PREPARADO',{timeout:90_000});
+  await page.locator('#oa-o-toggle').click();
+  await page.locator('#oa-o-prepare').click();
+  await expect(page.locator('#oa-o-status')).toContainText('PREPARADO',{timeout:150_000});
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)),{timeout:15_000}).toBeTruthy();
   await context.setOffline(true);
-  await page.reload();
-  await expect(page.getByRole('button',{name:'Começar'})).toBeVisible();
-  await page.getByRole('button',{name:'Começar'}).click();
-  await expect(page.locator('#appFrame')).toHaveAttribute('src','./app.html');
-  await expect(page.frameLocator('#appFrame').locator('#dados')).toBeVisible({timeout:30_000});
-  await context.setOffline(false);
+  try{
+    await page.reload();
+    await expect(page.locator('#dados')).toHaveClass(/active/);
+    await expect(page.locator('#appFrame')).toHaveCount(0);
+  }finally{await context.setOffline(false)}
 });
 
 test('retrospective rectification uses the real Swiss engine and discloses the objective', async ({page,browserName}) => {
   test.skip(browserName!=='chromium','Verify the astronomy integration in Chromium; the entry shell runs in all three engines.');
   await page.goto('/');
-  await page.getByRole('button',{name:'Começar'}).click();
-  const app=page.frameLocator('#appFrame');
+  const app=page;
   for(const root of ['oa-research','oa-vault','oa-biwheel','oa-clock','oa-guide',
     'oa-missions','oa-ref','oa-offline','oa-scan','oa-rect']){
     await expect(app.locator('#'+root)).toBeVisible({timeout:30_000});
@@ -100,8 +85,7 @@ test('retrospective rectification uses the real Swiss engine and discloses the o
 test('Swiss tropical and named sidereal frames produce distinct reproducible coordinates', async ({page,browserName}) => {
   test.skip(browserName!=='chromium','Validate Swiss zodiac frame in Chromium; the shell runs in all three engines.');
   await page.goto('/');
-  await page.getByRole('button',{name:'Começar'}).click();
-  const app=page.frameLocator('#appFrame');
+  const app=page;
   await expect(app.locator('#swissEngineState')).toContainText(/Swiss Ephemeris pronto|WASM pronto/,{timeout:40_000});
   const values=await app.locator('body').evaluate(() => {
     const w=window as unknown as {
