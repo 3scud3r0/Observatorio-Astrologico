@@ -61,6 +61,12 @@ assert metrics["initialHtmlTargetMet"]==(len(initial)<metrics["initialHtmlTarget
 assert metrics["initialHtmlTargetMet"] is True
 legacy=(site/"app.html").read_bytes()
 assert metrics["lazyLegacyHtml"]["bytes"]==len(legacy)
+catalog=(site/"catalog-data.json").read_bytes()
+assert metrics["catalogData"]["bytes"]==len(catalog)
+catalog_obj=json.loads(catalog.decode("utf-8"))
+assert len(catalog_obj["facts"])>=1000 and isinstance(catalog_obj["entities"],dict)
+assert '"facts":[]' in app, "embedded catalog placeholder should be empty after extraction"
+assert len(app.encode("utf-8"))<5_000_000, "lazy app HTML should stay modular after catalog extraction"
 assert metrics["lazyLegacyLoadedInitially"] is False
 assert "swiss/swisseph.wasm" in metrics["assets"]
 print("Release contracts: PWA assets, SHA-256 ephemerides, gzip metrics and encrypted vault SQL OK")
