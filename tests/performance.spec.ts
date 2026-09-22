@@ -16,8 +16,12 @@ test('record browser performance with an explicit mobile viewport', async ({page
   }));
   const clickedAt=Date.now();
   const app=page;
+  await expect.poll(
+    ()=>app.evaluate(()=>(window as unknown as {obsSwiss?:{ready?:boolean}}).obsSwiss?.ready===true),
+    {timeout:90_000}
+  ).toBe(true);
   await expect(app.locator('#swissEngineState'))
-    .toContainText(/Swiss Ephemeris pronto|WASM pronto/,{timeout:45_000});
+    .toContainText(/Swiss Ephemeris pronto|WASM pronto · Moshier ativo/);
   const map=await app.locator('body').evaluate(()=>{
     const w=window as unknown as {makeMap:()=>void;obsSwiss?:{fullSwiss?:boolean}};
     const start=performance.now();
