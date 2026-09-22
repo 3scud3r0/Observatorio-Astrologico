@@ -5,7 +5,7 @@
 const VERSION='oa-offline-v3-restore-home-20260922';
 const CACHE='oa-pages-'+VERSION;
 const STATIC=[
-  './','./index.html','./app.html','./entrada.html','./catalog-data.json',
+  './','./index.html','./app.html','./atlas.html','./entrada.html','./catalog-data.json',
   './base-data.js','./city-data.js','./pdf-font.js','./payload-manifest.json',
   './swiss/swisseph-browser.js','./swiss/swisseph.js','./swiss/swisseph.wasm',
   './swiss/ephe/sepl_18.se1','./swiss/ephe/semo_18.se1','./swiss/ephe/seas_18.se1',
@@ -36,7 +36,8 @@ self.addEventListener('fetch',event=>{
   const indexPath=new URL('./index.html',self.registration.scope).pathname;
   const appPath=new URL('./app.html',self.registration.scope).pathname;
   const entryPath=new URL('./entrada.html',self.registration.scope).pathname;
-  if(request.mode==='navigate'&&url.pathname!==rootPath&&url.pathname!==indexPath&&url.pathname!==appPath&&url.pathname!==entryPath)return;
+  const atlasPath=new URL('./atlas.html',self.registration.scope).pathname;
+  if(request.mode==='navigate'&&url.pathname!==rootPath&&url.pathname!==indexPath&&url.pathname!==appPath&&url.pathname!==entryPath&&url.pathname!==atlasPath)return;
   // Preserve the distinct cache keys for /, /index.html and /app.html.
   // In particular, the iframe must never receive the entry shell while offline.
   const path=url.pathname;
