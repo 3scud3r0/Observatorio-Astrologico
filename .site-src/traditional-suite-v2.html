@@ -54,10 +54,11 @@ view.innerHTML=`
   <section class="tt-pane" data-tt-pane="events" hidden>
     <div class="tt-grid">
       <label>Corpo<select id="tt-body"></select></label><label>Início<input id="tt-event-start" type="date"></label><label>Fim<input id="tt-event-end" type="date"></label>
-      <label>Longitude-alvo (°; vazio = natal atual)<input id="tt-return-target" type="number" min="0" max="360" step="0.000001"></label>
+      <label>Longitude-alvo (°; vazio = natal atual)<input id="tt-return-target" type="number" min="0" max="360" step="0.000001"></label><label>Correção opcional do retorno solar/lunar<select id="tt-return-precession"><option value="none">Sem precessão · retorno tropical ao natal</option><option value="equinox-approximate">Precessão aproximada · 50,29″/ano</option></select></label>
       <label>Aspectos<select id="tt-event-aspects"><option value="0,60,90,120,180">Maiores</option><option value="0,30,45,60,90,120,135,150,180">Maiores + menores</option></select></label>
     </div>
     <div class="tt-row"><button id="tt-return" type="button">Buscar retornos</button><button id="tt-aspects" type="button">Buscar aspectos exatos</button><button id="tt-stations" type="button">Buscar estações</button><button id="tt-ingresses" type="button">Buscar ingressos</button><button id="tt-eclipses" type="button">Buscar eclipses</button></div>
+    <p class="tt-note">A correção por precessão deste painel é uma convenção <b>aproximada</b> de deslocamento da longitude-alvo; não substitui transformação tridimensional rigorosa. Use a data/hora natal em Timing; outros corpos só têm retorno tropical sem correção.</p>
     <div id="tt-event-out" class="tt-out"></div>
   </section>
 
@@ -204,7 +205,24 @@ async function eventSearch(kind){
   const out=q('#tt-event-out');try{await ensureCalc();const eng=E(),body=Number(q('#tt-body').value),start=eng.jdFromDate(q('#tt-event-start').value),end=eng.jdFromDate(q('#tt-event-end').value);if(end<=start)throw Error('Intervalo inválido.');if(end-start>3660)throw Error('Limite desta busca interativa: 10 anos por execução.');
   let rows=[];
   let target=null;if(kind==='return'||kind==='aspect'){target=readLongitude('#tt-return-target','Longitude-alvo',true);if(target===null){target=currentPoints()[body]?.lon;if(!Number.isFinite(target))throw Error('Informe a longitude-alvo ou use um mapa atual.')}}
-  if(kind==='return')rows=eng.findPlanetReturn(body,target,start,end,window.calc,.25).map(j=>[fmtJD(j),fmtLon(window.calc(j,body).lon),'Retorno']);
+  if(kind==='return'){
+    const precession=q('#tt-return-precession').value;
+    if(precession==='none'){
+      rows=eng.findPlanetReturn(body,target,start,end,window.calc,body===1?.125:.25)
+        .map(j=>[fmtJD(j),fmtLon(window.calc(j,body).lon),'Retorno tropical · alvo fixo']);
+    }else{
+      if(body!==0&&body!==1)throw Error('Correção por precessão disponível somente para revoluções solar e lunar.');
+      const b=birthJD(),natal=window.calc(b,body).lon;
+      if(eng.sep(target,natal)>0.0001)
+        throw Error('Para precessão, limpe a longitude-alvo ou use o valor natal exato calculado do mapa.');
+      rows=eng.planetaryRevolutions({
+        kind:body===0?'solar':'lunar',birthJD:b,startJD:start,endJD:end,
+        calcBody:window.calc,precession
+      }).map(x=>[fmtJD(x.jd),fmtLon(x.longitude),'Retorno '+x.kind+
+        ' · alvo '+x.targetLongitude.toFixed(6)+'° · correção '+x.correctionDegrees.toFixed(6)+'°'+
+        ' · '+x.convention]);
+    }
+  }
   if(kind==='aspect'){const aa=q('#tt-event-aspects').value.split(',').map(Number);rows=eng.findAspectsToTarget(body,target,start,end,window.calc,aa,.25).map(x=>[fmtJD(x.jd),fmtLon(x.longitude),x.aspect+'° '+x.branch])}
   if(kind==='station')rows=eng.findStations(body,start,end,window.calc,.25).map(x=>[fmtJD(x.jd),fmtLon(x.longitude),x.type]);
   if(kind==='ingress')rows=eng.findIngresses(body,start,end,window.calc,.25).map(x=>[fmtJD(x.jd),eng.SIGN_NAMES[x.from]+' → '+eng.SIGN_NAMES[x.to],x.direction]);
