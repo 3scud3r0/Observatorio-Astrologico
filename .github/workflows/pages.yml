@@ -127,7 +127,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           page = Path('_site/app.html')
-          enhancement = Path('.site-src/pro-tools.html').read_text('utf-8') + Path('.site-src/pro-upgrade.html').read_text('utf-8') + Path('.site-src/traditional-suite-v2.html').read_text('utf-8') + Path('.site-src/atlas-layout.html').read_text('utf-8')
+          enhancement = Path('.site-src/pro-tools.html').read_text('utf-8') + Path('.site-src/pro-upgrade.html').read_text('utf-8') + Path('.site-src/traditional-suite-v2.html').read_text('utf-8')
           text = page.read_text('utf-8')
           marker = '</body>'
           if marker not in text:
@@ -142,7 +142,6 @@ jobs:
           node --check _site/base-data.js
           node --check _site/city-data.js
           node --check _site/pdf-font.js
-          python .site-src/atlas-release.py _site/app.html
           cp .site-src/atlas-resume.js _site/atlas-resume.js
           # Append the opt-in laboratory without changing the legacy application.
           cat .site-src/research-lab.html >> _site/app.html
@@ -204,6 +203,16 @@ jobs:
           test "$(stat -c%s _site/swiss/ephe/seas_18.se1)" -gt 100000
           python .site-src/asset-provenance.py
 
+          # The original Observatório is the default; the immersive Atlas is opt-in.
+          # Assemble the Atlas from the exact same tested application and public assets.
+          cp _site/app.html _site/atlas.html
+          cat .site-src/atlas-layout.html >> _site/atlas.html
+          python .site-src/atlas-release.py _site/atlas.html
+          if grep -q 'id="oa-atlas"' _site/app.html; then
+            echo "Atlas layout leaked into original homepage" >&2
+            exit 1
+          fi
+
           # Build the lightweight TypeScript/Vite entry only after the complete legacy app exists.
           npm run build
           cp -R _shell/. _site/
@@ -235,7 +244,6 @@ jobs:
               './pdf-font.js',
               './zodiac-mode.js',
               './traditional-engine.js',
-              './atlas-resume.js',
               './research-core.js',
               './research-lab.js',
               './research-analysis.js',
@@ -271,6 +279,11 @@ jobs:
               raise SystemExit('Offline client did not register the worker')
           if './ephemeris-provenance.json' not in Path('_site/research-lab.js').read_text('utf-8'):
               raise SystemExit('Natal provenance does not use the released asset manifest')
+          atlas = Path('_site/atlas.html').read_text('utf-8')
+          if 'id="oa-atlas"' not in atlas or './atlas-resume.js' not in atlas:
+              raise SystemExit('Optional Atlas route is not assembled')
+          if 'id="oa-atlas"' in app or 'body.ra-home' in app:
+              raise SystemExit('Original homepage must not inherit immersive Atlas layout')
           if 'Técnicas tradicionais Pro' not in app:
               raise SystemExit('Traditional Pro suite was not assembled')
           print('Static site, Swiss Ephemeris assets and Traditional Pro suite validated.')
