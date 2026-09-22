@@ -33,6 +33,8 @@ jobs:
         run: |
           set -euo pipefail
           npm run typecheck
+          node --check .site-src/zodiac-mode.js
+          node .site-src/zodiac-mode.test.js
           node --check .site-src/traditional-engine.js
           node .site-src/traditional-engine.test.js
           node --check .site-src/atlas-resume.js
@@ -159,6 +161,7 @@ jobs:
           cp .site-src/research-analysis.js _site/research-analysis.js
           cp .site-src/research-pdf.js _site/research-pdf.js
           cp .site-src/atlas-auth.json _site/atlas-auth.json
+          cp .site-src/zodiac-mode.js _site/zodiac-mode.js
           cp .site-src/traditional-engine.js _site/traditional-engine.js
 
           cp .nojekyll _site/.nojekyll
@@ -201,6 +204,7 @@ jobs:
               './swiss/ephe/sepl_18.se1',
               './swiss/ephe/semo_18.se1',
               './swiss/ephe/seas_18.se1',
+              './zodiac-mode.js',
               './traditional-engine.js',
               './atlas-resume.js',
               './research-core.js',
