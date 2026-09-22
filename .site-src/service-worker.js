@@ -5,7 +5,7 @@
 const VERSION='oa-offline-v1-20260921';
 const CACHE='oa-pages-'+VERSION;
 const STATIC=[
-  './','./index.html',
+  './','./index.html','./app.html',
   './swiss/swisseph-browser.js','./swiss/swisseph.js','./swiss/swisseph.wasm',
   './swiss/ephe/sepl_18.se1','./swiss/ephe/semo_18.se1','./swiss/ephe/seas_18.se1',
   './traditional-engine.js','./research-core.js','./research-lab.js',
@@ -30,7 +30,8 @@ self.addEventListener('fetch',event=>{
   if(/\batlas-auth\.json$/.test(url.pathname))return;
   // Navigation fallback only covers the actual application root, not arbitrary URLs.
   const indexPath=new URL('./index.html',self.registration.scope).pathname;
-  if(request.mode==='navigate'&&url.pathname!==rootPath&&url.pathname!==indexPath)return;
+  const appPath=new URL('./app.html',self.registration.scope).pathname;
+  if(request.mode==='navigate'&&url.pathname!==rootPath&&url.pathname!==indexPath&&url.pathname!==appPath)return;
   const path=request.mode==='navigate'?rootPath:url.pathname;
   if(!allowed.has(path))return;
   event.respondWith((async()=>{
@@ -61,6 +62,16 @@ self.addEventListener('message',event=>{
     let count=0,errors=[];
     const cache=await caches.open(CACHE);
     const provenancePath=new URL('./ephemeris-provenance.json',self.registration.scope).pathname;
+    // Discover Vite's content-hashed shell assets without hard-coding generated filenames.
+    try{
+      const shellResponse=await fetch(new URL('./index.html',self.registration.scope),{cache:'reload'});
+      if(shellResponse.ok){
+        const shellText=await shellResponse.clone().text();
+        for(const match of shellText.matchAll(/(?:src|href)=["'](\.\/assets\/[^"'?#]+)["']/g))
+          allowed.add(new URL(match[1],self.registration.scope).pathname);
+        await cache.put(new URL('./index.html',self.registration.scope).pathname,shellResponse);
+      }
+    }catch{}
     // Reload the manifest before considering a previously cached astronomical file valid.
     let manifestResponse;
     try{
