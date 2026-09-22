@@ -23,6 +23,7 @@ def report():
         "initialHtml":measure(html),
         "initialHtmlTargetMet":html.stat().st_size<TARGET,
         "lazyLegacyHtml":measure(legacy),
+        "catalogData":measure(SITE/"catalog-data.json"),
         "lazyLegacyLoadedInitially":False,
         "assets":{}
     }
