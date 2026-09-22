@@ -38,6 +38,19 @@ assert.equal(report.sensitivity,0.5);
 assert.equal(report.specificity,0.5);
 assert.equal(A.summarize([mk(true,false,'2026-09-21')],now).pending,1,
   'last day must finish before score can be assigned');
+const eventClosed={
+  record:{protocol:{
+    predicted:true,windowStart:'2026-09-01',windowEnd:'2026-12-31',
+    techniques:['Trânsito'],closureMode:'first-confirming-event'
+  }},
+  assessments:[{observed:true,evaluatedAt:'2026-09-10T12:00:00.000Z'}]
+};
+const early=A.summarize([eventClosed],now);
+assert.equal(early.pending,0,'first confirming event closes the observation before hard deadline');
+assert.equal(early.eventClosed,1);
+assert.equal(early.tp,1);
+const noEvent={...eventClosed,assessments:[]};
+assert.equal(A.summarize([noEvent],now).pending,1,'without confirming event the hard deadline remains open');
 const groups=A.byTechnique(data,now);
 assert.equal(groups.length,2);
 assert.deepEqual(groups.map(x=>x.name),['Profecção','Trânsito']);
