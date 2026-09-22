@@ -24,6 +24,7 @@ def report():
         "initialHtmlTargetMet":html.stat().st_size<TARGET,
         "lazyLegacyHtml":measure(legacy),
         "catalogData":measure(SITE/"catalog-data.json"),
+        "externalPayloads":{},
         "lazyLegacyLoadedInitially":False,
         "assets":{}
     }
@@ -34,6 +35,8 @@ def report():
         "research-core.js","research-analysis.js","research-lab.js",
         "atlas-resume.js","swiss-scan-worker.js"
     )
+    for name in ("base-data.js","city-data.js","pdf-font.js"):
+        result["externalPayloads"][name]=measure(SITE/name)
     for name in files:
         path=SITE/name
         if not path.is_file():raise SystemExit("Missing metric asset: "+name)
@@ -50,6 +53,7 @@ if __name__=="__main__":
     print("Initial Vite shell:",initial["bytes"],"bytes; gzip:",
           initial["gzipBytes"],"bytes; target:",TARGET,
           "bytes; target met:",result["initialHtmlTargetMet"])
+    print("External data assets:", {key:value["bytes"] for key,value in result["externalPayloads"].items()})
     print("Lazy legacy app:",result["lazyLegacyHtml"]["bytes"],
           "bytes; gzip:",result["lazyLegacyHtml"]["gzipBytes"],"bytes")
     print("NOTE: Transfer size is not FCP, TTI, RAM, FPS or mobile performance.")
