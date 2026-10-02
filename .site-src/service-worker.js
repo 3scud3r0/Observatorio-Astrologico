@@ -2,7 +2,7 @@
  * Ephemerides are cached only through an explicit user gesture; never intercept auth.
  */
 'use strict';
-const VERSION='oa-offline-v4-legacy-code-20260922';
+const VERSION='oa-offline-v6-workspace-20261002';
 const CACHE='oa-pages-'+VERSION;
 const STATIC=[
   './','./index.html','./app.html','./atlas.html','./entrada.html','./catalog-data.json',
@@ -15,7 +15,7 @@ const STATIC=[
   './swiss-scan-ui.js','./swiss-scan-worker.js',
   './rectification-core.js','./rectification-ui.js',
   './biwheel-core.js','./biwheel-ui.js',
-  './timeline-core.js','./timeline-ui.js','./didactic-boundary.js','./guided-study.js','./study-missions.js',
+  './timeline-core.js','./timeline-ui.js','./chart-core.js','./interpretation-engine.js','./core-rpc.js','./core-worker.js','./forecast-core.js','./portable-backup.js','./quality-gates.js','./professional-workspace.js','./privacy-controls.js','./didactic-boundary.js','./guided-study.js','./study-missions.js',
   './reference-maps.js','./reference-maps-ui.js',
   './manifest.webmanifest','./app-icon.svg','./offline-client.js',
   './ephemeris-provenance.json'

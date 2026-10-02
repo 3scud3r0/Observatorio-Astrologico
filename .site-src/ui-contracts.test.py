@@ -47,12 +47,20 @@ verify("offline.html", "offline-client.js", "oa-o-", r"\$\('([^']+)'\)")
 verify("swiss-scan.html", "swiss-scan-ui.js", "oa-s-", r"\$\('([^']+)'\)")
 verify("biwheel.html", "biwheel-ui.js", "oa-b-", r"\$\('([^']+)'\)")
 verify("rectification.html", "rectification-ui.js", "oa-rect-", r"\$\('([^']+)'\)")
+verify("professional-workspace.html", "professional-workspace.js", "oa-pw-", r"\$\('([^']+)'\)")
 
 for html_name, core in [
     ("research-lab.html", "research-core.js"),
     ("timeline.html", "timeline-core.js"),
     ("guided-study.html", "guided-study.js"),
     ("guided-study.html", "didactic-boundary.js"),
+    ("guided-study.html", "chart-core.js"),
+    ("guided-study.html", "interpretation-engine.js"),
+    ("guided-study.html", "core-rpc.js"),
+    ("professional-workspace.html", "forecast-core.js"),
+    ("professional-workspace.html", "portable-backup.js"),
+    ("professional-workspace.html", "quality-gates.js"),
+    ("professional-workspace.html", "privacy-controls.js"),
     ("research-vault-ui.html", "research-vault.js"),
 ]:
     html = (ROOT / html_name).read_text("utf-8")
@@ -72,6 +80,7 @@ for name, root_id in (
     ("offline.html", "oa-offline"),
     ("swiss-scan.html", "oa-scan"),
     ("rectification.html", "oa-rect"),
+    ("professional-workspace.html", "oa-pro-workspace"),
 ):
     html = (ROOT / name).read_text("utf-8")
     assert f"#{root_id}{{display:block;" in html, (

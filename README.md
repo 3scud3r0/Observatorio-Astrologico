@@ -19,6 +19,14 @@ O documento principal, de cerca de 15,8 MB antes dos módulos adicionais, ainda 
 
 Os arquivos usados pelo site devem ser alterados em `.site-src/`, e não em `_site/` (artefato descartável). O script `.site-src/atlas-release.py` mantém modificações de compatibilidade com verificações explícitas. As atualizações de setembro de 2026 consolidam os cálculos solares do Pro Studio na Swiss Ephemeris e reutilizam `OATraditionalEngine` para arco solar, firdaria e Zodiacal Releasing.
 
+## Núcleo e interpretação estruturada
+
+As fases iniciais da nova arquitetura estão documentadas no [contrato de produto](docs/PRODUCT_CONTRACT.md). `chart-core.js` cria um `ChartFacts` validado, imutável e reproduzível, resolve hora civil por fuso IANA, aplica a política de qualidade do horário e classifica fatores estáveis ou variáveis em amostras de incerteza. `core-worker.js` oferece uma fronteira RPC cancelável para posições Swiss, normalização, fingerprint e interpretação sem compartilhar estado mutável com a interface.
+
+`interpretation-engine.js` produz leituras essencial, intermediária e profissional dos dez planetas, do Ascendente e de aspectos maiores, com síntese de convergência elemental. Cada achado inclui fatos de origem, escola, versão da regra e fontes. Essa primeira cobertura é deliberadamente limitada: ainda não constitui uma interpretação integral de casas, regências e técnicas temporais.
+
+As [fases 4 a 8](docs/PHASES_4_8_STATUS.md) acrescentam um workspace natal/temporal, eventos canônicos de trânsito, progressão, arco solar e retornos calculados em Worker, agenda iCalendar, relatórios JSON/SVG/PDF, backup local e IndexedDB e laudos automáticos de qualidade. A [matriz de certificação](docs/QUALITY_CERTIFICATION.md) separa deliberadamente gates executáveis no CI das auditorias externas ainda necessárias.
+
 ## Laboratório prospectivo e relógio de trânsitos
 
 O [inventário das três conversas](docs/INVENTARIO_TRES_CONVERSAS.md) identifica requisitos existentes, parcialmente implementados e pendentes. A primeira implementação dessa consolidação acrescentou:
