@@ -1,0 +1,16 @@
+'use strict';
+const assert=require('node:assert/strict'),F=require('./forecast-core.js');
+const start=2451545,calc=(jd)=>({longitude:(jd-start)*2});
+const events=F.scanTransits({startJD:start,endJD:start+100,body:0,targetLongitude:30,targetName:'Sol natal',bodyName:'Sol em trânsito',orb:1,step:.25,calc});
+assert(events.some(x=>x.aspect===0&&x.exactAt.startsWith('2000-01-16')));
+assert(events.every(Object.isFrozen));
+const reading=F.interpretEvent(events[0],'professional');assert.equal(reading.eventId,events[0].id);assert.match(reading.warning,/não previsão/);
+const progressed=F.scanSecondaryProgression({birthJD:start,startJD:start,endJD:start+365.242189*20,body:0,targetLongitude:20,targetName:'Alvo',bodyName:'Sol progredido',orb:1,step:1,calc});
+assert(progressed.some(x=>x.technique==='secondary-progression'));
+const returns=F.scanReturn({startJD:start,endJD:start+100,body:0,natalLongitude:30,bodyName:'Sol',step:.25,calc});assert(returns.every(x=>x.aspect===0&&x.technique==='planetary-return'));
+const directed=F.scanSolarArc({birthJD:start,startJD:start,endJD:start+365.242189*20,sourceLongitude:5,targetLongitude:25,targetName:'Alvo',sourceName:'Marte dirigido',orb:1,step:1,calc});assert(directed.some(x=>x.technique==='solar-arc-direction'));
+const timeline=F.buildTimeline({birthJD:start,startJD:start,endJD:start+100,body:0,targetLongitude:30,targetName:'Sol natal',bodyName:'Sol',sourceName:'Sol',sourceLongitude:30,orb:1,step:.25,techniques:['transit','planetary-return'],calc});assert(timeline.some(x=>x.technique==='transit')&&timeline.some(x=>x.technique==='planetary-return'));
+const overlap=[events[0],F.createEvent({...events[0],id:'other',technique:'secondary-progression'})];assert.equal(F.convergence(overlap).length,1);
+const ics=F.toICS(events);assert.match(ics,/BEGIN:VCALENDAR/);assert.match(ics,/BEGIN:VEVENT/);
+assert.throws(()=>F.createEvent({}),/Aspecto/);
+console.log('Forecast core: roots, windows, evidence and ICS OK');

@@ -17,7 +17,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | AR07 | Retirar substituições literais frágeis do atlas-release.py | A; release append-only, alterações transferidas aos fragmentos e teste que proíbe rewrites |
 | AR08 | Separar banco de textos e componentes em arquivos modulares | A/P; catálogo JSON, BASE, cidades, fonte PDF, motor e módulos de UX separados; banco de textos e scripts legados remanescentes |
 | AR09 | Code-splitting/lazy loading e meta de <500 KB iniciais (sem efemérides) | A/P; shell index.html 2.296 B no build, <500 KB, app.html lazy ~1,53 MB; base/cidades/fonte ~12,54 MB continuam requeridos ao abrir aplicativo completo |
-| AR10 | Isolar Swiss e varreduras pesadas em Web Worker e protocolo RPC cancelável | A/P; scanner independente em Worker com Swiss/WASM e cancelamento; motor principal continua na thread da UI |
+| AR10 | Isolar Swiss e varreduras pesadas em Web Worker e protocolo RPC cancelável | A/P; scanner e novo núcleo RPC cancelável calculam posições em Worker com Swiss/WASM; interfaces legadas ainda executam parte do motor na thread da UI |
 | AR11 | Limitar memória e preservar responsividade durante consultas longas | P |
 | AR12 | Cache local controlado de efemérides em IndexedDB/CacheStorage | P; CacheStorage opt-in com pacote explicitamente preparado |
 | AR13 | PWA e modo offline real após o primeiro download completo | A/P; preparação explícita e recarga sem rede testadas no Chromium; correção posterior preserva cache distinto de app.html; auditoria real em outros navegadores/dispositivos ainda pendente |
@@ -34,7 +34,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | AR24 | Testes de instalações em navegadores, orientação móvel, teclado e acessibilidade | A/P; dez testes Playwright passaram para entrada, teclado, orientação móvel, lazy load e offline Chromium; não equivale a auditoria WCAG ou instalação PWA em aparelhos |
 | AR25 | Versionar e identificar parâmetros de cada cálculo e sua fonte | P/A |
 | AR26 | Medir limites de intervalo das efemérides, fuso histórico e DST, não prometer 1800–2400 cegamente | P |
-| AR27 | Separar matemática determinística de textos gerados por IA; IA só didática e com fontes | A/P; envelope didático imutável, rotulagem obrigatória de IA e fontes no estudo guiado; legado textual integral ainda não migrado |
+| AR27 | Separar matemática determinística de textos gerados por IA; IA só didática e com fontes | A/P; ChartFacts imutável, interpretador versionado, trilha de evidência, envelope didático e fontes no estudo guiado; legado textual integral ainda não migrado |
 
 ## 2. Astrologia astronômica, tradicional e profissional (C1+C2)
 
@@ -68,7 +68,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 |---|---|---|
 | PR01 | Linha do tempo interativa ±minuto/hora/dia/mês/ano, roda atualizável | A/P; relógio Swiss e roda SVG, sem bi-wheel |
 | PR02 | Scanner anual de trânsito com motor suíço, não Sol médio | A |
-| PR03 | Trânsitos exatos, orbe de entrada/saída, aspectos e agenda | A/P; scanner Swiss em Worker calcula janelas refinadas por bisseção quando detectadas; agenda e garantia de eventos subamostrados pendentes |
+| PR03 | Trânsitos exatos, orbe de entrada/saída, aspectos e agenda | A/P; evento canônico, raízes refinadas, janela, múltiplas passagens, agenda de 30 dias e ICS em Worker Swiss; filtros amplos e garantia formal contra eventos subamostrados pendentes |
 | PR04 | Progressões secundárias com idade fracionária | E/A |
 | PR05 | Ascendente e MC progredidos: opção arco solar/AR, convenção descrita | A; duas convenções separadas no motor e na suíte tradicional com testes de regressão; certificação independente pendente |
 | PR06 | Direções por arco solar médio e verdadeiro + comparação | P |
@@ -99,7 +99,7 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | PE10 | Estatística por técnica/protocolo e correção por múltiplas comparações | A/P; grupos descritivos por técnica e referência alfa Bonferroni; p-valores, correção inferencial e desenho independente ainda pendentes |
 | PE11 | Evitar inferir causalidade ou poder preditivo de coincidências | A |
 | PE12 | Dados locais sem cadastro obrigatório; backups JSON | E/A |
-| PE13 | Exportação/restauração integrais e exclusão explícita | A/P; importação e snapshots com selo, gravação atômica e bloqueio de sobrescrita de dados ilegíveis; restauração integral de todos os tipos de dados não comprovada |
+| PE13 | Exportação/restauração integrais e exclusão explícita | A/P; backup portátil dos namespaces locais, validação, rollback atômico, conflito seguro e exclusão explícita; IndexedDB de todos os módulos e nuvem ainda não entram no mesmo pacote |
 | PE14 | Sincronização opcional Supabase privada sob RLS e teste com duas contas | P; cofre cifrado e SQL RLS implementados; nenhum projeto Supabase conectado, migração e teste com contas reais pendentes |
 | PE15 | Cifrar/sincronizar dados pessoais mediante consentimento, jamais torná-los públicos por padrão | A/P; WebCrypto AES-256-GCM, PBKDF2 e upload explícito de snapshots; integração real pendente |
 | PE16 | Relatórios PDF de auditoria e identidade técnica | A/P; PDF de protocolo selado e avaliações com paginação; PDF específico da identidade técnica e validação visual em navegador pendentes |
@@ -111,10 +111,10 @@ Legenda: **E** = existe, **P** = parcial, **N** = não implementado/validado, **
 | ID | Requisito | Estado |
 |---|---|---|
 | UX01 | Entrada por objetivo: começar, investigar, aprender e especialista | A/P; shell principal com quatro objetivos testado; ainda abre parte do aplicativo legado em iframe |
-| UX02 | Alternador leigo/observatório profissional | A/P; explicação simples/técnica no estudo guiado |
+| UX02 | Alternador leigo/observatório profissional | A/P; leitura estruturada essencial/intermediária/profissional no estudo guiado e workspace natal/temporal |
 | UX03 | Big 3 em linguagem direta, contexto sobre graus e signos | A/P; painel natal de três etapas |
 | UX04 | Missões de estudo que iluminam casas/planetas | A/P; roda SVG própria ilumina Sol/Lua/ASC/MC já calculados; não destaca ainda a roda principal inteira |
-| UX05 | Ajuda contextual “explique de forma simples” sem mudar fórmulas | A/P; painel básico/técnico sem IA |
+| UX05 | Ajuda contextual “explique de forma simples” sem mudar fórmulas | A/P; três profundidades usam o mesmo ChartFacts e expõem trilha técnica para planetas, Ascendente e aspectos maiores; casas, regências e técnicas temporais ainda pendentes |
 | UX06 | Mostrar horas documentadas/aproximadas/desconhecidas, fuso incerto e geolocalização | A/P |
 | UX07 | Impedir resultados dependentes da hora sem horário confiável | A/P |
 | UX08 | Explicitar local vs conta vs arquivo exportado | A/P |

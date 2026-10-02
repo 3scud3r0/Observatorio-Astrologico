@@ -62,6 +62,20 @@ jobs:
           node .site-src/timeline-core.test.js
           node --check .site-src/didactic-boundary.js
           node .site-src/didactic-boundary.test.js
+          node --check .site-src/chart-core.js
+          node .site-src/chart-core.test.js
+          node --check .site-src/interpretation-engine.js
+          node .site-src/interpretation-engine.test.js
+          node --check .site-src/core-rpc.js
+          node --check .site-src/core-worker.js
+          node --check .site-src/forecast-core.js
+          node .site-src/forecast-core.test.js
+          node --check .site-src/portable-backup.js
+          node .site-src/portable-backup.test.js
+          node --check .site-src/quality-gates.js
+          node .site-src/quality-gates.test.js
+          node --check .site-src/professional-workspace.js
+          node --check .site-src/privacy-controls.js
           node --check .site-src/guided-study.js
           node --check .site-src/study-missions.js
           node --check .site-src/reference-maps.js
@@ -77,6 +91,7 @@ jobs:
           python .site-src/atlas-release.test.py
           python .site-src/supply-chain.test.py
           python .site-src/ui-contracts.test.py
+          python .site-src/completion-gates.test.py
           python - <<'PY'
           import re
           from pathlib import Path
@@ -159,6 +174,7 @@ jobs:
           cp .site-src/biwheel-ui.js _site/biwheel-ui.js
           cat .site-src/timeline.html >> _site/app.html
           cat .site-src/guided-study.html >> _site/app.html
+          cat .site-src/professional-workspace.html >> _site/app.html
           cat .site-src/home-pathways.html >> _site/app.html
           cat .site-src/study-missions.html >> _site/app.html
           cat .site-src/reference-maps.html >> _site/app.html
@@ -174,6 +190,15 @@ jobs:
           cp .site-src/manifest.webmanifest _site/manifest.webmanifest
           cp .site-src/app-icon.svg _site/app-icon.svg
           cp .site-src/didactic-boundary.js _site/didactic-boundary.js
+          cp .site-src/chart-core.js _site/chart-core.js
+          cp .site-src/interpretation-engine.js _site/interpretation-engine.js
+          cp .site-src/core-rpc.js _site/core-rpc.js
+          cp .site-src/core-worker.js _site/core-worker.js
+          cp .site-src/forecast-core.js _site/forecast-core.js
+          cp .site-src/portable-backup.js _site/portable-backup.js
+          cp .site-src/quality-gates.js _site/quality-gates.js
+          cp .site-src/professional-workspace.js _site/professional-workspace.js
+          cp .site-src/privacy-controls.js _site/privacy-controls.js
           cp .site-src/guided-study.js _site/guided-study.js
           cp .site-src/timeline-core.js _site/timeline-core.js
           cp .site-src/timeline-ui.js _site/timeline-ui.js
@@ -273,6 +298,14 @@ jobs:
               './timeline-core.js',
               './timeline-ui.js',
               './didactic-boundary.js',
+              './chart-core.js',
+              './interpretation-engine.js',
+              './core-rpc.js',
+              './forecast-core.js',
+              './portable-backup.js',
+              './quality-gates.js',
+              './professional-workspace.js',
+              './privacy-controls.js',
               './guided-study.js',
               './study-missions.js',
               './reference-maps.js',
@@ -291,7 +324,7 @@ jobs:
               raise SystemExit('Vite shell does not lazy-load app.html')
           if Path('_site/entrada.html').stat().st_size >= 500000:
               raise SystemExit('Optional Vite entry exceeds 500 KB')
-          for name in ('service-worker.js','ephemeris-provenance.json','manifest.webmanifest','offline-client.js','app-icon.svg','swiss-scan-worker.js'):
+          for name in ('service-worker.js','ephemeris-provenance.json','manifest.webmanifest','offline-client.js','app-icon.svg','swiss-scan-worker.js','chart-core.js','interpretation-engine.js','core-rpc.js','core-worker.js','forecast-core.js','portable-backup.js','quality-gates.js','professional-workspace.js','privacy-controls.js'):
               if not (Path('_site')/name).is_file():
                   raise SystemExit('Missing published offline/provenance asset: '+name)
           if './service-worker.js' not in Path('_site/offline-client.js').read_text('utf-8'):

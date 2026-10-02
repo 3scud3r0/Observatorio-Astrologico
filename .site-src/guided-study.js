@@ -1,8 +1,8 @@
 /* Guide is a renderer of already-calculated map values, never a second ephemeris. */
 (()=>{
   'use strict';
-  const root=document.getElementById('oa-guide'),D=window.OADidacticBoundary;
-  if(!root||!D)return;
+  const root=document.getElementById('oa-guide'),D=window.OADidacticBoundary,C=window.OAChartCore,I=window.OAInterpretationEngine;
+  if(!root||!D||!C||!I)return;
   const $=name=>document.getElementById('oa-g-'+name);
   const signs=['Áries','Touro','Gêmeos','Câncer','Leão','Virgem','Libra','Escorpião','Sagitário','Capricórnio','Aquário','Peixes'];
   const subjects=[
@@ -10,7 +10,7 @@
     {name:'Lua',description:'A Lua se desloca relativamente rápido; uma hora natal aproximada ou desconhecida pode mudar o grau calculado.'},
     {name:'Ascendente',description:'O Ascendente depende da interseção entre eclíptica e horizonte local. Exige hora, local e fuso confiáveis.'}
   ];
-  let step=0,technical=false;
+  let step=0,level='essential';
   const emit=s=>{$('output').textContent=s};
   function current(){
     try{
@@ -33,17 +33,29 @@
     if(!Number.isFinite(lon))throw Error('Calcule o mapa natal para consultar Sol e Lua. Nenhuma longitude será presumida.');
     return lon;
   }
+  function structuredReading(){
+    const entries=current(),precision=document.getElementById('precision')?.value;
+    const quality=precision==='desconhecida'?'unknown':precision==='aproximada'?'approximate':'documented';
+    const bodies=[],names=['Sol','Lua','Mercúrio','Vênus','Marte','Júpiter','Saturno','Urano','Netuno','Plutão'];
+    names.forEach((name,index)=>{if(Number.isFinite(entries[index]?.lon))bodies.push({name,longitude:entries[index].lon,latitude:entries[index].lat??null,speed:entries[index].speed??null})});
+    const asc=window.currentHouseGeometry?.asc,angles=Number.isFinite(asc)?[{name:'Ascendente',longitude:asc}]:[];
+    const facts=C.createFacts({subject:{label:'Mapa atual',timeQuality:quality,uncertaintyMinutes:quality==='approximate'?60:0},referenceFrame:{zodiac:document.getElementById('zodiacMode')?.value||'tropical',ayanamsha:document.getElementById('siderealMode')?.value||null,houseSystem:document.getElementById('houseSystem')?.value||null},bodies,angles,provenance:{calculator:window.obsSwiss?.ready?'Swiss Ephemeris/WASM':'Motor ainda não confirmado'}});
+    const result=I.interpret(facts,{level,maxFindings:5});
+    const findings=result.findings.map(item=>'• '+item.title+': '+item.text+(level==='professional'?'\n  Regra '+item.evidenceTrace.ruleVersion+' · '+item.evidenceTrace.school+' · fatos: '+item.evidenceTrace.facts.join(', '):'')).join('\n');
+    return 'LEITURA ESTRUTURADA · '+level.toUpperCase()+'\n'+result.summary+'\n'+(findings||'Nenhum fator disponível neste nível.')+'\n\nAvisos:\n'+result.warnings.map(x=>'• '+x).join('\n');
+  }
   function render(){
     root.querySelectorAll('[data-oa-step]').forEach(button=>
       button.setAttribute('aria-pressed',String(Number(button.dataset.oaStep)===step)));
-    $('simple').setAttribute('aria-pressed',String(!technical));
-    $('technical').setAttribute('aria-pressed',String(technical));
+    $('simple').setAttribute('aria-pressed',String(level==='essential'));
+    $('intermediate').setAttribute('aria-pressed',String(level==='intermediate'));
+    $('technical').setAttribute('aria-pressed',String(level==='professional'));
     try{
       const lon=((point()%360)+360)%360;
       const sign=signs[Math.floor(lon/30)],degree=lon%30;
       const subject=subjects[step];
       const calculation={subject:subject.name,longitude:lon,sign,signIndex:Math.floor(lon/30),degreeInSign:degree};
-      const explanation=technical?subject.description:
+      const explanation=level==='professional'?subject.description:
         'Seu mapa localiza '+subject.name.toLowerCase()+' no setor '+sign+
         ' do zodíaco. Isso não define personalidade nem garante acontecimentos.';
       const didactic=D.envelope({
@@ -56,8 +68,8 @@
       emit('Dados calculados · '+subject.name+' · '+sign+
         '\nLongitude eclíptica: '+lon.toFixed(6)+'°'+
         '\nGrau dentro do signo: '+degree.toFixed(6)+'°'+
-        (technical?'\nÍndice do signo: ⌊(λ mod 360°)/30°⌋.':'')+
-        '\n\n'+D.render(didactic));
+        (level==='professional'?'\nÍndice do signo: ⌊(λ mod 360°)/30°⌋.':'')+
+        '\n\n'+D.render(didactic)+'\n\n'+structuredReading());
     }catch(error){emit(error.message)}
   }
   $('toggle').onclick=()=>{
@@ -72,8 +84,9 @@
   root.querySelectorAll('[data-oa-step]').forEach(button=>button.onclick=()=>{
     step=Number(button.dataset.oaStep);render();
   });
-  $('simple').onclick=()=>{technical=false;render()};
-  $('technical').onclick=()=>{technical=true;render()};
+  $('simple').onclick=()=>{level='essential';render()};
+  $('intermediate').onclick=()=>{level='intermediate';render()};
+  $('technical').onclick=()=>{level='professional';render()};
   root.querySelectorAll('[data-oa-go]').forEach(button=>button.onclick=()=>{
     root.querySelectorAll('[data-oa-go]').forEach(other=>
       other.setAttribute('aria-pressed',String(other===button)));
